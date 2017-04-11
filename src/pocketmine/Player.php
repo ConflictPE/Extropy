@@ -1726,29 +1726,21 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 				--$slot->count;
 				$this->inventory->setItemInHand($slot);
-				switch ($slotId) {
-					case Item::MUSHROOM_STEW:
-					case Item::BEETROOT_SOUP:
-						$this->inventory->addItem(Item::get(Item::BOWL, 0, 1));
-						break;
-					case Item::RAW_FISH:
-						if ($slot->getDamage() === 3) { //Pufferfish
-							$this->addEffect(Effect::getEffect(Effect::HUNGER)->setAmplifier(2)->setDuration(15 * 20));
-							//$this->addEffect(Effect::getEffect(Effect::NAUSEA)->setAmplifier(1)->setDuration(15 * 20));
-							$this->addEffect(Effect::getEffect(Effect::POISON)->setAmplifier(3)->setDuration(60 * 20));
-						}
-						break;
-					case Item::GOLDEN_APPLE:
-						$this->addEffect(Effect::getEffect(Effect::REGENERATION)->setAmplifier(1)->setDuration(5 * 20));
-//						$this->addEffect(Effect::getEffect(Effect::ABSORPTION)->setAmplifier(0)->setDuration(120 * 20));
-						break;
-					case Item::ENCHANTED_GOLDEN_APPLE:
-						$this->addEffect(Effect::getEffect(Effect::REGENERATION)->setAmplifier(4)->setDuration(30 * 20));
-//						$this->addEffect(Effect::getEffect(Effect::ABSORPTION)->setAmplifier(0)->setDuration(120 * 20));
-						$this->addEffect(Effect::getEffect(Effect::DAMAGE_RESISTANCE)->setAmplifier(0)->setDuration(300 * 20));
-						$this->addEffect(Effect::getEffect(Effect::FIRE_RESISTANCE)->setAmplifier(0)->setDuration(300 * 20));
-						break;
-				}
+				if($slot->getId() === Item::MUSHROOM_STEW or $slot->getId() === Item::BEETROOT_SOUP){
+					$this->inventory->addItem(Item::get(Item::BOWL, 0, 1));
+				}elseif($slot->getId() === Item::RAW_FISH and $slot->getDamage() === 3){ //Pufferfish
+					$this->addEffect(Effect::getEffect(Effect::HUNGER)->setAmplifier(2)->setDuration(15 * 20));
+					//$this->addEffect(Effect::getEffect(Effect::NAUSEA)->setAmplifier(1)->setDuration(15 * 20));
+					$this->addEffect(Effect::getEffect(Effect::POISON)->setAmplifier(3)->setDuration(60 * 20));
+				} elseif ($slot->getId() === Item::GOLDEN_APPLE) {
+					$this->addEffect(Effect::getEffect(Effect::REGENERATION)->setAmplifier(1)->setDuration(5 * 20));
+					$this->addEffect(Effect::getEffect(Effect::ABSORPTION)->setAmplifier(0)->setDuration(120 * 20));
+				} elseif ($slot->getId() === Item::ENCHANTED_GOLDEN_APPLE) {
+					$this->addEffect(Effect::getEffect(Effect::REGENERATION)->setAmplifier(4)->setDuration(30 * 20));
+					$this->addEffect(Effect::getEffect(Effect::ABSORPTION)->setAmplifier(0)->setDuration(120 * 20));
+					$this->addEffect(Effect::getEffect(Effect::DAMAGE_RESISTANCE)->setAmplifier(0)->setDuration(300 * 20));
+					$this->addEffect(Effect::getEffect(Effect::FIRE_RESISTANCE)->setAmplifier(0)->setDuration(300 * 20));
+		}
 			}
 		}
 	}
@@ -2054,11 +2046,12 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						break;
 					}
 
-					$item = $this->inventory->getItemInHand();
-					if (!$item->deepEquals($packet->item)) {
+					if(!$this->inventory->getItemInHand()->deepEquals($packet->item)){
 						$this->inventory->sendHeldItem($this);
-						//Timings::$timerUseItemPacket->stopTiming();
 						break;
+					}else{
+						/** @var Item $item */
+						$item = $this->inventory->getItemInHand();
 					}
 
 					if ($packet->x != 0 || $packet->y != 0 || $packet->z != 0) {
@@ -2072,57 +2065,104 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					$this->server->getPluginManager()->callEvent($ev);
 					if ($ev->isCancelled()) {
 						$this->inventory->sendHeldItem($this);
-						if ($this->inventory->getHeldItemSlot() !== -1) {
-							$this->inventory->sendContents($this);
-						}
-						//Timings::$timerUseItemPacket->stopTiming();
 						break;
 					}
 
-						$yawRad = $this->yaw / 180 * M_PI;
-						$pitchRad = $this->pitch / 180 * M_PI;
-						$nbt = new Compound("", [
-							"Pos" => new Enum("Pos", [
-								new DoubleTag("", $this->x),
-								new DoubleTag("", $this->y + $this->getEyeHeight()),
-								new DoubleTag("", $this->z)
-							]),
-							"Motion" => new Enum("Motion", [
-								new DoubleTag("", -sin($yawRad) * cos($pitchRad)),
-								new DoubleTag("", -sin($pitchRad)),
-								new DoubleTag("", cos($yawRad) * cos($pitchRad))
-							]),
-							"Rotation" => new Enum("Rotation", [
-								new FloatTag("", $this->yaw),
-								new FloatTag("", $this->pitch)
-							]),
-						]);
+					$nbt = new Compound("", [
+						"Pos" => new Enum("Pos", [
+							new DoubleTag("", $this->x),
+							new DoubleTag("", $this->y + $this->getEyeHeight()),
+							new DoubleTag("", $this->z),
+						]),
+						"Motion" => new Enum("Motion", [
+							//TODO: remove this because of a broken client
+							new DoubleTag("", -sin($this->yaw / 180 * M_PI) * cos($this->pitch / 180 * M_PI)),
+							new DoubleTag("", -sin($this->pitch / 180 * M_PI)),
+							new DoubleTag("", cos($this->yaw / 180 * M_PI) * cos($this->pitch / 180 * M_PI)),
+						]),
+						"Rotation" => new Enum("Rotation", [
+							new FloatTag("", $this->yaw),
+							new FloatTag("", $this->pitch),
+						]),
+					]);
 
-						$f = 1.5;
-						switch ($item->getId()) {
-							case Item::SNOWBALL:
-								$projectile = Entity::createEntity("Snowball", $this->chunk, $nbt, $this);
-								break;
-							case Item::EGG:
-								$projectile = Entity::createEntity("Egg", $this->chunk, $nbt, $this);
-								break;
-						}
-						$projectile->setMotion($projectile->getMotion()->multiply($f));
-						if ($this->isSurvival()) {
+					$entity = null;
+					$reduceCount = true;
+					$chunk = $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4);
+
+					switch($item->getId()){
+						//case Item::FISHING_ROD:
+						//	$this->server->getPluginManager()->callEvent($ev = new PlayerUseFishingRodEvent($this, ($this->isFishing() ? PlayerUseFishingRodEvent::ACTION_STOP_FISHING : PlayerUseFishingRodEvent::ACTION_START_FISHING)));
+						//	if(!$ev->isCancelled()){
+						//		if(!$this->isFishing()){
+						//			$f = 0.6;
+						//			$entity = Entity::createEntity("FishingHook", $this->getLevel(), $nbt, $this);
+						//			$entity->setMotion($entity->getMotion()->multiply($f));
+						//		}
+						//	}
+						//	$this->setFishingHook($entity);
+						//	$reduceCount = false;
+						//	break;
+						case Item::SNOWBALL:
+							$f = 1.5;
+							$entity = Entity::createEntity("Snowball", $chunk, $nbt, $this);
+							$entity->setMotion($entity->getMotion()->multiply($f));
+							$this->server->getPluginManager()->callEvent($ev = new ProjectileLaunchEvent($entity));
+							if($ev->isCancelled()){
+								$entity->kill();
+							}
+							break;
+						case Item::EGG:
+							$f = 1.5;
+							$entity = Entity::createEntity("Egg", $chunk, $nbt, $this);
+							$entity->setMotion($entity->getMotion()->multiply($f));
+							$this->server->getPluginManager()->callEvent($ev = new ProjectileLaunchEvent($entity));
+							if($ev->isCancelled()){
+								$entity->kill();
+							}
+							break;
+						//case Item::ENCHANTING_BOTTLE:
+						//	$f = 1.1;
+						//	$entity = Entity::createEntity("ThrownExpBottle", $this->getLevel(), $nbt, $this);
+						//	$entity->setMotion($entity->getMotion()->multiply($f));
+						//	$this->server->getPluginManager()->callEvent($ev = new ProjectileLaunchEvent($entity));
+						//	if($ev->isCancelled()){
+						//		$entity->kill();
+						//	}
+						//	break;
+						case Item::SPLASH_POTION:
+							$f = 1.1;
+							$nbt["PotionId"] = new ShortTag("PotionId", $item->getDamage());
+							$entity = Entity::createEntity("ThrownPotion", $chunk, $nbt, $this);
+							$entity->setMotion($entity->getMotion()->multiply($f));
+							$this->server->getPluginManager()->callEvent($ev = new ProjectileLaunchEvent($entity));
+							if($ev->isCancelled()){
+								$entity->kill();
+							}
+						//case Item::ENDER_PEARL:
+						//	if(floor(($time = microtime(true)) - $this->lastEnderPearlUse) >= 1){
+						//		$f = 1.5;
+						//		$entity = Entity::createEntity("EnderPearl", $this->getLevel(), $nbt, $this);
+						//		$entity->setMotion($entity->getMotion()->multiply($f));
+						//		$this->server->getPluginManager()->callEvent($ev = new ProjectileLaunchEvent($entity));
+						//		if($ev->isCancelled()){
+						//			$entity->kill();
+						//		}else{
+						//			$this->lastEnderPearlUse = $time;
+						//		}
+						//	}
+						//	break;
+					}
+
+					if($entity instanceof Projectile and $entity->isAlive()){
+						if($reduceCount and $this->isSurvival()){
 							$item->setCount($item->getCount() - 1);
 							$this->inventory->setItemInHand($item->getCount() > 0 ? $item : Item::get(Item::AIR));
 						}
-						if ($projectile instanceof Projectile) {
-							$this->server->getPluginManager()->callEvent($projectileEv = new ProjectileLaunchEvent($projectile));
-							if ($projectileEv->isCancelled()) {
-								$projectile->kill();
-							} else {
-								$projectile->spawnToAll();
-								$this->level->addSound(new LaunchSound($this), $this->getViewers());
-							}
-						} else {
-							$projectile->spawnToAll();
-						}
+
+						$entity->spawnToAll();
+						$this->level->addSound(new LaunchSound($this), $this->getViewers());
+					}
 
 					$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, true);
 					$this->startAction = $this->server->getTick();
@@ -2334,14 +2374,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				switch($packet->event){
 					case EntityEventPacket::USE_ITEM: //Eating
 						$slot = $this->inventory->getItemInHand();
-						if($slot instanceof Potion && $slot->canBeConsumed()){
-							$ev = new PlayerItemConsumeEvent($this, $slot);
-							$this->server->getPluginManager()->callEvent($ev);
-							if(!$ev->isCancelled()){
-								$slot->onConsume($this);
-							}else{
-								$this->inventory->sendContents($this);
-							}
+						if($slot->canBeConsumed() and $slot->canBeConsumedBy($this)){
+							$slot->onConsume($this);
 						} else {
 							$this->eatFoodInHand();
 						}
@@ -3173,7 +3207,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	public function setHealth($amount){
 		parent::setHealth($amount);
-		if($this->spawned === true){
+		if($this->spawned){
 			$pk = new UpdateAttributesPacket();
 			$pk->entityId = $this->id;
 			$this->foodTick = 0;
@@ -3183,10 +3217,40 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$pk->defaultValue = $pk->maxValue;
 			$pk->name = UpdateAttributesPacket::HEALTH;
 			$this->dataPacket($pk);
-//			$pk = new SetHealthPacket();
-//			$pk->value = $amount;
-//			$this->dataPacket($pk);
 		}
+	}
+
+	/** @var int */
+	protected $absorption;
+
+	const ABSORPTION_MAX = 340282346638528859811704183484516925440.00;
+
+	public function getAbsorption() {
+		return $this->absorption;
+	}
+
+	public function setAbsorption($amount) {
+		if($this->spawned){
+			$this->absorption = $amount;
+			$pk = new UpdateAttributesPacket();
+			$pk->entityId = $this->getId();
+			$pk->minValue = 0.00;
+			$pk->maxValue = self::ABSORPTION_MAX;
+			$pk->value = $this->absorption;
+			$pk->defaultValue = 0.00;
+			$pk->name = UpdateAttributesPacket::ABSORPTION;
+			$this->dataPacket($pk);
+		}
+	}
+
+	public function addAbsorption($amount) {
+		if($this->absorption + $amount > self::ABSORPTION_MAX) $amount = self::ABSORPTION_MAX;
+		$this->setAbsorption($this->getAbsorption() + $amount);
+	}
+
+	public function subtractAbsorption($amount) {
+		if($this->absorption - $amount < 0) $amount = 0;
+		$this->setAbsorption($this->getAbsorption() - $amount);
 	}
 
 	private $hunger = 20;
@@ -3252,6 +3316,19 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			and $source->getCause() !== EntityDamageEvent::CAUSE_VOID
 		){
 			$source->setCancelled();
+		}
+
+		$absorption = $this->absorption;
+		if($absorption > 0){
+			$damage = $source->getFinalDamage();
+			if($absorption > $damage){
+				//Use absorption health before normal health.
+				$this->setAbsorption($absorption - $damage);
+				$source->setDamage(0);
+			}else{
+				$this->setAbsorption(0);
+				$source->setDamage($damage - $absorption);
+			}
 		}
 
 		parent::attack($damage, $source);

@@ -22,12 +22,11 @@
 namespace pocketmine\level;
 
 use pocketmine\math\Vector3;
-use pocketmine\utils\MainLogger;
+use pocketmine\Server;
 
-class Position extends Vector3{
+class WeakPosition extends Position{
 
-	/** @var Level */
-	public $level = null;
+	protected $levelId = -1;
 
 	/**
 	 * @param int   $x
@@ -39,31 +38,21 @@ class Position extends Vector3{
 		$this->x = $x;
 		$this->y = $y;
 		$this->z = $z;
-		$this->level = $level;
+		$this->levelId = ($level !== null ? $level->getId() : -1);
 	}
 
 	public static function fromObject(Vector3 $pos, Level $level = null){
-		return new Position($pos->x, $pos->y, $pos->z, $level);
+		return new WeakPosition($pos->x, $pos->y, $pos->z, $level);
 	}
 
 	/**
-	 * Returns the target Level, or null if the target is not valid.
-	 * If a reference exists to a Level which is closed, the reference will be destroyed and null will be returned.
-	 *
 	 * @return Level|null
 	 */
 	public function getLevel(){
-		if($this->level === null){
-			MainLogger::getLogger()->debug("Position was holding a reference to an unloaded Level");
-			$this->level = null;
-		}
-
-		return $this->level;
+		return Server::getInstance()->getLevel($this->levelId);
 	}
 
 	/**
-	 * Sets the target Level of the position.
-	 *
 	 * @param Level|null $level
 	 *
 	 * @return $this
@@ -71,21 +60,12 @@ class Position extends Vector3{
 	 * @throws \InvalidArgumentException if the specified Level has been closed
 	 */
 	public function setLevel(Level $level = null){
-		if($level === null){
+		if($level !== null and $level->isClosed()){
 			throw new \InvalidArgumentException("Specified level has been unloaded and cannot be used");
 		}
 
-		$this->level = $level;
+		$this->levelId = ($level !== null ? $level->getId() : -1);
 		return $this;
-	}
-
-	/**
-	 * Checks if this object has a valid reference to a loaded Level
-	 *
-	 * @return bool
-	 */
-	public function isValid(){
-		return $this->getLevel() instanceof Level;
 	}
 
 	/**
@@ -94,32 +74,17 @@ class Position extends Vector3{
 	 * @param int $side
 	 * @param int $step
 	 *
-	 * @return Position
+	 * @return WeakPosition
 	 *
 	 * @throws LevelException
 	 */
 	public function getSide($side, $step = 1){
 		assert($this->isValid());
 
-		return Position::fromObject(parent::getSide($side, $step), $this->level);
+		return WeakPosition::fromObject(parent::getSide($side, $step), $this->level);
 	}
 
 	public function __toString(){
-		return "Position(level=" . ($this->isValid() ? $this->getLevel()->getName() : "null") . ",x=" . $this->x . ",y=" . $this->y . ",z=" . $this->z . ")";
+		return "Weak" . parent::__toString();
 	}
-
-	/**
-	 * @param $x
-	 * @param $y
-	 * @param $z
-	 *
-	 * @return Position
-	 */
-	public function setComponents($x, $y, $z){
-		$this->x = $x;
-		$this->y = $y;
-		$this->z = $z;
-		return $this;
-	}
-
 }

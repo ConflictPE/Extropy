@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -523,7 +523,7 @@ class Item{
 	const ENCHANTED_GOLDEN_APPLE = 466;
 	const END_PEARL = 468;
 	const CAMERA = 498;
-	
+
 	protected static $names = [
 		0 => "Air",
 		1 => "Stone",
@@ -963,7 +963,8 @@ class Item{
 			self::$list[self::FLOWER_POT] = FlowerPot::class;
 			self::$list[self::ELYTRA] = Elytra::class;
 			self::$list[self::PRISMARINE_CRYSTAL] = PrismarineCrystal::class;
-            
+			self::$list[self::POTION] = Potion::class;
+
             // update for 1.0
 			self::$list[self::CHORUS_FRUIT] = ChorusFruit::class;
 
@@ -1252,7 +1253,7 @@ class Item{
 		for($i = 298; $i < 318; $i++){ //All armor
 				self::addCreativeItem(Item::get($i, 0));
 			}
-			
+
 			self::addCreativeItem(Item::get(Item::SPAWN_EGG, 15));
 			self::addCreativeItem(Item::get(Item::SPAWN_EGG, 10));
 			self::addCreativeItem(Item::get(Item::SPAWN_EGG, 11));
@@ -1330,7 +1331,7 @@ class Item{
 		self::addCreativeItem(Item::get(Item::DYE, 10));
 		self::addCreativeItem(Item::get(Item::DYE, 9));
 		self::addCreativeItem(Item::get(Item::DYE, 8));
-        
+
         // update for 1.0
         self::addCreativeItem(Item::get(Item::CHORUS_FLOWER, 0));
         self::addCreativeItem(Item::get(Item::CHORUS_PLANT, 0));
@@ -1338,12 +1339,12 @@ class Item{
         self::addCreativeItem(Item::get(Item::END_BRICKS, 0));
         self::addCreativeItem(Item::get(Item::END_ROD, 0));
         self::addCreativeItem(Item::get(Item::PURPUR_BLOCK, 0));
-        
+
 		self::addCreativeItem(Item::get(Item::REDSTONE_LAMP, 0));
 		self::addCreativeItem(Item::get(Item::REDSTONE_LAMP_ACTIVE, 0));
 		self::addCreativeItem(Item::get(Item::PRISMARINE_CRYSTAL, 0));
 	}
-	
+
 	private static function initFood(){
 		self::$food[] = Item::COOKIE;
 		self::$food[] = Item::MELON;
@@ -1501,7 +1502,7 @@ class Item{
 	public function getCompound(){
 		return $this->tags;
 	}
-	
+
 	public function hasCompound(){
 		return $this->tags !== "" and $this->tags !== null;
 	}
@@ -1577,7 +1578,7 @@ class Item{
 
 		return false;
 	}
-	
+
 	/**
 	 * @param $id
 	 * @return Enchantment|null
@@ -1649,7 +1650,7 @@ class Item{
 		}
 
 		$enchantments = [];
-		
+
 		foreach($this->getNamedTag()->ench as $entry){
 			$e = Enchantment::getEnchantment($entry["id"]);
 			$e->setLevel($entry["lvl"]);
@@ -1691,7 +1692,7 @@ class Item{
 		return "";
 	}
 
-	public function setCustomName($name){		
+	public function setCustomName($name){
 		if((string) $name === ""){
 			$this->clearCustomName();
 		}
@@ -1709,13 +1710,13 @@ class Item{
 				"Name" => new StringTag("Name", $name)
 			]);
 		}
-		
+
 		$this->setCompound($tag);
 
 		return $this;
 	}
-	
-	public function setCustomColor($colorCode){	
+
+	public function setCustomColor($colorCode){
 		if(!$this->hasCompound()){
 			if (!is_int($colorCode)) {
 				return $this;
@@ -1725,11 +1726,11 @@ class Item{
 			$tag = $this->getNamedTag();
 		}
 		if (!is_int($colorCode)) {
-			unset($tag->customColor);			
+			unset($tag->customColor);
 		} else {
 			$tag->customColor = new IntTag("customColor", $colorCode);
 		}
-		
+
 		$this->setCompound($tag);
 
 		return $this;
@@ -1911,17 +1912,21 @@ class Item{
 
 		return false;
 	}
-	
+
 	public function isFood(){
 		return in_array($this->id, self::$food);
 	}
-	
+
 	public function setObtainTime($time){
 		$this->obtainTime = $time;
 	}
-	
+
 	public function getObtainTime(){
 		return $this->obtainTime;
+	}
+
+	public function canBeConsumed() {
+		return false;
 	}
 
 }

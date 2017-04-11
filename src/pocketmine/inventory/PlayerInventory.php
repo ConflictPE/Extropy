@@ -114,6 +114,9 @@ class PlayerInventory extends BaseInventory{
 		}
 	}
 
+	/**
+	 * @return Item
+	 */
 	public function getItemInHand(){
 		$item = $this->getItem($this->getHeldItemSlot());
 		if($item instanceof Item){

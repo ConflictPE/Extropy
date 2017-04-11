@@ -10,14 +10,14 @@ use pocketmine\entity\Human;
 use pocketmine\network\protocol\EntityEventPacket;
 
 class Potion extends Item{
-	
+
 	//No effects
 	const WATER_BOTTLE = 0;
 	const MUNDANE = 1;
 	const MUNDANE_EXTENDED = 2;
 	const THICK = 3;
 	const AWKWARD = 4;
-	
+
 	//Actual potions
 	const NIGHT_VISION = 5;
 	const NIGHT_VISION_T = 6;
@@ -34,11 +34,11 @@ class Potion extends Item{
 	const SLOWNESS = 17;
 	const SLOWNESS_T = 18;
 	const WATER_BREATHING = 19;
-	const WATER_BREATHING_T = 20;	
+	const WATER_BREATHING_T = 20;
 	const HEALING = 21;
 	const HEALING_TWO = 22;
-//	const HARMING = 23;
-//	const HARMING_TWO = 24;
+	const HARMING = 23;
+	const HARMING_TWO = 24;
 	const POISON = 25;
 	const POISON_T = 26;
 	const POISON_TWO = 27;
@@ -51,7 +51,7 @@ class Potion extends Item{
 	const WEAKNESS = 34;
 	const WEAKNESS_T = 35;
 	const DECAY = 36; //TODO
-	
+
 	//Structure: Potion ID => [matching effect, duration in ticks, amplifier]
 	//Use false if no effects.
 	const POTIONS = [
@@ -60,52 +60,52 @@ class Potion extends Item{
 		self::MUNDANE_EXTENDED => false,
 		self::THICK => false,
 		self::AWKWARD => false,
-		
+
 		self::NIGHT_VISION => [Effect::NIGHT_VISION, (180 * 20), 0],
 		self::NIGHT_VISION_T =>	[Effect::NIGHT_VISION, (480 * 20), 0],
-		
+
 		self::INVISIBILITY => [Effect::INVISIBILITY, (180 * 20), 0],
 		self::INVISIBILITY_T => [Effect::INVISIBILITY, (480 * 20), 0],
-		
+
 		self::LEAPING => [Effect::JUMP, (180 * 20), 0],
 		self::LEAPING_T => [Effect::JUMP, (480 * 20), 0],
 		self::LEAPING_TWO => [Effect::JUMP, (90 * 20), 1],
-		
+
 		self::FIRE_RESISTANCE => [Effect::FIRE_RESISTANCE, (180 * 20), 0],
 		self::FIRE_RESISTANCE_T => [Effect::FIRE_RESISTANCE, (480 * 20), 0],
-		
+
 		self::SWIFTNESS => [Effect::SPEED, (180 * 20), 0],
 		self::SWIFTNESS_T => [Effect::SPEED, (480 * 20), 0],
 		self::SWIFTNESS_TWO => [Effect::SPEED, (90 * 20), 1],
-		
+
 		self::SLOWNESS => [Effect::SLOWNESS, (90 * 20), 0],
 		self::SLOWNESS_T => [Effect::SLOWNESS, (240 * 20), 0],
-		
+
 		self::WATER_BREATHING => [Effect::WATER_BREATHING, (180 * 20), 0],
 		self::WATER_BREATHING_T => [Effect::WATER_BREATHING, (480 * 20), 0],
-		
+
 		self::HEALING => [Effect::HEALING, (1), 0],
 		self::HEALING_TWO => [Effect::HEALING, (1), 1],
-		
-//		self::HARMING => [Effect::HARMING, (1), 0],
-//		self::HARMING_TWO => [Effect::HARMING, (1), 1],
-		
+
+		self::HARMING => [Effect::HARMING, (1), 0],
+		self::HARMING_TWO => [Effect::HARMING, (1), 1],
+
 		self::POISON => [Effect::POISON, (45 * 20), 0],
 		self::POISON_T => [Effect::POISON, (120 * 20), 0],
 		self::POISON_TWO => [Effect::POISON, (22 * 20), 1],
-		
+
 		self::REGENERATION => [Effect::REGENERATION, (45 * 20), 0],
 		self::REGENERATION_T => [Effect::REGENERATION, (120 * 20), 0],
 		self::REGENERATION_TWO => [Effect::REGENERATION, (22 * 20), 1],
-		
+
 		self::STRENGTH => [Effect::STRENGTH, (180 * 20), 0],
 		self::STRENGTH_T => [Effect::STRENGTH, (480 * 20), 0],
 		self::STRENGTH_TWO => [Effect::STRENGTH, (90 * 20), 1],
-		
+
 		self::WEAKNESS => [Effect::WEAKNESS, (90 * 20), 0],
 		self::WEAKNESS_T => [Effect::WEAKNESS, (240 * 20), 0]
 	];
-	
+
 	public function __construct($meta = 0, $count = 1){
 		parent::__construct(self::POTION, $meta, $count, self::getNameByMeta($meta));
 	}
@@ -121,15 +121,15 @@ class Potion extends Item{
 	public function getMaxStackSize() : int{
 		return 1;
 	}
-	
+
 	public function canBeConsumed() : bool{
-		return $this->meta > 0;
+		return true;
 	}
-	
+
 	public function canBeConsumedBy(Entity $entity) : bool{
 		return $entity instanceof Human;
 	}
-	
+
 	public function getEffects(): array{
 		return self::getEffectsById($this->meta);
 	}
@@ -144,8 +144,7 @@ class Potion extends Item{
 		}
 		return [];
 	}
-	
-	
+
 	public function onConsume(Entity $human){
 		$pk = new EntityEventPacket();
 		$pk->eid = $human->getId();
@@ -153,18 +152,18 @@ class Potion extends Item{
 		if($human instanceof Player){
 			$human->dataPacket($pk);
 		}
-		Server::broadcastPacket($human->getViewers(), $pk);
+		$human->getServer()->broadcastPacket($human->getViewers(), $pk);
 
 		foreach($this->getEffects() as $effect){
 			$human->addEffect($effect);
 		}
 		//Don't set the held item to glass bottle if we're in creative
-		if($human instanceof Player && $human->getGamemode() === 1){
+		if($human instanceof Player && $human->isCreative() or $human->isSpectator()){
 			return;
 		}
 		$human->getInventory()->setItemInHand(Item::get(self::GLASS_BOTTLE));
 	}
-	
+
 	public static function getEffectId(int $meta) : int{
 		switch($meta){
 			case self::INVISIBILITY:
@@ -187,9 +186,9 @@ class Potion extends Item{
 			case self::WATER_BREATHING:
 			case self::WATER_BREATHING_T:
 				return Effect::WATER_BREATHING;
-//			case self::HARMING:
-//			case self::HARMING_TWO:
-//				return Effect::HARMING;
+			case self::HARMING:
+			case self::HARMING_TWO:
+				return Effect::HARMING;
 			case self::POISON:
 			case self::POISON_T:
 			case self::POISON_TWO:
@@ -208,11 +207,11 @@ class Potion extends Item{
 				return 0;
 		}
 	}
-	
+
 	public static function getNameByMeta(int $meta) : string{
 		switch($meta){
 			case self::WATER_BOTTLE:
-				return "Water Bottle"; 
+				return "Water Bottle";
 			case self::MUNDANE:
 			case self::MUNDANE_EXTENDED:
 				return "Mundane Potion";
@@ -242,10 +241,10 @@ class Potion extends Item{
 			case self::WATER_BREATHING:
 			case self::WATER_BREATHING_T:
 				return "Potion of Water Breathing";
-//			case self::HARMING:
-//				return "Potion of Harming";
-//			case self::HARMING_TWO:
-//				return "Potion of Harming II";
+			case self::HARMING:
+				return "Potion of Harming";
+			case self::HARMING_TWO:
+				return "Potion of Harming II";
 			case self::POISON:
 			case self::POISON_T:
 				return "Potion of Poison";
@@ -275,5 +274,5 @@ class Potion extends Item{
 				return "Potion";
 		}
 	}
-	
+
 }
