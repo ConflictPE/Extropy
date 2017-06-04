@@ -823,20 +823,6 @@ class Server{
 	 */
 	public function getOfflinePlayerData($name){
 		$name = strtolower($name);
-		$path = $this->getDataPath() . "players/";
-		if(file_exists($path . "$name.dat")){
-			try{
-				$nbt = new NBT(NBT::BIG_ENDIAN);
-				$nbt->readCompressed(file_get_contents($path . "$name.dat"));
-
-				return $nbt->getData();
-			}catch(\Exception $e){ //zlib decode error / corrupt data
-				rename($path . "$name.dat", $path . "$name.dat.bak");
-				$this->logger->warning("Corrupted data found for \"" . $name . "\", creating new profile");
-			}
-		}else{
-			$this->logger->notice("Player data not found for \"" . $name . "\", creating new profile");
-		}
 		$spawn = $this->getDefaultLevel()->getSafeSpawn();
 		$nbt = new Compound("", [
 			new LongTag("firstPlayed", floor(microtime(true) * 1000)),
@@ -887,20 +873,7 @@ class Server{
 	 * @param Compound $nbtTag
 	 */
 	public function saveOfflinePlayerData($name, Compound $nbtTag, $async = false){
-			$nbt = new NBT(NBT::BIG_ENDIAN);
-		try{
-			$nbt->setData($nbtTag);
-			if($async){
-				$this->getScheduler()->scheduleAsyncTask(new FileWriteTask($this->getDataPath() . "players/" . strtolower($name) . ".dat", $nbt->writeCompressed()));
-			}else{
-				file_put_contents($this->getDataPath() . "players/" . strtolower($name) . ".dat", $nbt->writeCompressed());
-			}
-		}catch(\Exception $e){
-			$this->logger->critical($this->getLanguage()->translateString("pocketmine.data.saveError", [$name, $e->getMessage()]));
-			if(\pocketmine\DEBUG > 1 and $this->logger instanceof MainLogger){
-				$this->logger->logException($e);
-			}
-		}
+		return false;
 	}
 
 	/**
@@ -1488,9 +1461,9 @@ class Server{
 			mkdir($dataPath . "worlds/", 0777);
 		}
 
-		if(!file_exists($dataPath . "players/")){
-			mkdir($dataPath . "players/", 0777);
-		}
+		//if(!file_exists($dataPath . "players/")){
+		//	mkdir($dataPath . "players/", 0777);
+		//}
 
 		if(!file_exists($pluginPath)){
 			mkdir($pluginPath, 0777);
