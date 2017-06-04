@@ -212,29 +212,29 @@ class PluginManager{
 								continue;
 							}
 
-							$compatible = false;
-							//Check multiple dependencies
-							foreach($description->getCompatibleApis() as $version){
-								//Format: majorVersion.minorVersion.patch
-								$version = array_map("intval", explode(".", $version));
-								$apiVersion = array_map("intval", explode(".", $this->server->getApiVersion()));
-								//Completely different API version
-								if($version[0] !== $apiVersion[0]){
-									continue;
-								}
-								//If the plugin requires new API features, being backwards compatible
-								if($version[1] > $apiVersion[1]){
-									continue;
-								}
-
-								$compatible = true;
-								break;
-							}
-
-							if($compatible === false){
-								$this->server->getLogger()->error("Could not load plugin '" . $name . "': API version not compatible");
-								continue;
-							}
+							$compatible = true;
+							////Check multiple dependencies
+							//foreach($description->getCompatibleApis() as $version){
+							//	//Format: majorVersion.minorVersion.patch
+							//	$version = array_map("intval", explode(".", $version));
+							//	$apiVersion = array_map("intval", explode(".", $this->server->getApiVersion()));
+							//	//Completely different API version
+							//	if($version[0] !== $apiVersion[0]){
+							//		continue;
+							//	}
+							//	//If the plugin requires new API features, being backwards compatible
+							//	if($version[1] > $apiVersion[1]){
+							//		continue;
+							//	}
+							//
+							//	$compatible = true;
+							//	break;
+							//}
+							//
+							//if($compatible === false){
+							//	$this->server->getLogger()->error("Could not load plugin '" . $name . "': API version not compatible");
+							//	continue;
+							//}
 
 							$plugins[$name] = $file;
 
@@ -454,7 +454,7 @@ class PluginManager{
 	 *
 	 * @return Permissible[]
 	 */
-			
+
 		public function getPermissionSubscriptions($permission){
 		if(isset($this->permSubs[$permission])){
 			return $this->permSubs[$permission];
@@ -581,7 +581,7 @@ class PluginManager{
 	 */
 	protected function parseYamlCommands(Plugin $plugin){
 		$pluginCmds = [];
-		
+
 		if (!empty($jsonCommands = $plugin->getJsonCommands())) {
 			foreach ($jsonCommands as $name => $options) {
 				if (!isset($options['shouldBeRegistered']) || $options['shouldBeRegistered'] === true) {
