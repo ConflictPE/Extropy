@@ -186,16 +186,16 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
     const OS_WIN10 = 7;
     const OS_WIN32 = 8;
     const OS_DEDICATED = 9;
-    
+
     const INVENTORY_CLASSIC = 0;
     const INVENTORY_POCKET = 1;
-    
+
 	const SURVIVAL = 0;
 	const CREATIVE = 1;
 	const ADVENTURE = 2;
 	const SPECTATOR = 3;
 	const VIEW = Player::SPECTATOR;
-	
+
 	const CRAFTING_DEFAULT = 0;
 	const CRAFTING_WORKBENCH = 1;
 	const CRAFTING_ANVIL = 2;
@@ -203,7 +203,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	const SURVIVAL_SLOTS = 36;
 	const CREATIVE_SLOTS = 112;
-	
+
 	const DEFAULT_SPEED = 0.1;
 	const MAXIMUM_SPEED = 0.5;
 
@@ -215,12 +215,12 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	public $dead = false;
 	public $gamemode;
 	public $lastBreak;
-	
+
 	/** @var Inventory */
 	protected $currentWindow = null;
 	protected $currentWindowId = -1;
 	const MIN_WINDOW_ID = 2;
-	
+
 	protected $messageCounter = 2;
 
 	protected $sendIndex = 0;
@@ -232,7 +232,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	public $blocked = false;
 	public $lastCorrect;
-	
+
 	public $craftingType = self::CRAFTING_DEFAULT;
 
 	protected $isCrafting = false;
@@ -299,27 +299,27 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	/** @var PermissibleBase */
 	private $perm = null;
-	
+
 	/** @var string*/
 	protected $lastMessageReceivedFrom = "";
-	
+
 	protected $identifier;
-	
+
 	public $proxyId = '';
 	public $proxySessionId = '';
-	
+
 	protected $closeFromProxy = false;
 
 	protected static $availableCommands = [];
-	
+
 	protected $movementSpeed = self::DEFAULT_SPEED;
-	
+
 	private static $damegeTimeList = ['0.05' => 0, '0.1' => 0.2, '0.15' => 0.4, '0.2' => 0.6, '0.25' => 0.8];
-	
+
 	protected $lastDamegeTime = 0;
-	
+
 	protected $lastTeleportTime = 0;
-	
+
 	private $isFirstConnect = true;
 
 	const MAX_EXPERIENCE = 2147483648;
@@ -328,36 +328,37 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	private $expLevel = 0;
 
 	private $elytraIsActivated = false;
-    
+
     /** @IMPORTANT don't change the scope */
     private $inventoryType = self::INVENTORY_CLASSIC;
 	private $languageCode = false;
-    
+
     /** @IMPORTANT don't change the scope */
     private $deviceType = self::OS_DEDICATED;
-	
+
 	private $messageQueue = [];
-	
+
 	private $noteSoundQueue = [];
-    
+
     private $xuid = '';
-	
+
 	private $ping = 0;
-    
+
     protected $xblName = '';
-	
+
 	protected $viewRadius;
-	
+
+
 	private $actionsNum = [];
-	
+
 	private $isMayMove = false;
-	
+
 	protected $serverAddress = '';
-	
+
 	protected $clientVersion = '';
-	
+
 	protected $originalProtocol;
-	
+
 	public function getLeaveMessage(){
 		return "";
 	}
@@ -631,7 +632,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->rawUUID = null;
 
 		$this->creationTime = microtime(true);
-		
+
 		if (empty(self::$availableCommands)) {
 			self::$availableCommands = $this->server->getJsonCommands();
 			$plugins = $this->server->getPluginManager()->getPlugins();
@@ -644,7 +645,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->inventory = new PlayerInventory($this); // hack for not null getInventory
 		$this->setViewRadius(2);
 	}
-	
+
 	public function setViewRadius($radius) {
 		$this->viewRadius = $radius;
 		$this->spawnThreshold = $radius ** 2 * M_PI;
@@ -748,7 +749,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		if($this->connected === false){
 			return;
 		}
-		
+
 		$data = $payload[$this->getPlayerProtocol()];
 
 		$this->usedChunks[Level::chunkHash($x, $z)] = true;
@@ -781,7 +782,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			if($count >= $this->chunksPerTick){
 				break;
 			}
-			
+
 			$X = null;
 			$Z = null;
 			Level::getXZ($index, $X, $Z);
@@ -803,14 +804,14 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				}
 			}
 		}
-		
+
 		if((!$this->isFirstConnect || $this->chunkLoadCount >= $this->spawnThreshold) && $this->spawned === false){
 			$this->server->getPluginManager()->callEvent($ev = new PlayerLoginEvent($this, "Plugin reason"));
 			if ($ev->isCancelled()) {
 				$this->close(TextFormat::YELLOW . $this->username . " has left the game", $ev->getKickMessage());
 				return;
 			}
-			
+
 			$this->spawned = true;
 
 			$this->sendSettings();
@@ -840,7 +841,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 //			$this->dataPacket($pk);
 
 			$this->noDamageTicks = 60;
-			
+
 			$chunkX = $chunkZ = null;
 			foreach($this->usedChunks as $index => $c){
 				Level::getXZ($index, $chunkX, $chunkZ);
@@ -852,7 +853,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			}
 
 			$this->teleport($pos);
-			
+
 //			if($this->getHealth() <= 0){
 //				$pk = new RespawnPacket();
 //				$pos = $this->getSpawn();
@@ -861,8 +862,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 //				$pk->z = $pos->z;
 //				$this->dataPacket($pk);
 //			}
-			
-			$this->server->getPluginManager()->callEvent($ev = new PlayerJoinEvent($this, ""));		
+
+			$this->server->getPluginManager()->callEvent($ev = new PlayerJoinEvent($this, ""));
 			}
 		}
 
@@ -870,7 +871,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		if ($this->connected === false) {
 			return false;
 		}
-		
+
 		$this->nextChunkOrderRun = 200;
 		$radiusSquared = $this->viewRadius ** 2;
 		$centerX = $this->x >> 4;
@@ -882,8 +883,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			for ($dz = 0; $dz < $this->viewRadius; $dz++) {
 				if ($dx ** 2 + $dz ** 2 > $radiusSquared) {
 					continue;
-				}	
-				
+				}
+
 				foreach ([$dx, (-$dx - 1)] as $ddx) {
 					foreach ([$dz, (-$dz - 1)] as $ddz) {
 						$chunkX = $centerX + $ddx;
@@ -896,7 +897,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						}
 					}
 				}
-				
+
 			}
 		}
 
@@ -918,15 +919,16 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	 *
 	 * @return int|bool
 	 */
-	public function dataPacket(DataPacket $packet, $needACK = false){	
+	public function dataPacket(DataPacket $packet, $needACK = false){
 		if (!($this->interface instanceof ProxyInterface) && ($packet instanceof ProxyPacket)) {
 			return;
 		}
-		
+
 		if($this->connected === false){
 			return false;
 		}
-		
+
+
 		$disallowedPackets = [];
 		$protocol = $this->getPlayerProtocol();
 		if ($protocol >= ProtocolInfo::PROTOCOL_120) {
@@ -935,13 +937,13 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		if (in_array(get_class($packet), $disallowedPackets)) {
 			return;
 		}
-		
+
 		$this->server->getPluginManager()->callEvent($ev = new DataPacketSendEvent($this, $packet));
 		if($ev->isCancelled()){
 			return false;
 		}
-		
-		$this->interface->putPacket($this, $packet, $needACK, false);	
+
+		$this->interface->putPacket($this, $packet, $needACK, false);
 		return true;
 	}
 
@@ -986,7 +988,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 		$this->sleeping = clone $pos;
 		$this->teleport(new Position($pos->x + 0.5, $pos->y - 0.5, $pos->z + 0.5, $this->level));
-			
+
 		$this->setDataProperty(self::DATA_PLAYER_BED_POSITION, self::DATA_TYPE_POS, [$pos->x, $pos->y, $pos->z]);
 		$this->setDataFlag(self::DATA_PLAYER_FLAGS, self::DATA_PLAYER_FLAG_SLEEP, true);
 
@@ -1087,7 +1089,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->gamemode = $gm;
 
 		$this->allowFlight = $this->isCreative();
-		
+
 		if($this->isSpectator()){
 			$this->despawnFromAll();
 		}
@@ -1174,7 +1176,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		if($this->isSpectator()){
 			$flags |= 0x80;
 		}
-		
+
 		$flags |= 0x02;
 		$flags |= 0x04;
 
@@ -1294,7 +1296,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						if($ev->isCancelled()){
 							continue;
 						}
-						
+
 						$pk = new TakeItemEntityPacket();
 						$pk->eid = $this->getId();
 						$pk->target = $entity->getId();
@@ -1307,7 +1309,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 						$this->inventory->addItem(clone $item);
 						$entity->kill();
-						
+
 						if ($this->inventoryType == self::INVENTORY_CLASSIC && $this->protocol < ProtocolInfo::PROTOCOL_120) {
 							Win10InvLogic::playerPickUpItem($this, $item);
 						}
@@ -1446,7 +1448,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 					if (!($revert = $ev->isCancelled())) { //Yes, this is intended
 						if($to->distanceSquared($ev->getTo()) > 0.01){ //If plugins modify the destination
-							$this->teleport($ev->getTo());						
+							$this->teleport($ev->getTo());
 						}else{
 							$this->level->addEntityMovement($this->getViewers(), $this->getId(), $this->x, $this->y + $this->getVisibleEyeHeight(), $this->z, $this->yaw, $this->pitch, $this->yaw, true);
 						}
@@ -1538,18 +1540,18 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 
 		//$this->timings->startTiming();
-		
-		
+
+
 		$this->checkTeleportPosition();
-		
+
 		if($this->nextChunkOrderRun-- <= 0 or $this->chunk === null){
 			$this->orderChunks();
 		}
-		
+
 		if(count($this->loadQueue) > 0 or !$this->spawned){
 			$this->sendNextChunk();
 		}
-		
+
 		if($this->dead === true and $this->spawned){
 			++$this->deadTicks;
 			if($this->deadTicks >= 10){
@@ -1559,11 +1561,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			return $this->deadTicks < 10;
 //			return true;
 		}
-		
+
 		if($this->spawned){
 			$this->processMovement($tickDiff);
 
-			$this->entityBaseTick($tickDiff);			
+			$this->entityBaseTick($tickDiff);
 
 			if(!$this->isSpectator() and $this->speed !== null){
 				if($this->onGround || $this->isCollideWithLiquid()){
@@ -1589,10 +1591,10 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 							}
 						}
 						++$this->inAirTicks;
-					}	
+					}
 				}
 			}
-			
+
 			if($this->starvationTick >= 20) {
 				$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_CUSTOM, 1);
 				$this->attack(1, $ev);
@@ -1645,7 +1647,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			}
 			$this->checkChunks();
 		}
-		
+
 		if (count($this->messageQueue) > 0) {
 			$message = array_shift($this->messageQueue);
 			$pk = new TextPacket();
@@ -1653,7 +1655,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$pk->message = $message;
 			$this->dataPacket($pk);
 		}
-		
+
 		if (count($this->noteSoundQueue) > 0) {
 			$noteId = array_shift($this->noteSoundQueue);
 			$this->sendNoteSound($noteId);
@@ -1772,7 +1774,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			//Timings::$timerBatchPacket->stopTiming();
 			return;
 		}
-	
+
 //		$this->server->getPluginManager()->callEvent($ev = new DataPacketReceiveEvent($this, $packet));
 //		if($ev->isCancelled()){
 //			return;
@@ -1782,7 +1784,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		if (!$this->isOnline() && !in_array($packet->pname(), $beforeLoginAvailablePackets)) {
 			return;
 		}
-		
+
+
 		switch($packet->pname()){
             case 'SET_PLAYER_GAMETYPE_PACKET':
                 file_put_contents("./logs/possible_hacks.log", date('m/d/Y h:i:s a', time()) . " SET_PLAYER_GAMETYPE_PACKET " . $this->username . PHP_EOL, FILE_APPEND | LOCK_EX);
@@ -1791,7 +1794,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
                 file_put_contents("./logs/possible_hacks.log", date('m/d/Y h:i:s a', time()) . " UPDATE_ATTRIBUTES_PACKET " . $this->username . PHP_EOL, FILE_APPEND | LOCK_EX);
                 break;
             case 'ADVENTURE_SETTINGS_PACKET':
-                $isHacker = ($this->allowFlight === false && ($packet->flags >> 9) & 0x01 === 1) || 
+                $isHacker = ($this->allowFlight === false && ($packet->flags >> 9) & 0x01 === 1) ||
+
                     (!$this->isSpectator() && ($packet->flags >> 7) & 0x01 === 1);
                 if ($isHacker) {
                     file_put_contents("./logs/possible_hacks.log", date('m/d/Y h:i:s a', time()) . " ADVENTURE_SETTINGS_PACKET " . $this->username . PHP_EOL, FILE_APPEND | LOCK_EX);
@@ -1803,14 +1807,14 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				if($this->loggedIn === true){
 					//Timings::$timerLoginPacket->stopTiming();
 					break;
-				}		
+				}
 				if($packet->isValidProtocol === false) {
 					$this->protocol = ProtocolInfo::BASE_PROTOCOL;
 					$this->close("", TextFormat::RED . "Please switch to Minecraft: PE " . TextFormat::GREEN . $this->getServer()->getVersion() . TextFormat::RED . " to join.");
 					//Timings::$timerLoginPacket->stopTiming();
 					break;
 				}
-				
+
 				$this->username = TextFormat::clean($packet->username);
                 $this->xblName = $this->username;
 				$this->displayName = $this->username;
@@ -1836,10 +1840,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
                 }
                 $this->xuid = $packet->xuid;
 				$this->languageCode = $packet->languageCode;
+
 				$this->serverAddress = $packet->serverAddress;
 				$this->clientVersion = $packet->clientVersion;
 				$this->originalProtocol = $packet->originalProtocol;
-					
+
 				$this->processLogin();
 				//Timings::$timerLoginPacket->stopTiming();
 				break;
@@ -1861,7 +1866,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						if ($packet->yaw < 0) {
 							$packet->yaw += 360;
 						}
-						
+
 						if (!$this->isMayMove) {
 							if ($this->yaw != $packet->yaw || $this->pitch != $packet->pitch || abs($this->x - $packet->x) >= 0.05 || abs($this->z - $packet->z) >= 0.05) {
 								$this->setMayMove(true);
@@ -1870,9 +1875,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 								$this->teleport($spawn);
 							}
 						}
-						
+
 						$this->setRotation($packet->yaw, $packet->pitch);
-						$this->newPosition = $newPos;	
+						$this->newPosition = $newPos;
 						$this->forceMovement = null;
 					} else if (microtime(true) - $this->lastTeleportTime > 2) {
 						$this->forceMovement = new Vector3($this->x, $this->y, $this->z);
@@ -1888,7 +1893,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					//Timings::$timerMobEqipmentPacket->stopTiming();
 					break;
 				}
-				
+
 				if ($packet->windowId == Win10InvLogic::WINDOW_ID_PLAYER_OFFHAND) {
 					if ($this->protocol >= ProtocolInfo::PROTOCOL_120) {
 						break;
@@ -1906,7 +1911,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						if ($oldItem->deepEquals($newItem) && $oldItem->getCount() === $newItem->getCount()) {
 							break;
 						}
-						$this->addTransaction($transaction);	
+						$this->addTransaction($transaction);
 						break;
 					}
 				}
@@ -1916,7 +1921,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				}else{
 					$packet->slot -= 9; //Get real block slot
 				}
-				
+
 				// not so good solution
 				if ($this->inventoryType == self::INVENTORY_CLASSIC && $this->protocol < ProtocolInfo::PROTOCOL_120) {
 					Win10InvLogic::packetHandler($packet, $this);
@@ -1933,7 +1938,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					$item = $this->inventory->getItem($packet->slot);
 					$slot = $packet->slot;
 				}
-				
+
 				if($packet->slot === -1){ //Air
 					if($this->isCreative()){
 						$found = false;
@@ -1986,7 +1991,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						break;
 					}
 				}
-				
+
 				$this->inventory->sendHeldItem($this->hasSpawned);
 
 				$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, false);
@@ -1998,9 +2003,130 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					//Timings::$timerUseItemPacket->stopTiming();
 					break;
 				}
-				$blockPosition = [ 'x' => $packet->x, 'y' => $packet->y, 'z' => $packet->z ];
-				$clickPosition = [ 'x' => $packet->fx, 'y' => $packet->fy, 'z' => $packet->fz ];
-				$this->useItem($packet->item, $packet->hotbarSlot, $packet->face, $blockPosition, $clickPosition);
+
+				if ($packet->face >= 0 and $packet->face <= 5) { //Use Block, place
+					$blockVector = new Vector3($packet->x, $packet->y, $packet->z);
+					$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, false);
+
+					if ($blockVector->distance($this) > 10 || ($this->isCreative() && $this->isAdventure())) {
+
+					} else if ($this->isCreative() && !$this->isSpectator()) {
+						$item = $this->inventory->getItemInHand();
+						if ($this->level->useItemOn($blockVector, $item, $packet->face, $packet->fx, $packet->fy, $packet->fz, $this) === true) {
+							//Timings::$timerUseItemPacket->stopTiming();
+							break;
+						}
+					} else if (!$this->inventory->getItemInHand()->deepEquals($packet->item)) {
+//						$this->inventory->sendHeldItem($this);
+					} else {
+						$item = $this->inventory->getItemInHand();
+						$oldItem = clone $item;
+						//TODO: Implement adventure mode checks
+						if ($this->level->useItemOn($blockVector, $item, $packet->face, $packet->fx, $packet->fy, $packet->fz, $this)) {
+							if (!$item->deepEquals($oldItem) or $item->getCount() !== $oldItem->getCount()) {
+								$this->inventory->setItemInHand($item, $this);
+								$this->inventory->sendHeldItem($this->hasSpawned);
+							}
+							//Timings::$timerUseItemPacket->stopTiming();
+							break;
+						}
+					}
+
+					$this->inventory->sendHeldItem($this);
+
+					if($blockVector->distanceSquared($this) > 10000){
+						//Timings::$timerUseItemPacket->stopTiming();
+						break;
+					}
+					$target = $this->level->getBlock($blockVector);
+					$block = $target->getSide($packet->face);
+
+					$this->level->sendBlocks([$this], [$target, $block], UpdateBlockPacket::FLAG_ALL_PRIORITY);
+					//Timings::$timerUseItemPacket->stopTiming();
+					break;
+				} else if ($packet->face === 0xff || $packet->face === -1) {  // -1 for 0.16
+					if ($this->isSpectator()) {
+						$this->inventory->sendHeldItem($this);
+						if ($this->inventory->getHeldItemSlot() !== -1) {
+							$this->inventory->sendContents($this);
+						}
+						//Timings::$timerUseItemPacket->stopTiming();
+						break;
+					}
+
+					$item = $this->inventory->getItemInHand();
+					if (!$item->deepEquals($packet->item)) {
+						$this->inventory->sendHeldItem($this);
+						//Timings::$timerUseItemPacket->stopTiming();
+						break;
+					}
+
+					if ($packet->x != 0 || $packet->y != 0 || $packet->z != 0) {
+						$vectorLength = sqrt($packet->x ** 2 + $packet->y ** 2 + $packet->z ** 2);
+						$aimPos = new Vector3($packet->x / $vectorLength, $packet->y / $vectorLength, $packet->z / $vectorLength);
+					} else {
+						$aimPos = new Vector3(0, 0, 0);
+					}
+
+					$ev = new PlayerInteractEvent($this, $item, $aimPos, $packet->face, PlayerInteractEvent::RIGHT_CLICK_AIR);
+					$this->server->getPluginManager()->callEvent($ev);
+					if ($ev->isCancelled()) {
+						$this->inventory->sendHeldItem($this);
+						if ($this->inventory->getHeldItemSlot() !== -1) {
+							$this->inventory->sendContents($this);
+						}
+						//Timings::$timerUseItemPacket->stopTiming();
+						break;
+					}
+
+						$yawRad = $this->yaw / 180 * M_PI;
+						$pitchRad = $this->pitch / 180 * M_PI;
+						$nbt = new Compound("", [
+							"Pos" => new Enum("Pos", [
+								new DoubleTag("", $this->x),
+								new DoubleTag("", $this->y + $this->getEyeHeight()),
+								new DoubleTag("", $this->z)
+							]),
+							"Motion" => new Enum("Motion", [
+								new DoubleTag("", -sin($yawRad) * cos($pitchRad)),
+								new DoubleTag("", -sin($pitchRad)),
+								new DoubleTag("", cos($yawRad) * cos($pitchRad))
+							]),
+							"Rotation" => new Enum("Rotation", [
+								new FloatTag("", $this->yaw),
+								new FloatTag("", $this->pitch)
+							]),
+						]);
+
+						$f = 1.5;
+						switch ($item->getId()) {
+							case Item::SNOWBALL:
+								$projectile = Entity::createEntity("Snowball", $this->chunk, $nbt, $this);
+								break;
+							case Item::EGG:
+								$projectile = Entity::createEntity("Egg", $this->chunk, $nbt, $this);
+								break;
+						}
+						$projectile->setMotion($projectile->getMotion()->multiply($f));
+						if ($this->isSurvival()) {
+							$item->setCount($item->getCount() - 1);
+							$this->inventory->setItemInHand($item->getCount() > 0 ? $item : Item::get(Item::AIR));
+						}
+						if ($projectile instanceof Projectile) {
+							$this->server->getPluginManager()->callEvent($projectileEv = new ProjectileLaunchEvent($projectile));
+							if ($projectileEv->isCancelled()) {
+								$projectile->kill();
+							} else {
+								$projectile->spawnToAll();
+								$this->level->addSound(new LaunchSound($this), $this->getViewers());
+							}
+						} else {
+							$projectile->spawnToAll();
+						}
+
+					$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, true);
+					$this->startAction = $this->server->getTick();
+				}
 				//Timings::$timerUseItemPacket->stopTiming();
 				break;
 			case 'PLAYER_ACTION_PACKET':
@@ -2012,6 +2138,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				}
 
 //				$this->craftingType = self::CRAFTING_DEFAULT;
+
 				$action = MultiversionEnums::getPlayerAction($this->protocol, $packet->action);
 				switch ($action) {
 					case 'START_JUMP':
@@ -2100,7 +2227,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						$this->blocked = false;
 
 						$this->scheduleUpdate();
-						
+
 						$this->server->getPluginManager()->callEvent(new PlayerRespawnAfterEvent($this));
 						break;
 					case 'START_SPRINTING':
@@ -2111,8 +2238,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						}else{
 							$this->setSprinting(true);
 						}
-						break;
+						return;
 					case 'STOP_STRINTING':
+
 						$ev = new PlayerToggleSprintEvent($this, false);
 						$this->server->getPluginManager()->callEvent($ev);
 						if($ev->isCancelled()){
@@ -2120,7 +2248,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						}else{
 							$this->setSprinting(false);
 						}
-						break;
+						return;
 					case 'START_SNEAKING':
 						$ev = new PlayerToggleSneakEvent($this, true);
 						$this->server->getPluginManager()->callEvent($ev);
@@ -2129,7 +2257,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						}else{
 							$this->setSneaking(true);
 						}
-						break;
+						return;
 					case 'STOP_SNEAKING':
 						$ev = new PlayerToggleSneakEvent($this, false);
 						$this->server->getPluginManager()->callEvent($ev);
@@ -2138,20 +2266,20 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						}else{
 							$this->setSneaking(false);
 						}
-						break;
+						return;
 					case 'START_GLIDING':
 						if ($this->isHaveElytra()) {
 							$this->setFlyingFlag(true);
 							$this->elytraIsActivated = true;
 						}
-						break;
+						return;
 					case 'STOP_GLIDING':
 						$this->setFlyingFlag(false);
 						$this->elytraIsActivated = false;
-						break;
+						return;
 					case 'CRACK_BLOCK':
 						$this->crackBlock($packet);
-						break;
+						return;
 				}
 
 				$this->startAction = -1;
@@ -2229,7 +2357,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 								$items = $this->inventory->getContents();
 								foreach ($items as $slot => $item) {
 									if ($item->getId() === Item::DYE && $item->getDamage() === 4 && $item->getCount() >= $enchantLevel) {
-										
+
 										break 2;
 									}
 								}
@@ -2253,7 +2381,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					//Timings::$timerDropItemPacket->stopTiming();
 					break;
 				}
-				
+
 				if ($this->inventoryType == self::INVENTORY_CLASSIC && $this->protocol < ProtocolInfo::PROTOCOL_120) {
 					Win10InvLogic::packetHandler($packet, $this);
 				}
@@ -2313,10 +2441,10 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						$this->server->getPluginManager()->callEvent($ev);
 						break;
 					}
-					
+
 					$packet->message = TextFormat::clean($packet->message, $this->removeFormat);
 					foreach(explode("\n", $packet->message) as $message){
-						if(trim($message) != "" and strlen($message) <= 255 and $this->messageCounter-- > 0){							
+						if(trim($message) != "" and strlen($message) <= 255 and $this->messageCounter-- > 0){
 							$this->server->getPluginManager()->callEvent($ev = new PlayerChatEvent($this, $message));
 							if(!$ev->isCancelled()){
 								$this->server->broadcastMessage($ev->getPlayer()->getDisplayName() . ": " . $ev->getMessage(), $ev->getRecipients());
@@ -2330,7 +2458,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				break;
 			case 'CONTAINER_CLOSE_PACKET':
 				//Timings::$timerContainerClosePacket->startTiming();
-				if($this->spawned === false or $packet->windowid === 0){					
+				if($this->spawned === false or $packet->windowid === 0){
 					break;
 				}
 				$this->craftingType = self::CRAFTING_DEFAULT;
@@ -2356,23 +2484,23 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					//Timings::$timerCraftingEventPacket->stopTiming();
 					break;
 				}
-				
+
 				$recipe = $this->server->getCraftingManager()->getRecipe($packet->id);
 				$result = $packet->output[0];
-				
+
 				if (!($result instanceof Item)) {
 					$this->inventory->sendContents($this);
 					//Timings::$timerCraftingEventPacket->stopTiming();
 					break;
 				}
-				
+
 				if (is_null($recipe) || !$result->deepEquals($recipe->getResult(), true, false) ) { //hack for win10
 					$newRecipe = $this->server->getCraftingManager()->getRecipeByHash($result->getId() . ":" . $result->getDamage());
 					if (!is_null($newRecipe)) {
 						$recipe = $newRecipe;
 					}
 				}
-				
+
 				if ($this->protocol >= ProtocolInfo::PROTOCOL_120) {
 					$craftSlots = $this->inventory->getCraftContents();
 					try {
@@ -2409,7 +2537,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 				$canCraft = true;
 
-				
+
 				/** @var Item[] $ingredients */
 				$ingredients = [];
 				if ($recipe instanceof ShapedRecipe) {
@@ -2422,14 +2550,14 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				} else {
 					$canCraft = false;
 				}
-				
+
 				if(!$canCraft || !$result->deepEquals($recipe->getResult(), true, false)){
 					$this->server->getLogger()->debug("Unmatched recipe ". $recipe->getId() ." from player ". $this->getName() .": expected " . $recipe->getResult() . ", got ". $result .", using: " . implode(", ", $ingredients));
 					$this->inventory->sendContents($this);
 					//Timings::$timerCraftingEventPacket->stopTiming();
 					break;
 				}
-				
+
 				$used = array_fill(0, $this->inventory->getSize() + 5, 0);
 
 				$playerInventoryItems = $this->inventory->getContents();
@@ -2462,14 +2590,14 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					//Timings::$timerCraftingEventPacket->stopTiming();
 					break;
 				}
-			
+
 				foreach($used as $slot => $count){
 					if($count === 0){
 						continue;
 					}
 
 					$item = $playerInventoryItems[$slot];
-					
+
 					if($item->getCount() > $count){
 						$newItem = clone $item;
 						$newItem->setCount($item->getCount() - $count);
@@ -2498,12 +2626,12 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					//Timings::$timerConteinerSetSlotPacket->stopTiming();
 					break;
 				}
-				
+
 				if ($this->inventoryType == self::INVENTORY_CLASSIC && $this->protocol < ProtocolInfo::PROTOCOL_120) {
-					Win10InvLogic::packetHandler($packet, $this);				
+					Win10InvLogic::packetHandler($packet, $this);
 					break;
 				}
-				
+
 				if ($packet->windowid === 0) { //Our inventory
 					if ($packet->slot >= $this->inventory->getSize()) {
 						//Timings::$timerConteinerSetSlotPacket->stopTiming();
@@ -2519,7 +2647,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						//Timings::$timerConteinerSetSlotPacket->stopTiming();
 						break;
 					}
-					
+
 					$currentArmor = $this->inventory->getArmorItem($packet->slot);
 					$slot = $packet->slot + $this->inventory->getSize();
 					$transaction = new BaseTransaction($this->inventory, $slot, $currentArmor, $packet->item);
@@ -2539,7 +2667,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					//Timings::$timerConteinerSetSlotPacket->stopTiming();
 					break;
 				}
-				
+
 				if ($this->craftingType === self::CRAFTING_ENCHANT) {
 					if ($this->currentWindow instanceof EnchantInventory) {
 						$this->enchantTransaction($transaction);
@@ -2625,7 +2753,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					$this->sendMessage('Unknown command.');
 					break;
 				}
-				
+
 				$commandLine = $commandName;
 				// facepalm : This needs for right params order
 				$params = self::$availableCommands[$commandName]['versions'][0]['overloads'][$commandOverload]['input']['parameters'];
@@ -2638,15 +2766,15 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						$commandLine .= ' ' . $commandParams[$param['name']];
 					}
 				}
-				
+
 				$ev = new PlayerCommandPreprocessEvent($this, $commandLine);
 				$this->server->getPluginManager()->callEvent($ev);
 				if ($ev->isCancelled()) {
 					break;
 				}
-				
+
 				$this->server->dispatchCommand($this, $commandLine);
-				
+
 				$ev = new PlayerCommandPostprocessEvent($this, $commandLine);
 				$this->server->getPluginManager()->callEvent($ev);
 				break;
@@ -2713,9 +2841,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				if ($commandPreprocessEvent->isCancelled()) {
 					break;
 				}
-				
+
 				$this->server->dispatchCommand($this, $commandLine);
-				
+
 				$commandPostprocessEvent = new PlayerCommandPostprocessEvent($this, $commandLine);
 				$this->server->getPluginManager()->callEvent($commandPostprocessEvent);
 				break;
@@ -2820,7 +2948,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			}
 			$this->hiddenPlayers = [];
 			$this->hiddenEntity = [];
-			
+
 			if (!is_null($this->currentWindow)) {
 				$this->removeWindow($this->currentWindow);
 			}
@@ -2853,7 +2981,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$this->spawnPosition = null;
 			unset($this->buffer);
 		}
-			
+
 			$this->perm->clearPermissions();
 			$this->server->removePlayer($this);
 	}
@@ -2897,11 +3025,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	public function getName(){
 		return $this->username;
 	}
-    
+
     public function getXBLName() {
         return $this->xblName;
     }
-	
+
 	public function freeChunks(){
 		$x = $z = null;
 		foreach ($this->usedChunks as $index => $chunk) {
@@ -3013,9 +3141,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		Entity::kill();
 
 		$this->server->getPluginManager()->callEvent($ev = new PlayerDeathEvent($this, $this->getDrops(), $message));
-		
+
 		$this->freeChunks();
-		
+
 		if(!$ev->getKeepInventory()){
 			foreach($ev->getDrops() as $item){
 				$this->level->dropItem($this, $item);
@@ -3076,7 +3204,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	public function setFood($amount){
-		if($this->spawned === true){			
+		if($this->spawned === true){
 			$pk = new UpdateAttributesPacket();
 			$pk->entityId = $this->id;
 			$pk->minValue = 0;
@@ -3097,7 +3225,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		if (!$this->getFoodEnabled()) {
 			return false;
 		}
-		
+
 //		if($this->getFood()-$amount <= 6 && !($this->getFood() <= 6)) {
 ////			$this->setDataProperty(self::DATA_FLAG_SPRINTING, self::DATA_TYPE_BYTE, false);
 //			$this->removeEffect(Effect::SLOWNESS);
@@ -3164,11 +3292,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			if($this->chunk !== null){
 				$this->chunk->removeEntity($this);
 			}
-			$this->chunk = $this->level->getChunk($this->x >> 4, $this->z >> 4, true);	
+			$this->chunk = $this->level->getChunk($this->x >> 4, $this->z >> 4, true);
 			if($this->chunk !== null){
 				$this->chunk->addEntity($this);
 			}
-		}	
+		}
 
 		if(!$this->justCreated){
 			$newChunk = $this->level->getUsingChunk($this->x >> 4, $this->z >> 4);
@@ -3251,11 +3379,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		}
 		return -1;
 	}
-	
+
 	public function getCurrentWindowId() {
 		return $this->currentWindowId;
 	}
-	
+
 	public function getCurrentWindow() {
 		return $this->currentWindow;
 	}
@@ -3309,7 +3437,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	public function removeMetadata($metadataKey, Plugin $plugin){
 		$this->server->getPlayerMetadata()->removeMetadata($this, $metadataKey, $plugin);
 	}
-	
+
 	public function setLastMessageFrom($name) {
 		$this->lastMessageReceivedFrom = (string)$name;
 	}
@@ -3317,36 +3445,36 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	public function getLastMessageFrom() {
 		return $this->lastMessageReceivedFrom;
 	}
-	
+
 	public function setIdentifier($identifier, $id = '', $sessionId = ''){
 		$this->identifier = $identifier;
 		$this->proxyId = $id;
 		$this->proxySessionId = $sessionId;
 	}
-	
+
 	public function getIdentifier(){
 		return $this->identifier;
-	}	
-	
+	}
+
 	public function getVisibleEyeHeight() {
 		return $this->eyeHeight;
 	}
-	
+
 	public function kickOnFullServer() {
 		return true;
 	}
-	
+
 	public function processLogin() {
 		if (!($this->interface instanceof ProxyInterface)) {
 			$pk = new PlayStatusPacket();
 			$pk->status = PlayStatusPacket::LOGIN_SUCCESS;
-			$this->dataPacket($pk);			
+			$this->dataPacket($pk);
 		}
-		
+
 		$pk = new ResourcePacksInfoPacket();
-		$this->dataPacket($pk);			
+		$this->dataPacket($pk);
 	}
-	
+
 	public function completeLogin() {
 		$valid = true;
 		$len = strlen($this->username);
@@ -3436,7 +3564,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$this->close(TextFormat::YELLOW . $this->username . " has left the game", "Corrupt joining data, check your connection.");
 			return;
 		}
-		
+
 		$this->achievements = [];
 
 		/** @var Byte $achievement */
@@ -3447,7 +3575,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$nbt->lastPlayed = new LongTag("lastPlayed", floor(microtime(true) * 1000));
 		parent::__construct($this->level->getChunk($nbt["Pos"][0] >> 4, $nbt["Pos"][2] >> 4, true), $nbt);
 //		$this->loggedIn = true;
-		$this->server->addOnlinePlayer($this);		
+		$this->server->addOnlinePlayer($this);
 
 		if ($this->isCreative()) {
 			$this->inventory->setHeldItemSlot(0);
@@ -3459,7 +3587,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$this->spawnPosition = new Position($this->namedtag["SpawnX"], $this->namedtag["SpawnY"], $this->namedtag["SpawnZ"], $level);
 		}
 
-		$spawnPosition = $this->getSpawn();		
+		$spawnPosition = $this->getSpawn();
 
 		$compassPosition = $this->server->getGlobalCompassPosition();
 
@@ -3481,7 +3609,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$pk->eid = $this->id;
 		$pk->playerHaveLanguageCode = ($this->languageCode !== 'unknown');
 		$this->dataPacket($pk);
-		
+
 		$pk = new SetTimePacket();
 		$pk->time = $this->level->getTime();
 		$pk->started = true;
@@ -3496,19 +3624,19 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		if ($this->getHealth() <= 0) {
 			$this->dead = true;
 		}
-		
-		
+
+
 //		$pk = new ResourcePackDataInfoPacket();
 //		$this->dataPacket($pk);
-				
+
 //		$pk = new SetCommandsEnabledPacket();
 //		$pk->enabled = 1;
 //		$this->dataPacket($pk);
-				
+
 		if (!empty(self::$availableCommands)) {
 			$pk = new AvailableCommandsPacket();
 			$this->dataPacket($pk);
-		}			
+		}
 		if($this->getHealth() <= 0){
 			$this->dead = true;
 		}
@@ -3518,7 +3646,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->dataPacket($pk);
 
 		$this->server->getLogger()->info(TextFormat::AQUA . $this->username . TextFormat::WHITE . "/" . TextFormat::AQUA . $this->ip . " connected");
-		
+
 		if ($this->gamemode === Player::SPECTATOR) {
 			Multiversion::sendContainer($this, Protocol120::CONTAINER_ID_CREATIVE, []);
 		} elseif ($this->gamemode === Player::CREATIVE) {
@@ -3532,12 +3660,12 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 //		$this->server->sendFullPlayerListData($this);
 		$this->server->sendRecipeList($this);
 
-		$this->sendSelfData();				
+		$this->sendSelfData();
 		$this->updateSpeed(self::DEFAULT_SPEED);
 		$this->setMayMove(false);
 //		$this->updateAttribute(UpdateAttributesPacket::EXPERIENCE_LEVEL, 100, 0, 1024, 100);
 	}
-	
+
 	public function handleProxyDataPacket($packet) {
 		if ($packet->pid() === ProtocolProxyInfo::CONNECT_PACKET) {
 			if ($this->loggedIn === true) {
@@ -3579,11 +3707,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		}
 	}
 
-	
+
 	public function getInterface() {
 		return $this->interface;
 	}
-	
+
 	public function transfer($address, $port = false) {
 		if ($this->isAvailableTansferPacket()) {
 			$pk = new TransferPacket();
@@ -3610,7 +3738,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 	/**
 	 * Create new transaction pair for transaction or add it to suitable one
-	 * 
+	 *
 	 * @param BaseTransaction $transaction
 	 * @return null
 	 */
@@ -3672,7 +3800,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$transaction->getInventory()->sendContents($this);
 		}
 	}
-	
+
 	protected function enchantTransaction(BaseTransaction $transaction) {
 		if ($this->craftingType !== self::CRAFTING_ENCHANT) {
 			$this->getInventory()->sendContents($this);
@@ -3681,17 +3809,17 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$oldItem = $transaction->getSourceItem();
 		$newItem = $transaction->getTargetItem();
 		$enchantInv = $this->currentWindow;
-		
+
 		if (($newItem instanceof Armor || $newItem instanceof Tool) && $transaction->getInventory() === $this->inventory) {
 			// get enchanting data
 			$source = $enchantInv->getItem(0);
 			$enchantingLevel = $enchantInv->getEnchantingLevel();
-			
+
 			if ($enchantInv->isItemWasEnchant() && $newItem->deepEquals($source, true, false)) {
 				// reset enchanting data
 				$enchantInv->setItem(0, Item::get(Item::AIR));
 				$enchantInv->setEnchantingLevel(0);
-				
+
 				$playerItems = $this->inventory->getContents();
 				$dyeSlot = -1;
 				$targetItemSlot = -1;
@@ -3718,12 +3846,12 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$this->inventory->sendContents($this);
 			return;
 		}
-		
+
 		if (($oldItem instanceof Armor || $oldItem instanceof Tool) && $transaction->getInventory() === $this->inventory) {
 			$enchantInv->setItem(0, $oldItem);
 		}
 	}
-	
+
 	protected function updateAttribute($name, $value, $minValue, $maxValue, $defaultValue) {
 		$pk = new UpdateAttributesPacket();
 		$pk->entityId = $this->id;
@@ -3734,7 +3862,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$pk->defaultValue = $defaultValue;
 		$this->dataPacket($pk);
 	}
-	
+
 	public function updateSpeed($value) {
 		$this->movementSpeed = $value;
 		$this->updateAttribute(UpdateAttributesPacket::SPEED, $this->movementSpeed, 0, self::MAXIMUM_SPEED, $this->movementSpeed);
@@ -3764,7 +3892,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			var_dump('zlib_decode error');
 		}
 	}
-	
+
 	public function getProtectionEnchantments() {
 		$result = [
 			Enchantment::TYPE_ARMOR_PROTECTION => null,
@@ -3798,7 +3926,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	{
 		return $this->expLevel;
 	}
-	
+
 	public function updateExperience($exp = 0, $level = 0, $checkNextLevel = true)
 	{
 		$this->exp = $exp;
@@ -3846,11 +3974,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	public function getRealExperience(){
 		return $this->getExperienceNeeded() * $this->getExperience();
 	}
-	
+
 	public function isUseElytra() {
 		return ($this->isHaveElytra() && $this->elytraIsActivated);
 	}
-	
+
 	public function isHaveElytra() {
 		if ($this->getInventory()->getArmorItem(Elytra::SLOT_NUMBER) instanceof Elytra) {
 			return true;
@@ -3865,7 +3993,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	public function isElytraActivated() {
 		return $this->elytraIsActivated;
 	}
-	
+
 	public function getPlayerProtocol() {
 		return $this->protocol;
 	}
@@ -3873,19 +4001,19 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	public function getDeviceOS() {
         return $this->deviceType;
     }
-    
+
     public function getInventoryType() {
         return $this->inventoryType;
     }
-	
+
 	public function setPing($ping) {
 		$this->ping = $ping;
 	}
-	
+
 	public function getPing() {
 		return $this->ping;
 	}
-	
+
 	public function sendPing() {
 		if ($this->ping <= 150) {
 			$this->sendMessage(TextFormat::GREEN . "Connection: Good ({$this->ping}ms)");
@@ -3895,13 +4023,13 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$this->sendMessage(TextFormat::RED . "Connection: Bad ({$this->ping}ms)");
 		}
 	}
-    
+
     public function getXUID() {
         return $this->xuid;
     }
-	
+
 	public function setTitle($text, $subtext = '', $time = 36000) {
-		if ($this->protocol >= Info::PROTOCOL_105) {		
+		if ($this->protocol >= Info::PROTOCOL_105) {
 			$pk = new SetTitlePacket();
 			$pk->type = SetTitlePacket::TITLE_TYPE_TIMES;
 			$pk->text = "";
@@ -3909,18 +4037,18 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$pk->fadeOutTime = 5;
 			$pk->stayTime = 20 * $time;
 			$this->dataPacket($pk);
-			
+
 			if (!empty($subtext)) {
 				$pk = new SetTitlePacket();
 				$pk->type = SetTitlePacket::TITLE_TYPE_SUBTITLE;
 				$pk->text = $subtext;
 				$this->dataPacket($pk);
 			}
-			
+
 			$pk = new SetTitlePacket();
 			$pk->type = SetTitlePacket::TITLE_TYPE_TITLE;
 			$pk->text = $text;
-			$this->dataPacket($pk);	
+			$this->dataPacket($pk);
 		}
 	}
 
@@ -3932,7 +4060,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$this->dataPacket($pk);
 		}
 	}
-		
+
 	public function sendNoteSound($noteId, $queue = false) {
 		if ($queue) {
 			$this->noteSoundQueue[] = $noteId;
@@ -3946,7 +4074,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$pk->entityType = $noteId;
 		$this->directDataPacket($pk);
 	}
-		
+
 	public function canSeeEntity(Entity $entity){
 		return !isset($this->hiddenEntity[$entity->getId()]);
 	}
@@ -3968,14 +4096,14 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$entity->spawnTo($this);
 		}
 	}
-	
+
 	public function setOnFire($seconds, $damage = 1){
  		if($this->isSpectator()) {
  			return;
  		}
  		parent::setOnFire($seconds, $damage);
  	}
-	
+
 	public function attackByTargetId($targetId) {
 		if ($this->spawned === false || $this->dead === true || $this->blocked) {
 			return;
@@ -4086,7 +4214,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			}
 		}
 	}
-	
+
 	protected function useItem($item, $slot, $face, $blockPosition, $clickPosition) {
 		switch ($face) {
 			//Use Block, place
@@ -4134,7 +4262,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$this->level->sendBlocks([$this], [$target, $block], UpdateBlockPacket::FLAG_ALL_PRIORITY);
 				//Timings::$timerUseItemPacket->stopTiming();
 				return;
-			
+
 			case 0xff:
 			case -1:  // -1 for 0.16
 				if ($this->isSpectator()) {
@@ -4223,9 +4351,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				return;
 		}
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param integer[] $blockPosition
 	 */
 	private function breakBlock($blockPosition) {
@@ -4262,7 +4390,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$tile->spawnTo($this);
 		}
 	}
-	
+
 	/**
 	 * @minProtocolSupport 120
 	 * @param InventoryTransactionPacket $packet
@@ -4299,7 +4427,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$trGroup->sendInventories();
 		}
 	}
-	
+
 	/**
 	 * @minprotocol 120
 	 * @param SimpleTransactionData[] $transactionsData
@@ -4346,7 +4474,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->level->dropItem($this->add(0, 1.3, 0), $dropItem, $motion, 40);
 		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, false);
 	}
-	
+
 	/**
 	 * @minprotocol 120
 	 * @param Item[] $craftSlots
@@ -4378,8 +4506,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				if ($ingredient->getId() == Item::AIR) {
 					continue;
 				}
-				$isItemsNotEquals = $item->getId() != $ingredient->getId() || 
-						($item->getDamage() != $ingredient->getDamage() && $ingredient->getDamage() != 32767) || 
+				$isItemsNotEquals = $item->getId() != $ingredient->getId() ||
+						($item->getDamage() != $ingredient->getDamage() && $ingredient->getDamage() != 32767) ||
 						$item->count < $ingredient->count;
 				if ($isItemsNotEquals) {
 					throw new \Exception('Recive bad recipe');
@@ -4396,7 +4524,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	/**
-	 * 
+	 *
 	 * @param PlayerActionPacket $packet
 	 */
 	private function crackBlock($packet) {
@@ -4411,7 +4539,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			'y' => $packet->y,
 			'z' => $packet->z,
 		];
-		
+
 		$isNeedSendSound = $this->actionsNum['CRACK_BLOCK'] % 4 == 0;
 		$this->actionsNum['CRACK_BLOCK']++;
 
@@ -4421,7 +4549,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$pk->y = $packet->y + 1;
 		$pk->z = $packet->z;
 		$pk->data = $blockId;
-		
+
 		foreach ($recipients as $recipient) {
 			$recipient->dataPacket($pk);
 			if ($isNeedSendSound) {
@@ -4429,7 +4557,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			}
 		}
 	}
-	
+
 	/**
 	 * @minprotocol 120
 	 * @param SimpleTransactionData[] $transactionsData
@@ -4444,9 +4572,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$inventory->setItem($transaction->getSlot(), $transaction->getTargetItem());
 		}
 	}
-		
+
 	 /**
-	 * 
+	 *
 	 * @param integer $soundId
 	 * @param float[] $position
 	 */
@@ -4460,7 +4588,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$pk->entityType = $entityType;
 		$this->dataPacket($pk);
 	}
-	
+
 	private function setMayMove($state) {
 		if ($this->protocol >= ProtocolInfo::PROTOCOL_120) {
 			$this->setDataFlag(self::DATA_FLAGS, 46, $state);
@@ -4471,19 +4599,19 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	public function customInteract($packet) {
-		
+
 	}
-	
+
 	public function fall($fallDistance) {
 		if (!$this->allowFlight) {
 			parent::fall($fallDistance);
 		}
 	}
-	
+
 	protected function onJump() {
- 		
+
  	}
-	
+
 	 protected function releaseUseItem() {
 		if ($this->startAction > -1 and $this->getDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION)) {
 			if ($this->inventory->getItemInHand()->getId() === Item::BOW) {
@@ -4586,19 +4714,19 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$this->inventory->sendContents($this);
 		}
 	}
-	
+
 	public function getServerAddress() {
 		return $this->serverAddress;
 	}
-	
+
 	public function getClientlanguageCode() {
 		return $this->languageCode;
 	}
-	
+
 	public function getClientVersion() {
 		return $this->clientVersion;
 	}
-	
+
 	public function getOriginalProtocol() {
 		return $this->originalProtocol;
 	}
