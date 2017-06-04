@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
@@ -35,7 +35,7 @@ class BinaryStream extends \stdClass{
 
 	public $offset;
 	public $buffer;
-	
+
 	public function __construct($buffer = "", $offset = 0){
 		$this->buffer = $buffer;
 		$this->offset = $offset;
@@ -188,26 +188,26 @@ class BinaryStream extends \stdClass{
 		$this->put($uuid->toBinary());
 	}
 
-	public function getSlot($playerProtocol){		
-		$id = $this->getSignedVarInt();		
+	public function getSlot($playerProtocol){
+		$id = $this->getSignedVarInt();
 		if($id <= 0){
 			return Item::get(Item::AIR, 0, 0);
 		}
-	
+
 		$aux = $this->getSignedVarInt();
 		$meta = $aux >> 8;
 		$count = $aux & 0xff;
 
-		$nbtLen = $this->getLShort();		
-		$nbt = "";		
+		$nbtLen = $this->getLShort();
+		$nbt = "";
 		if($nbtLen > 0){
 			$nbt = $this->get($nbtLen);
 		}
-		
+
 		if ($playerProtocol >= Info::PROTOCOL_110) {
 			$this->offset += 2;
 		}
-		
+
 		return Item::get(
 			$id,
 			$meta,
@@ -222,8 +222,8 @@ class BinaryStream extends \stdClass{
 			return;
 		}
 		$this->putSignedVarInt($item->getId());
-		$this->putSignedVarInt(($item->getDamage() === null ? 0  : ($item->getDamage() << 8)) + $item->getCount());	
-		$nbt = $item->getCompound();	
+		$this->putSignedVarInt((($item->getDamage() ?? -1) << 8) | $item->getCount());
+		$nbt = $item->getCompound();
 		$this->putLShort(strlen($nbt));
 		$this->put($nbt);
 		if ($playerProtocol >= Info::PROTOCOL_110) {
@@ -235,26 +235,13 @@ class BinaryStream extends \stdClass{
 	public function feof(){
 		return !isset($this->buffer{$this->offset});
 	}
-	
-	
+
 	public function getSignedVarInt() {
-		$result = $this->getVarInt();
-		if ($result % 2 == 0) {
-			$result = $result / 2;
-		} else {
-			$result = (-1) * ($result + 1) / 2;
-		}
-		return $result;
+		return Binary::readSignedVarInt($this);
 	}
 
 	public function getVarInt() {
-		$result = $shift = 0;
-		do {
-			$byte = $this->getByte();
-			$result |= ($byte & 0x7f) << $shift;
-			$shift += 7;
-		} while ($byte > 0x7f);
-		return $result;
+		return Binary::readVarInt($this);
 	}
 
 	public function putSignedVarInt($v) {
@@ -272,5 +259,5 @@ class BinaryStream extends \stdClass{
 		$this->putVarInt(strlen($v));
 		$this->put($v);
 	}
-	
+
 }

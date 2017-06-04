@@ -101,7 +101,7 @@ class Binary{
 				case Entity::DATA_TYPE_SHORT:
 					$m .= self::writeLShort($d[1]);
 					break;
-				case Entity::DATA_TYPE_INT:					
+				case Entity::DATA_TYPE_INT:
 					$m .= self::writeSignedVarInt($d[1]);
 					break;
 				case Entity::DATA_TYPE_FLOAT:
@@ -455,30 +455,51 @@ class Binary{
 	public static function writeLLong($value){
 		return strrev(self::writeLong($value));
 	}
-	
-	public static function writeSignedVarInt($v){
-		if ($v >= 0) {
-			$v = 2 * $v;
-		} else {
-			$v = 2 * abs($v) - 1;
-		}
-		return self::writeVarInt($v);
+
+	public static function readSignedVarInt($stream){
+		$shift = PHP_INT_SIZE === 8 ? 63 : 31;
+		$raw = self::readVarInt($stream);
+		$temp = ((($raw << $shift) >> $shift) ^ $raw) >> 1;
+		return $temp ^ ($raw & (1 << $shift));
 	}
 
-	
-	public static function writeVarInt($v){		
-		if ($v < 0x80) {
-			return chr($v);
-		} else {
-			$values = array();
-			while ($v > 0) {
-				$values[] = 0x80 | ($v & 0x7f);
-				$v = $v >> 7;
+	/**
+	 * @param BinaryStream $stream
+	 *
+	 * @return int
+	 */
+	public static function readVarInt($stream){
+		$value = 0;
+		$i = 0;
+		do{
+			if($i > 63){
+				throw new \InvalidArgumentException("Varint did not terminate after 10 bytes!");
 			}
-			$values[count($values)-1] &= 0x7f;
-			$bytes = call_user_func_array('pack', array_merge(array('C*'), $values));
-			return $bytes;
-		}
+			$value |= ((($b = $stream->getByte()) & 0x7f) << $i);
+			$i += 7;
+		}while($b & 0x80);
+
+		return $value;
 	}
-	
+
+	public static function writeSignedVarInt($v){
+		return self::writeVarInt(($v << 1) ^ ($v >> (PHP_INT_SIZE === 8 ? 63 : 31)));
+	}
+
+
+	public static function writeVarInt($v){
+		$buf = "";
+		for($i = 0; $i < 10; ++$i) {
+			if(($v >> 7) !== 0) {
+				$buf .= chr($v | 0x80); //Let chr() take the last byte of this, it's faster than adding another & 0x7f.
+			} else {
+				$buf .= chr($v & 0x7f);
+				return $buf;
+			}
+			$v = (($v>> 7) & (PHP_INT_MAX >> 6)); //PHP really needs a logical right-shift operator
+		}
+
+		throw new \InvalidArgumentException("Value too large to be encoded as a varint");
+	}
+
 }
