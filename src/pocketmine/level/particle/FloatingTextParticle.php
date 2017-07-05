@@ -55,11 +55,11 @@ class FloatingTextParticle extends Particle{
 	public function setTitle($title){
 		$this->title = $title;
 	}
-	
+
 	public function isInvisible(){
 		return $this->invisible;
 	}
-	
+
 	public function setInvisible($value = true){
 		$this->invisible = (bool) $value;
 	}
@@ -77,7 +77,7 @@ class FloatingTextParticle extends Particle{
 		}
 
 		if(!$this->invisible){
-			
+
 			$pk = new AddPlayerPacket();
 			$pk->uuid = UUID::fromRandom();
 			$pk->eid = $this->entityId;
@@ -98,7 +98,7 @@ class FloatingTextParticle extends Particle{
 
 			$p[] = $pk;
 		}
-		
+
 		return $p;
 	}
 }

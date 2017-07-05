@@ -1704,8 +1704,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 		$slot = $this->inventory->getItemInHand();
 		$slotId = $slot->getId();
-		if (isset($items[$slotId])) {
-			if ($this->getFood() < 20) {
+		if(isset($items[$slotId])) {
+			if($this->getFood() < 20 or ($slot->getId() !== Item::GOLDEN_APPLE or $slot->getId() !== Item::ENCHANTED_GOLDEN_APPLE)) {
 				$this->server->getPluginManager()->callEvent($ev = new PlayerItemConsumeEvent($this, $slot));
 				if($ev->isCancelled()){
 					$this->inventory->sendContents($this);
