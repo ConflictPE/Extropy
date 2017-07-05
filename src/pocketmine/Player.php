@@ -4103,12 +4103,16 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	public function sendPing() {
 		if ($this->ping <= 150) {
-			$this->sendMessage(TextFormat::GREEN . "Connection: Good ({$this->ping}ms)");
+			$color = TextFormat::GREEN;
+			$text = "Good";
 		} elseif ($this->ping <= 250) {
-			$this->sendMessage(TextFormat::YELLOW . "Connection: Okay ({$this->ping}ms)");
+			$color = TextFormat::YELLOW;
+			$text = "Okay";
 		} else {
-			$this->sendMessage(TextFormat::RED . "Connection: Bad ({$this->ping}ms)");
+			$color = TextFormat::RED;
+			$text = "Bad";
 		}
+		$this->sendMessage($color . "Connection: {$text}({$this->ping}ms)");
 	}
 
     public function getXUID() {
