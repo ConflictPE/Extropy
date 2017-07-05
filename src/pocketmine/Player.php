@@ -1767,10 +1767,10 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			return;
 		}
 
-//		$this->server->getPluginManager()->callEvent($ev = new DataPacketReceiveEvent($this, $packet));
-//		if($ev->isCancelled()){
-//			return;
-//		}
+		$this->server->getPluginManager()->callEvent($ev = new DataPacketReceiveEvent($this, $packet));
+		if($ev->isCancelled()){
+			return;
+		}
 
 		$beforeLoginAvailablePackets = ['LOGIN_PACKET', 'REQUEST_CHUNK_RADIUS_PACKET', 'RESOURCE_PACKS_CLIENT_RESPONSE_PACKET'];
 		if (!$this->isOnline() && !in_array($packet->pname(), $beforeLoginAvailablePackets)) {
