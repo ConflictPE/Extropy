@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
@@ -27,26 +27,31 @@ use pocketmine\utils\BinaryStream;
 class AvailableCommandsPacket extends PEPacket{
 	const NETWORK_ID = Info::AVAILABLE_COMMANDS_PACKET;
 	const PACKET_NAME = "AVAILABLE_COMMANDS_PACKET";
-	
+
 	static private $commandsBuffer = [];
-	
-	public $commands;
-	
+
+	public $commands = "";
+
 	public function decode($playerProtocol){
 	}
-	
+
 	public function encode($playerProtocol){
 		$this->reset($playerProtocol);
-		if (isset(self::$commandsBuffer[$playerProtocol])) {
-			$this->put(self::$commandsBuffer[$playerProtocol]);
+		if($this->commands === "") {
+			if(isset(self::$commandsBuffer[$playerProtocol])) {
+				$this->put(self::$commandsBuffer[$playerProtocol]);
+			} else {
+				$this->putString(self::$commandsBuffer['default']);
+			}
 		} else {
-			$this->putString(self::$commandsBuffer['default']);
+			$this->putString($this->commands);
+			$this->putString("");
 		}
 	}
-	
+
 	public static function prepareCommands($commands) {
 		self::$commandsBuffer['default'] = json_encode($commands);
-		
+
 		$enumValues = [];
 		$enumValuesCount = 0;
 		$enumAdditional = [];
@@ -89,7 +94,7 @@ class AvailableCommandsPacket extends PEPacket{
 				}
 			}
 		}
-		
+
 		$additionalDataStream = new BinaryStream();
 		$additionalDataStream->putVarInt($enumValuesCount);
 		for ($i = 0; $i < $enumValuesCount; $i++) {
@@ -109,10 +114,10 @@ class AvailableCommandsPacket extends PEPacket{
 					$additionalDataStream->putLShort($enums[$i]['data'][$j]);
 				} else {
 					$additionalDataStream->putLInt($enums[$i]['data'][$j]);
-				}	
+				}
 			}
 		}
-		
+
 		$additionalDataStream->putVarInt(count($commands));
 		$additionalDataStream->put($commandsStream->buffer);
 		self::$commandsBuffer[Info::PROTOCOL_120] = $additionalDataStream->buffer;
