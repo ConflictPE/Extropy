@@ -3442,6 +3442,16 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		}
 	}
 
+	/**
+	 * Get a window by its ID
+	 *
+	 * @param int $id
+	 *
+	 * @return Inventory|null
+	 */
+	public function getWindowById(int $id) {
+		return $this->currentWindowId == $id ? $this->currentWindow : null;
+	}
 
 	/**
 	 * @param Inventory $inventory
