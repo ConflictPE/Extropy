@@ -53,10 +53,10 @@ class Position extends Vector3{
 	 * @return Level|null
 	 */
 	public function getLevel(){
-		if($this->level === null){
-			MainLogger::getLogger()->debug("Position was holding a reference to an unloaded Level");
-			$this->level = null;
-		}
+		//if($this->level === null){
+		//	MainLogger::getLogger()->debug("Position was holding a reference to an unloaded Level");
+		//	$this->level = null;
+		//}
 
 		return $this->level;
 	}
@@ -71,9 +71,9 @@ class Position extends Vector3{
 	 * @throws \InvalidArgumentException if the specified Level has been closed
 	 */
 	public function setLevel(Level $level = null){
-		if($level === null){
-			throw new \InvalidArgumentException("Specified level has been unloaded and cannot be used");
-		}
+		//if($level === null){
+		//	throw new \InvalidArgumentException("Specified level has been unloaded and cannot be used");
+		//}
 
 		$this->level = $level;
 		return $this;
