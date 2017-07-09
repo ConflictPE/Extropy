@@ -40,7 +40,7 @@ use pocketmine\network\protocol\BatchPacket;
 use pocketmine\utils\Binary;
 
 class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
-	
+
 	/** @var Server */
 	private $server;
 
@@ -64,7 +64,7 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 
 	public $count = 0;
 	public $maxcount = 31360;
-	public $name = "Lifeboat Network";
+	public $name = "Steadfast server";
 
 	public function setCount($count, $maxcount) {
 		$this->count = $count;
@@ -179,7 +179,7 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 			$player = $this->players[$identifier];
 			try{
 				if($buffer !== ""){
-					$pk = $this->getPacket($buffer, $player->getPlayerProtocol(), $player->isOnline());				
+					$pk = $this->getPacket($buffer, $player->getPlayerProtocol(), $player->isOnline());
 					if (!is_null($pk)) {
 						$pk->decode($player->getPlayerProtocol());
 						$player->handleDataPacket($pk);
@@ -191,7 +191,7 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 			}
 		}
 	}
-	
+
 	public function handlePing($identifier, $ping){
 		if(isset($this->players[$identifier])){
 			$player = $this->players[$identifier];
@@ -238,7 +238,7 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 	 * $player - packet recipient
 	 */
 	public function putPacket(Player $player, DataPacket $packet, $needACK = false, $immediate = false){
-		if(isset($this->identifiers[$player])){			
+		if(isset($this->identifiers[$player])){
 			$protocol = $player->getPlayerProtocol();
 //			var_dump("Send: 0x" . ($packet::NETWORK_ID < 16 ? '0' . dechex($packet::NETWORK_ID) : dechex($packet::NETWORK_ID)));
 			$packet->encode($protocol);
@@ -246,9 +246,9 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 				$this->server->batchPackets([$player], [$packet], true);
 				return null;
 			}
-			$identifier = $this->identifiers[$player];	
+			$identifier = $this->identifiers[$player];
 
-			$pk = new EncapsulatedPacket();				
+			$pk = new EncapsulatedPacket();
 			$pk->buffer = chr(0xfe) . $this->getPacketBuffer($packet, $protocol);
 			$pk->reliability = 3;
 
@@ -263,7 +263,7 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 
 		return null;
 	}
-	
+
 	private function getPacket($buffer, $playerProtocol, $isOnline) {
 		$pid = ord($buffer{0});
 //		var_dump("Recive: 0x" . ($pid < 16 ? '0' . dechex($pid) : dechex($pid)));
@@ -279,28 +279,28 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 	}
 
 	public function putReadyPacket($player, $buffer) {
-		if (isset($this->identifiers[$player])) {	
+		if (isset($this->identifiers[$player])) {
 			$pk = new EncapsulatedPacket();
 			$pk->buffer = chr(0xfe) . $buffer;
-			$pk->reliability = 3;		
-			$this->interface->sendEncapsulated($player->getIdentifier(), $pk, RakLib::PRIORITY_NORMAL);			
+			$pk->reliability = 3;
+			$this->interface->sendEncapsulated($player->getIdentifier(), $pk, RakLib::PRIORITY_NORMAL);
 		}
 	}
-	
+
 	private function getPacketBuffer($packet, $protocol) {
 		if ($protocol < Info::PROTOCOL_110 || ($packet instanceof BatchPacket)) {
 			return $packet->buffer;
 		}
-		
+
 		return $this->fakeZlib(Binary::writeVarInt(strlen($packet->buffer)) . $packet->buffer);
 	}
-	
+
 	private function fakeZlib($buffer) {
 		static $startBytes = "\x78\x01\x01";
 		$len = strlen($buffer);
 		return $startBytes . Binary::writeLShort($len) . Binary::writeLShort($len ^ 0xffff) . $buffer . hex2bin(hash('adler32', $buffer, false));
 	}
-	
+
 	private function isZlib($buffer) {
 		if (ord($buffer{0}) == 120) {
 			return true;
