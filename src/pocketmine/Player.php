@@ -22,6 +22,7 @@
 namespace pocketmine;
 
 use pocketmine\block\Block;
+use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\entity\Arrow;
 use pocketmine\entity\Effect;
@@ -206,6 +207,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	const DEFAULT_SPEED = 0.1;
 	const MAXIMUM_SPEED = 0.5;
+
+	/** @var array */
+	private static $defaultCommandData = null;
 
 	/** @var SourceInterface */
 	protected $interface;
@@ -633,20 +637,33 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 		$this->creationTime = microtime(true);
 
-		if (empty(self::$availableCommands)) {
-			self::$availableCommands = $this->server->getJsonCommands();
-			$plugins = $this->server->getPluginManager()->getPlugins();
-			foreach ($plugins as $pluginName => $plugin) {
-				$pluginCommands = $plugin->getJsonCommands();
-				self::$availableCommands = array_merge(self::$availableCommands, $pluginCommands);
-			}
-			AvailableCommandsPacket::prepareCommands(self::$availableCommands);
-		}
 		$this->inventory = new PlayerInventory($this); // hack for not null getInventory
 		$this->setViewRadius(2);
 	}
 
-	public function setViewRadius($radius) {
+	public function sendCommandData() {
+		if(self::$defaultCommandData === null) {
+			$data = [];
+			$default = Command::generateDefaultData();
+			foreach($this->server->getCommandMap()->getCommands() as $command) {
+				$version = $default;
+				$version["aliases"] = $command->getAliases();
+				$version["description"] = $command->getDescription();
+				$data[strtolower($command->getLabel())]["versions"][] = $version;
+			}
+			self::$defaultCommandData = $data = json_encode($data);
+		} else {
+			$data = self::$defaultCommandData;
+		}
+		if($data !== "") {
+			//TODO: structure checking
+			$pk = new AvailableCommandsPacket();
+			$pk->commands = $data;
+			$this->dataPacket($pk);
+		}
+	}
+
+		public function setViewRadius($radius) {
 		$this->viewRadius = $radius;
 		$this->spawnThreshold = $radius ** 2 * M_PI;
 	}
@@ -2769,48 +2786,74 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				//Timings::$timerChunkRudiusPacket->stopTiming();
 				break;
 			case 'COMMAND_STEP_PACKET':
-				$commandName = $packet->name;
-				$commandOverload = $packet->overload;
-				$commandParams = json_decode($packet->outputFormat, true);
-				// trying to find command or her alias
-				if (!isset(self::$availableCommands[$commandName])) {
-					foreach(self::$availableCommands as $name => $data) {
-						if (isset($data['versions'][0]['aliases'])) {
-							if (in_array($commandName, $data['versions'][0]['aliases'])) {
-								$commandName = $name;
-								break;
+				$name = $packet->name;
+				$params = json_decode($packet->outputFormat, true);
+				$command = "/" . $name;
+				if(is_array($params)) {
+					foreach($params as $param => $data) {
+						if(is_array($data)) { // Target argument type
+							if(isset($data["selector"])) {
+								$selector = $data["selector"];
+								switch($selector) {
+									case "nearestPlayer":
+										if(isset($data["rules"])) { // Player has been specified
+											$player = $data["rules"][0]["value"]; // Player name
+											break;
+										}
+										$nearest = null;
+										$distance = PHP_INT_MAX;
+										foreach($this->getViewers() as $p) {
+											if($p instanceof Player) {
+												$dist = $this->distance($p->getPosition());
+												if($dist < $distance) {
+													$nearest = $p;
+													$distance = $dist;
+												}
+											}
+										}
+										if($nearest instanceof Player) {
+											$player = $nearest->getName();
+										} else {
+											$player = "@p";
+										}
+										break;
+									case "allPlayers":
+										// no handling here yet
+										$player = "@a";
+										break;
+									case "randomPlayer":
+										$players = $this->getServer()->getOnlinePlayers();
+										$player = $players[array_rand($players)]->getName();
+										break;
+									case "allEntities":
+										// no handling here yet
+										$player = "@e";
+										break;
+									default:
+										$this->getServer()->getLogger()->warning("Unhandled selector for target argument!");
+										var_dump($selector);
+										$player = " ";
+										break;
+								}
+								$command .= " " . $player;
+							} else { // Another argument type?
+								$this->getServer()->getLogger()->warning("No selector set for target argument!");
+								var_dump($data);
 							}
+						} elseif(is_string($data)) { // Normal string argument
+							$command .= " " . $data;
+						} else { // Unhandled argument type
+							$this->getServer()->getLogger()->warning("Unhandled command data type!");
+							var_dump($data);
 						}
 					}
 				}
-				if (!isset(self::$availableCommands[$commandName])) {
-					$this->sendMessage('Unknown command.');
-					break;
+				$ev = new PlayerCommandPreprocessEvent($this, $command);
+				$this->getServer()->getPluginManager()->callEvent($ev);
+				if($ev->isCancelled()) {
+					return;
 				}
-
-				$commandLine = $commandName;
-				// facepalm : This needs for right params order
-				$params = self::$availableCommands[$commandName]['versions'][0]['overloads'][$commandOverload]['input']['parameters'];
-				foreach ($params as $param) {
-					if (!isset($commandParams[$param['name']]) && (!isset($param['optional']) || $param['optional'] == false)) {
-						$this->sendMessage('Bad arguments for ' . $commandName . ' command.');
-						break(2);
-					}
-					if (isset($commandParams[$param['name']])) {
-						$commandLine .= ' ' . $commandParams[$param['name']];
-					}
-				}
-
-				$ev = new PlayerCommandPreprocessEvent($this, $commandLine);
-				$this->server->getPluginManager()->callEvent($ev);
-				if ($ev->isCancelled()) {
-					break;
-				}
-
-				$this->server->dispatchCommand($this, $commandLine);
-
-				$ev = new PlayerCommandPostprocessEvent($this, $commandLine);
-				$this->server->getPluginManager()->callEvent($ev);
+				$this->getServer()->dispatchCommand($this, substr($ev->getMessage(), 1));
 				break;
 			case 'RESOURCE_PACKS_CLIENT_RESPONSE_PACKET':
 				switch ($packet->status) {
@@ -3720,10 +3763,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 //		$pk->enabled = 1;
 //		$this->dataPacket($pk);
 
-		if (!empty(self::$availableCommands)) {
-			$pk = new AvailableCommandsPacket();
-			$this->dataPacket($pk);
-		}
+		$this->sendCommandData();
+
 		if($this->getHealth() <= 0){
 			$this->dead = true;
 		}

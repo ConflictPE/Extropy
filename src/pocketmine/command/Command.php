@@ -25,13 +25,17 @@
 namespace pocketmine\command;
 
 use pocketmine\event\TimingsHandler;
+use pocketmine\Player;
 use pocketmine\Server;
 use pocketmine\utils\TextFormat;
 
 abstract class Command{
-	
+
+	/** @var array */
+	private static $defaultDataTemplate = null;
+
 	private $availableForHelp = true;
-	
+
 	/** @var string */
 	private $name;
 
@@ -84,6 +88,13 @@ abstract class Command{
 		$this->aliases = $aliases;
 		$this->activeAliases = (array) $aliases;
 		$this->timings = new TimingsHandler("** Command: " . $name);
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getOverloads(): array{
+		return $this->commandData["overloads"];
 	}
 
 	/**
@@ -286,6 +297,16 @@ abstract class Command{
 	}
 
 	/**
+	 * @return array
+	 */
+	public static final function generateDefaultData() : array{
+		if(self::$defaultDataTemplate === null){
+			self::$defaultDataTemplate = json_decode(file_get_contents(Server::getInstance()->getFilePath() . "src/pocketmine/resources/command_default.json"), true);
+		}
+		return self::$defaultDataTemplate;
+	}
+
+	/**
 	 * @param CommandSender $source
 	 * @param string        $message
 	 * @param bool          $sendToSource
@@ -311,11 +332,11 @@ abstract class Command{
 			}
 		}
 	}
-	
+
 	public function setAvailableForHelp($val) {
 		$this->availableForHelp = $val;
 	}
-	
+
 	public function isAvailableForHelp() {
 		return $this->availableForHelp;
 	}
