@@ -3011,7 +3011,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$this->connected = false;
 			if($this->username != ""){
 				$this->server->getPluginManager()->callEvent($ev = new PlayerQuitEvent($this, $message, $reason));
-				if($this->server->getSavePlayerData() and $this->loggedIn === true){
+				if($this->server->getSavePlayerData()){
 					$this->save();
 				}
 			}

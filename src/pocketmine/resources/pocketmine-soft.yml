@@ -19,7 +19,7 @@ messages:
 main:
  #Block unknown items from creative-mode players
  filter-creative-items: true
- 
+
  #Shuffle the player list to prevent players from 'gaming' the server, getting high priority on the tick list.
  #Value is in ticks, so 20 = shuffle each second
  player-shuffle: 0

@@ -732,7 +732,6 @@ class Server{
 		return round((array_sum($this->useAverage) / count($this->useAverage)) * 100, 2);
 	}
 
-
 	/**
 	 * @deprecated
 	 *
@@ -824,6 +823,19 @@ class Server{
 	public function getOfflinePlayerData($name){
 		$name = strtolower($name);
 		$spawn = $this->getDefaultLevel()->getSafeSpawn();
+		$path = $this->getDataPath() . "players/";
+		if($this->getSavePlayerData()){
+			if(file_exists($path . "$name.dat")){
+				try{
+					$nbt = new NBT(NBT::BIG_ENDIAN);
+					$nbt->readCompressed(file_get_contents($path . "$name.dat"));
+					return $nbt->getData();
+				}catch(\Throwable $e){ //zlib decode error / corrupt data
+					rename($path . "$name.dat", $path . "$name.dat.bak");
+					$this->logger->notice("Save data for {$name} is corrupted!");
+				}
+			}
+		}
 		$nbt = new Compound("", [
 			new LongTag("firstPlayed", floor(microtime(true) * 1000)),
 			new LongTag("lastPlayed", floor(microtime(true) * 1000)),
@@ -862,7 +874,7 @@ class Server{
 		$nbt->Motion->setTagType(NBT::TAG_Double);
 		$nbt->Rotation->setTagType(NBT::TAG_Float);
 
-		// $this->saveOfflinePlayerData($name, $nbt);
+		$this->saveOfflinePlayerData($name, $nbt, true);
 
 		return $nbt;
 
@@ -873,7 +885,20 @@ class Server{
 	 * @param Compound $nbtTag
 	 */
 	public function saveOfflinePlayerData($name, Compound $nbtTag, $async = false){
-		return false;
+		if($this->getSavePlayerData()){
+			$nbt = new NBT(NBT::BIG_ENDIAN);
+			try{
+				$nbt->setData($nbtTag);
+				if($async){
+					$this->getScheduler()->scheduleAsyncTask(new FileWriteTask($this->getDataPath() . "players/" . strtolower($name) . ".dat", $nbt->writeCompressed()));
+				}else{
+					file_put_contents($this->getDataPath() . "players/" . strtolower($name) . ".dat", $nbt->writeCompressed());
+				}
+			}catch(\Throwable $e){
+				$this->logger->critical("Error while attempting to save player data! Message: " . $e->getMessage());
+				$this->logger->logException($e);
+			}
+		}
 	}
 
 	/**
@@ -1461,9 +1486,9 @@ class Server{
 			mkdir($dataPath . "worlds/", 0777);
 		}
 
-		//if(!file_exists($dataPath . "players/")){
-		//	mkdir($dataPath . "players/", 0777);
-		//}
+		if(!file_exists($dataPath . "players/")){
+			mkdir($dataPath . "players/", 0777);
+		}
 
 		if(!file_exists($pluginPath)){
 			mkdir($pluginPath, 0777);
