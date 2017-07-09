@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,12 +15,13 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
 namespace pocketmine\entity;
 
+use pocketmine\inventory\EnderChestInventory;
 use pocketmine\inventory\InventoryHolder;
 use pocketmine\inventory\PlayerInventory;
 use pocketmine\item\Item as ItemItem;
@@ -43,8 +44,12 @@ use pocketmine\network\multiversion\Multiversion;
 class Human extends Creature implements ProjectileSource, InventoryHolder{
 
 	protected $nameTag = "TESTIFICATE";
+
 	/** @var PlayerInventory */
 	protected $inventory;
+
+	/** @var EnderChestInventory */
+	protected $enderChestInventory;
 
 
 	/** @var UUID */
@@ -96,17 +101,23 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 		return $this->inventory;
 	}
 
+	public function getEnderChestInventory(){
+		return $this->enderChestInventory;
+	}
+
 	protected function initEntity(){
 
 		$this->setDataFlag(self::DATA_PLAYER_FLAGS, self::DATA_PLAYER_FLAG_SLEEP, false);
 		$this->setDataProperty(self::DATA_PLAYER_BED_POSITION, self::DATA_TYPE_POS, [0, 0, 0]);
-		
-		if ($this instanceof Player){
+
+		if($this instanceof Player){
 			$this->inventory = Multiversion::getPlayerInventory($this);
 			$this->addWindow($this->inventory, 0);
 		} else {
 			$this->inventory = new PlayerInventory($this);
 		}
+
+		$this->enderChestInventory = new EnderChestInventory($this, ($this->namedtag->EnderChestInventory ?? null));
 
 		if(!($this instanceof Player)){
 			if(isset($this->namedtag->NameTag)){
@@ -202,6 +213,21 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 						new ByteTag("Slot", $slot),
 						new ShortTag("id", $item->getId()),
 					]);
+				}
+			}
+		}
+
+		$this->namedtag->EnderChestInventory = new Enum("EnderChestInventory", []);
+		$this->namedtag->Inventory->setTagType(NBT::TAG_Compound);
+		if($this->enderChestInventory !== null){
+			for($slot = 0; $slot < $this->enderChestInventory->getSize(); $slot++){
+				if(($item = $this->enderChestInventory->getItem($slot)) instanceof ItemItem){
+					$this->namedtag->EnderChestInventory[$slot] = new Compound(false, [
+							new ByteTag("Count", $item->getCount()),
+							new ShortTag("Damage", $item->getDamage()),
+							new ByteTag("Slot", $slot),
+							new ShortTag("id", $item->getId()),
+						]);
 				}
 			}
 		}

@@ -35,6 +35,7 @@ class InventoryType{
 	const BREWING_STAND = 7;
 	const ANVIL = 8;
 	const ENCHANT_TABLE = 9;
+	const ENDER_CHEST = 10;
 
 	private static $default = [];
 
@@ -55,7 +56,7 @@ class InventoryType{
 		if(count(static::$default) > 0){
 			return;
 		}
-		
+
 		// 5 - ANVIL
 		// 4 - BREWING_STAND
 		// 3 - ENCHANT_TABLE
@@ -70,6 +71,7 @@ class InventoryType{
 		static::$default[static::ENCHANT_TABLE] = new InventoryType(2, "Enchant", 3); //1 INPUT/OUTPUT, 1 LAPIS
  		static::$default[static::BREWING_STAND] = new InventoryType(4, "Brewing", 4); //1 INPUT, 3 POTION
  		static::$default[static::ANVIL] = new InventoryType(3, "Anvil", 5); //2 INPUT, 1 OUTPUT
+		static::$default[static::ENDER_CHEST] = new InventoryType(27,      "Ender Chest",  0);
 	}
 
 	/**
