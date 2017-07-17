@@ -199,6 +199,7 @@ abstract class BaseInventory implements Inventory{
 				$this->clear($index);
 			}
 		}
+
 	}
 
 	public function first(Item $item){
@@ -247,36 +248,27 @@ abstract class BaseInventory implements Inventory{
 		return false;
 	}
 
-	public function addItem(...$slots){
+	public function addItem(Item ...$slots){
 		/** @var Item[] $itemSlots */
 		/** @var Item[] $slots */
 		$itemSlots = [];
 		foreach($slots as $slot){
-			if(!($slot instanceof Item)){
-				throw new \InvalidArgumentException("Expected Item[], got ".gettype($slot));
-			}
 			if($slot->getId() !== 0 and $slot->getCount() > 0){
 				$itemSlots[] = clone $slot;
 			}
 		}
-
 		$emptySlots = [];
-
-		$invSize = $this->getSize();
-		for ($i = 0; $i < $invSize; ++$i) {
+		for($i = 0; $i < $this->getSize(); ++$i){
 			$item = $this->getItem($i);
-			if($item->getId() === Item::AIR || $item->getCount() <= 0){
+			if($item->getId() === Item::AIR or $item->getCount() <= 0){
 				$emptySlots[] = $i;
 			}
-
-			$itemCount = $item->getCount();
 			foreach($itemSlots as $index => $slot){
-				if($slot->equals($item) && $itemCount < $item->getMaxStackSize()){
-					$slotCount = $slot->getCount();
-					$amount = min($item->getMaxStackSize() - $itemCount, $slotCount, $this->getMaxStackSize());
+				if($slot->equals($item) and $item->getCount() < $item->getMaxStackSize()){
+					$amount = min($item->getMaxStackSize() - $item->getCount(), $slot->getCount(), $this->getMaxStackSize());
 					if($amount > 0){
-						$slot->setCount($slotCount - $amount);
-						$item->setCount($itemCount + $amount);
+						$slot->setCount($slot->getCount() - $amount);
+						$item->setCount($item->getCount() + $amount);
 						$this->setItem($i, $item);
 						if($slot->getCount() <= 0){
 							unset($itemSlots[$index]);
@@ -284,12 +276,10 @@ abstract class BaseInventory implements Inventory{
 					}
 				}
 			}
-
 			if(count($itemSlots) === 0){
 				break;
 			}
 		}
-
 		if(count($itemSlots) > 0 and count($emptySlots) > 0){
 			foreach($emptySlots as $slotIndex){
 				//This loop only gets the first item, then goes to the next empty slot
@@ -306,6 +296,8 @@ abstract class BaseInventory implements Inventory{
 				}
 			}
 		}
+
+		$this->update();
 
 		return $itemSlots;
 	}
@@ -346,6 +338,9 @@ abstract class BaseInventory implements Inventory{
 			}
 		}
 
+		$this->update();
+
+
 		return $itemSlots;
 	}
 
@@ -370,6 +365,8 @@ abstract class BaseInventory implements Inventory{
 
 			$this->onSlotChange($index, $old);
 		}
+
+		$this->update();
 
 		return true;
 	}
@@ -415,6 +412,12 @@ abstract class BaseInventory implements Inventory{
 
 	public function onClose(Player $who){
 		unset($this->viewers[spl_object_hash($who)]);
+	}
+
+	protected function update() {
+		foreach($this->viewers as $viewer) {
+			$this->sendContents($viewer);
+		}
 	}
 
 	public function onSlotChange($index, $before, $sendPacket = true){

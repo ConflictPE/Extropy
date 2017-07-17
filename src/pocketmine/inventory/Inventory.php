@@ -68,11 +68,11 @@ interface Inventory{
 	 *
 	 * Returns the Items that did not fit.
 	 *
-	 * @param Item ...$item
+	 * @param Item ...$slots
 	 *
 	 * @return Item[]
 	 */
-	public function addItem(...$slots);
+	public function addItem(Item ...$slots);
 
 	/**
 	 * Checks if a given Item can be added to the inventory

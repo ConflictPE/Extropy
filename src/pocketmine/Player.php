@@ -2495,10 +2495,16 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 					$packet->message = TextFormat::clean($packet->message, $this->removeFormat);
 					foreach(explode("\n", $packet->message) as $message){
-						if(trim($message) != "" and strlen($message) <= 255 and $this->messageCounter-- > 0){
+						if(trim($message) != "" and $this->messageCounter-- > 0){
 							$this->server->getPluginManager()->callEvent($ev = new PlayerChatEvent($this, $message));
 							if(!$ev->isCancelled()){
-								$this->server->broadcastMessage($ev->getPlayer()->getDisplayName() . ": " . $ev->getMessage(), $ev->getRecipients());
+								$baseMessage = $ev->getFormat();
+								$params = [$ev->getPlayer()->getDisplayName(), $ev->getMessage()];
+								foreach($params as $i => $p){
+									$baseMessage = str_replace("{%$i}", (string) $p, $baseMessage);
+								}
+								$baseMessage = str_replace("%0", "", $baseMessage); //fixes a client bug where %0 in translation will cause freeze
+								$this->server->broadcastMessage($baseMessage, $ev->getRecipients());
 							}
 						}
 					}
