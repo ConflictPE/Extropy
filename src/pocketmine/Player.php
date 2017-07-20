@@ -2344,7 +2344,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						$this->crackBlock($packet);
 						return;
 				}
-				
+
 				$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, false);
 				//Timings::$timerActionPacket->stopTiming();
 				break;
@@ -3303,7 +3303,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	public function addAbsorption($amount) {
 		if($this->absorption + $amount > self::ABSORPTION_MAX) $amount = self::ABSORPTION_MAX;
-		$this->setAbsorption($this->getAbsorption() + $amount);
+		if($amount > $this->absorption) {
+			$this->setAbsorption($amount);
+		}
 	}
 
 	public function subtractAbsorption($amount) {
