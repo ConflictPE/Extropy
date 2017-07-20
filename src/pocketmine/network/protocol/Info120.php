@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
  */
 
@@ -93,7 +93,7 @@ interface Info120 {
 	const CHANGE_DIMENSION_PACKET = 0x3d;
 	const SET_PLAYER_GAMETYPE_PACKET = 0x3e;
 	const PLAYER_LIST_PACKET = 0x3f;
-  const SIMPLE_EVENT_PACKET = 0x40;
+	const SIMPLE_EVENT_PACKET = 0x40;
 	const TELEMETRY_EVENT_PACKET = 0x41;
 	const SPAWN_EXPERIENCE_ORB_PACKET = 0x42;
 	const CLIENTBOUND_MAP_ITEM_DATA_PACKET = 0x43;
@@ -128,4 +128,10 @@ interface Info120 {
 	const SET_LAST_HURT_BY_PACKET = 0x60;					// NEW
 	const BOOK_EDIT_PACKET = 0x61;							// NEW
 	const NPC_REQUEST_PACKET = 0x62;						// NEW
+	const PHOTO_TRANSFER_PACKET = 0x63;						// NEW
+	const MODAL_FORM_REQUEST_PACKET = 0x64;					// NEW
+	const MODAL_FORM_REAPONSE_PACKET = 0x65;				// NEW
+	const SERVER_SETTINGS_REQUEST_PACKET = 0x66;			// NEW
+	const SERVER_SETTINGS_RESPONSE_PACKET = 0x67;			// NEW
+
 }

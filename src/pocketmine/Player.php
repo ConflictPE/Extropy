@@ -178,18 +178,20 @@ use pocketmine\inventory\win10\Win10InvLogic;
  */
 class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
-    const OS_ANDROID = 1;
-    const OS_IOS = 2;
-    const OS_OSX = 3;
-    const OS_FIREOS = 4;
-    const OS_GEARVR = 5;
-    const OS_HOLOLENS = 6;
-    const OS_WIN10 = 7;
-    const OS_WIN32 = 8;
-    const OS_DEDICATED = 9;
+	const OS_ANDROID = 1;
+	const OS_IOS = 2;
+	const OS_OSX = 3;
+	const OS_FIREOS = 4;
+	const OS_GEARVR = 5;
+	const OS_HOLOLENS = 6;
+	const OS_WIN10 = 7;
+	const OS_WIN32 = 8;
+	const OS_DEDICATED = 9;
+	const OS_ORBIS = 10;
+	const OS_NX = 11;
 
-    const INVENTORY_CLASSIC = 0;
-    const INVENTORY_POCKET = 1;
+	const INVENTORY_CLASSIC = 0;
+	const INVENTORY_POCKET = 1;
 
 	const SURVIVAL = 0;
 	const CREATIVE = 1;
@@ -3686,7 +3688,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->allowFlight = $this->isCreative();
 
 
-		if (($level = $this->server->getLevelByName($nbt["Level"])) === null) {
+		if(($level = $this->server->getLevelByName($nbt["Level"])) === null) {
 			$this->setLevel($this->server->getDefaultLevel(), true);
 			$nbt["Level"] = $this->level->getName();
 			$nbt["Pos"][0] = $this->level->getSpawnLocation()->x;
@@ -3699,13 +3701,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		if (!($nbt instanceof Compound)) {
 			$this->close(TextFormat::YELLOW . $this->username . " has left the game", "Corrupt joining data, check your connection.");
 			return;
-		}
-
-		$this->achievements = [];
-
-		/** @var Byte $achievement */
-		foreach ($nbt->Achievements as $achievement) {
-			$this->achievements[$achievement->getName()] = $achievement->getValue() > 0 ? true : false;
 		}
 
 		$nbt->lastPlayed = new LongTag("lastPlayed", floor(microtime(true) * 1000));

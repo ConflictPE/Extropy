@@ -19,7 +19,7 @@ class MetadataConvertor {
 		'DATA_FLAG_SHAVED_SHIP' => 29,
 		'DATA_FLAG_FALL_FLYING' => 30,
 		'DATA_FLAG_ELDER_GUARDIAN' => 31,
-		'DATA_FLAG_MOVING' => 32,		
+		'DATA_FLAG_MOVING' => 32,
 		'DATA_FLAG_NOT_IN_WATER' => 33,
 		'DATA_FLAG_CHESTED_MOUNT' => 34,
 		'DATA_FLAG_STACKABLE' => 35,
@@ -35,7 +35,7 @@ class MetadataConvertor {
 		'DATA_FLAG_SHAVED_SHIP' => 29,
 		'DATA_FLAG_FALL_FLYING' => 30,
 		'DATA_FLAG_ELDER_GUARDIAN' => 31,
-		'DATA_FLAG_MOVING' => 32,		
+		'DATA_FLAG_MOVING' => 32,
 		'DATA_FLAG_NOT_IN_WATER' => 33,
 		'DATA_FLAG_CHESTED_MOUNT' => 34,
 		'DATA_FLAG_STACKABLE' => 35,
@@ -46,10 +46,7 @@ class MetadataConvertor {
 		'DATA_MAX_AIR' => 43,
 	];
 	private static $diffEntityMetaIds120 = [
-		'DATA_NAMETAG' => 9,
-		'DATA_AIR' => 12,
-		'DATA_SCALE' => 44,
-		'DATA_MAX_AIR' => 48,
+		'DATA_MAX_AIR' => 43,
 	];
 	private static $entityMetaIds110 = [];
 	private static $entityMetaIds120 = [];
@@ -69,13 +66,13 @@ class MetadataConvertor {
 				self::$entityFlags120[self::$initialMeta[$key]] = $value;
 			}
 		}
-		
+
 		foreach (self::$diffEntityMetaIds110 as $key => $value) {
 			if (isset(self::$initialMeta[$key])) {
 				self::$entityMetaIds110[self::$initialMeta[$key]] = $value;
 			}
 		}
-		
+
 		foreach (self::$diffEntityMetaIds120 as $key => $value) {
 			if (isset(self::$initialMeta[$key])) {
 				self::$entityMetaIds120[self::$initialMeta[$key]] = $value;
@@ -127,7 +124,7 @@ class MetadataConvertor {
 			default:
 				return $meta;
 		}
-		
+
 		$flags = strrev(decbin($meta[Entity::DATA_FLAGS][1]));
 		$flagsLength = strlen($flags);
 		for ($i = 0; $i < $flagsLength; $i++) {
