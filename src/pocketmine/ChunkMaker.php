@@ -82,20 +82,29 @@ class ChunkMaker extends Worker {
 	}
 
 	protected function doChunk($data) {
-		if (isset($data['isAnvil']) && $data['isAnvil'] == true) {
+		if(isset($data['isAnvil']) && $data['isAnvil'] == true) {
 			$chunkData = chr(count($data['chunk']['sections']));
+			$chunkData120 = chr(count($data['chunk']['sections']));
 			foreach ($data['chunk']['sections'] as $y => $sections) {
 				$chunkData .= chr(0);
-				if ($sections['empty'] == true) {
-					$chunkData .= str_repeat("\x00", 10240);
+				$chunkData120 .= chr(0);
+				if($sections['empty'] == true) {
+					$someData = str_repeat("\x00", 10240);
+					$chunkData .= $someData;
+					$chunkData120 .= $someData;
 				} else {
-					$chunkData .= $this->sortData($sections['blocks']) .
-							$this->sortHalfData($sections['data']) .
-							$this->sortHalfData($sections['skyLight']) .
-							$this->sortHalfData($sections['blockLight']);
+					$blockData = $this->sortData($sections['blocks']) . $this->sortHalfData($sections['data']);
+					$lightData = $this->sortHalfData($sections['skyLight']) . $this->sortHalfData($sections['blockLight']);
+					$chunkData .= $blockData . $lightData;
+					$chunkData120 .= $blockData;
 				}
 			}
 			$chunkData .= $data['chunk']['heightMap'] .
+					$data['chunk']['biomeColor'] .
+					Binary::writeLInt(0) .
+					$data['tiles'];
+
+			$chunkData120 .= $data['chunk']['heightMap'] .
 					$data['chunk']['biomeColor'] .
 					Binary::writeLInt(0) .
 					$data['tiles'];
@@ -114,42 +123,49 @@ class ChunkMaker extends Worker {
 			$biomeColorArray = array_values(unpack("N*", substr($data['chunk'], $offset, 1024)));
 
 			$countBlocksInChunk = 8;
+
 			$chunkData = chr($countBlocksInChunk);
+			$chunkData120 = chr($countBlocksInChunk);
 
-			for ($blockIndex = 0; $blockIndex < $countBlocksInChunk; $blockIndex++) {
-				$chunkData .= chr(0);
-				for ($i = 0; $i < 256; $i++) {
-					$chunkData .= substr($blockIdArray, $blockIndex * 16 + $i * 128, 16);
+			for($blockIndex = 0; $blockIndex < $countBlocksInChunk; $blockIndex++) {
+				$blockIdData = '';
+				$blockDataData = '';
+				$skyLightData = '';
+				$blockLightData = '';
+				for($i = 0; $i < 256; $i++) {
+//					$startIndex = $blockIndex * 8 + $i * 64;
+					$startIndex = ($blockIndex + ($i << 3)) << 3;
+					$blockIdData .= substr($blockIdArray, $startIndex << 1, 16);
+					$blockDataData .= substr($blockDataArray, $startIndex, 8);
+					$skyLightData .= substr($skyLightArray, $startIndex, 8);
+					$blockLightData .= substr($blockLightArray, $startIndex, 8);
 				}
 
-				for ($i = 0; $i < 256; $i++) {
-					$chunkData .= substr($blockDataArray, $blockIndex * 8 + $i * 64, 8);
-				}
+				$chunkData .= chr(0) . $blockIdData . $blockDataData . $skyLightData . $blockLightData;
+				$chunkData120 .= chr(0) . $blockIdData . $blockDataData;
 
-				for ($i = 0; $i < 256; $i++) {
-					$chunkData .= substr($skyLightArray, $blockIndex * 8 + $i * 64, 8);
-				}
-
-				for ($i = 0; $i < 256; $i++) {
-					$chunkData .= substr($blockLightArray, $blockIndex * 8 + $i * 64, 8);
-				}
 			}
 
 			$chunkData .= $heightMapArray .
 					pack("n*", ...$biomeColorArray) .
 					Binary::writeLInt(0) .
 					$data['tiles'];
+
+			$chunkData120 .= $heightMapArray .
+					pack("n*", ...$biomeColorArray) .
+					Binary::writeLInt(0) .
+					$data['tiles'];
 		}
 
-		$result = array();
+		$result = [];
 		$result['chunkX'] = $data['chunkX'];
 		$result['chunkZ'] = $data['chunkZ'];
-		foreach (self::SUPPORTED_PROTOCOL as $protocol) {
+		foreach(self::SUPPORTED_PROTOCOL as $protocol) {
 			$pk = new FullChunkDataPacket();
 			$pk->chunkX = $data['chunkX'];
 			$pk->chunkZ = $data['chunkZ'];
 			$pk->order = FullChunkDataPacket::ORDER_COLUMNS;
-			$pk->data = $chunkData;
+			$pk->data = $protocol >= Info::PROTOCOL_120 ? $chunkData120 : $chunkData;
 			$pk->encode($protocol);
 			if(!empty($pk->buffer)) {
 				$str = Binary::writeVarInt(strlen($pk->buffer)) . $pk->buffer;

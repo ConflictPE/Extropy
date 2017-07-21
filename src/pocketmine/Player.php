@@ -1209,6 +1209,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 		$pk = new AdventureSettingsPacket();
 		$pk->flags = $flags;
+		$pk->userId = $this->getId();
 		$this->dataPacket($pk);
 	}
 

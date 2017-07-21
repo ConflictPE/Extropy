@@ -53,7 +53,7 @@ class StartGamePacket extends PEPacket{
 		$this->putVarInt($this->eid); //EntityUniqueID
 		$this->putVarInt($this->eid); //EntityUniqueID
 
-		if ($playerProtocol >= Info::PROTOCOL_110 && $this->playerHaveLanguageCode) {
+		if($playerProtocol >= Info::PROTOCOL_110) {
  			$this->putSignedVarInt($this->gamemode);	// Entity gamemode
  		}
 
@@ -85,17 +85,23 @@ class StartGamePacket extends PEPacket{
 		$this->putByte(0); //edu mode
 		$this->putLFloat(0); //rain level
 		$this->putLFloat(0); //lightning level
+
+		if($playerProtocol >= Info::PROTOCOL_120) {
+			$this->putByte(0); // is multiplayer game
+			$this->putByte(0); // Broadcast to LAN?
+			$this->putByte(0); // Broadcast to XBL?
+		}
+
 		$this->putByte(1);	//commands enabled
 		$this->putByte(0); // isTexturepacksRequired 1x Byte
 
-		if($playerProtocol >= Info::PROTOCOL_110) {
-			$this->putDataArray([]); // gamerules
-			$this->putString(""); // level id
-			$this->putString(""); // world name
-			$this->putString(""); // premium world template id
-			$this->putByte(0); // unknown
-			$this->putLLong($this->currentTick);
+		if($playerProtocol >= Info::PROTOCOL_120) {
+			$this->putVarInt(0); // rules count
+			$this->putByte(0); // is bonus chest enabled
+			$this->putByte(0); // has trust players enabled
+			$this->putSignedVarInt(1); // permission level
 		}
+//		$this->putString('iX8AANxLbgA=');
 	}
 
 }
