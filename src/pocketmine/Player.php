@@ -1628,9 +1628,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 			if($this->isMoving() && $this->isSurvival()) {
 				if($this->isSprinting()) {
-					$this->foodUsageTime += 500;
-				} else {
 					$this->foodUsageTime += 250;
+				} else {
+					$this->foodUsageTime += 125;
 				}
 			}
 
@@ -1721,7 +1721,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				2 => 1,
 				3 => 1
 			],
-            Item::CHORUS_FRUIT => 2,
+			Item::CHORUS_FRUIT => 2,
 		];
 
 		$slot = $this->inventory->getItemInHand();
@@ -3458,8 +3458,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	protected function checkTeleportPosition(){
 		if($this->teleportPosition !== null){
-			$chunkX = $this->teleportPosition->x >> 4;
-			$chunkZ = $this->teleportPosition->z >> 4;
+			//$chunkX = $this->teleportPosition->x >> 4;
+			//$chunkZ = $this->teleportPosition->z >> 4;
 
 //			for($X = -1; $X <= 1; ++$X){
 //				for($Z = -1; $Z <= 1; ++$Z){
@@ -4032,22 +4032,15 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	public function getProtectionEnchantments() {
-		$result = [
-			Enchantment::TYPE_ARMOR_PROTECTION => null,
-			Enchantment::TYPE_ARMOR_FIRE_PROTECTION => null,
-			Enchantment::TYPE_ARMOR_EXPLOSION_PROTECTION => null,
-			Enchantment::TYPE_ARMOR_FALL_PROTECTION => null,
-			Enchantment::TYPE_ARMOR_PROJECTILE_PROTECTION => null
-		];
-		$armor = $this->getInventory()->getArmorContents();
-		foreach ($armor as $item) {
-			if ($item->getId() === Item::AIR) {
+		$result = [];
+		foreach($this->getInventory()->getArmorContents() as $item) {
+			if($item->getId() === Item::AIR) {
 				continue;
 			}
 			$enchantments = $item->getEnchantments();
-			foreach ($result as $id => $enchantment) {
-				if (isset($enchantments[$id]) && (is_null($enchantment) || $enchantments[$id]->getLevel() > $enchantment->getLevel())) {
-					$result[$id] = $enchantments[$id];
+			foreach($enchantments as $enchantment) {
+				if(in_array($enchantment->getId(), [Enchantment::TYPE_ARMOR_PROTECTION, Enchantment::TYPE_ARMOR_FIRE_PROTECTION, Enchantment::TYPE_ARMOR_EXPLOSION_PROTECTION, Enchantment::TYPE_ARMOR_FALL_PROTECTION, Enchantment::TYPE_ARMOR_PROJECTILE_PROTECTION])) {
+					$result[] = $enchantment;
 				}
 			}
 		}
@@ -4247,16 +4240,16 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
  	}
 
 	public function attackByTargetId($targetId) {
-		if ($this->spawned === false || $this->dead === true || $this->blocked) {
+		if ($this->spawned === false or $this->dead === true or $this->blocked) {
 			return;
 		}
 
 		$target = $this->level->getEntity($targetId);
-		if ($target instanceof Player && ($this->server->getConfigBoolean("pvp", true) === false || ($target->getGamemode() & 0x01) > 0)) {
+		if ($target instanceof Player and !($this->server->getConfigBoolean("pvp", true) or ($target->getGamemode() & 0x01) > 0)) {
 			return;
 		}
 
-		if (!($target instanceof Entity) || $this->isSpectator() || $target->dead === true) {
+		if (!($target instanceof Entity) or $this->isSpectator() or $target->dead === true) {
 			return;
 		}
 
@@ -4294,7 +4287,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			EntityDamageEvent::MODIFIER_BASE => isset($damageTable[$item->getId()]) ? $damageTable[$item->getId()] : 1,
 		];
 
-		if ($this->distance($target) > 3) {
+		if($this->distance($target) > 3) {
 			return;
 		} elseif ($target instanceof Player) {
 			$armorValues = [
@@ -4320,7 +4313,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				Item::DIAMOND_BOOTS => 3,
 			];
 			$points = 0;
-			foreach ($target->getInventory()->getArmorContents() as $index => $i) {
+			foreach($target->getInventory()->getArmorContents() as $index => $i) {
 				if (isset($armorValues[$i->getId()])) {
 					$points += $armorValues[$i->getId()];
 				}

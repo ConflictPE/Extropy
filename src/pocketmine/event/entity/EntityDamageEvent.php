@@ -24,8 +24,8 @@ namespace pocketmine\event\entity;
 use pocketmine\entity\Effect;
 use pocketmine\entity\Entity;
 use pocketmine\event\Cancellable;
-use pocketmine\Player;
 use pocketmine\item\enchantment\Enchantment;
+use pocketmine\Player;
 
 class EntityDamageEvent extends EntityEvent implements Cancellable{
 	public static $handlerList = null;
@@ -46,8 +46,10 @@ class EntityDamageEvent extends EntityEvent implements Cancellable{
 	const MODIFIER_EFFECT_BLAST_PROTECTION = 11;
 	const MODIFIER_EFFECT_PROJECTILE_PROTECTION = 12;
 	const MODIFIER_EFFECT_FALL_PROTECTION = 13;
+	// enchantment effect modifiers
+	const MODIFIER_ARMOR_ENCHANTMENTS = 14;
 
-	
+
 	const CAUSE_ENTITY_ATTACK = 1;
 	const CAUSE_PROJECTILE = 2;
 	const CAUSE_SUFFOCATION = 3;
@@ -69,6 +71,12 @@ class EntityDamageEvent extends EntityEvent implements Cancellable{
 	/** @var array */
 	private $modifiers;
 	private $originals;
+
+	/** @var int */
+	private $fireTickReduction = 0;
+
+	/** @var int */
+	private $blastKnockbackReduction = 0;
 
 
 	/**
@@ -98,46 +106,53 @@ class EntityDamageEvent extends EntityEvent implements Cancellable{
 		if($entity->hasEffect(Effect::DAMAGE_RESISTANCE)){
 			$this->setDamage(-($this->getDamage(self::MODIFIER_BASE) * 0.20 * ($entity->getEffect(Effect::DAMAGE_RESISTANCE)->getAmplifier() + 1)), self::MODIFIER_RESISTANCE);
 		}
-		
-		if ($entity instanceof Player && $cause !== self::CAUSE_VOID) {
-			$enchantments = $entity->getProtectionEnchantments();
-			if (!is_null($enchantments[Enchantment::TYPE_ARMOR_PROTECTION])) {
-				$enchantment = $enchantments[Enchantment::TYPE_ARMOR_PROTECTION];
-				$this->setDamage(-1 * $enchantment->getLevel(), self::MODIFIER_EFFECT_PROTECTION);
+
+		if($entity instanceof Player) {
+			$this->calculateArmorEnchantmentModifiers($entity);
+		}
+	}
+
+	private function calculateArmorEnchantmentModifiers(Player $entity) {
+		$enchantments = $entity->getProtectionEnchantments();
+		$epf = 0;
+		$fireTickReduction = [];
+		$blastKnockbackReduction = [];
+		/** @var Enchantment $enchant */
+		foreach($enchantments as $enchant) {
+			switch($enchant->getId()) {
+				case Enchantment::TYPE_ARMOR_PROTECTION:
+					if(!in_array($this->cause, [self::CAUSE_VOID, self::CAUSE_SUICIDE])) {
+						$epf += $enchant->getLevel();
+					}
+					break;
+				case Enchantment::TYPE_ARMOR_FIRE_PROTECTION:
+					if(in_array($this->cause, [self::CAUSE_FIRE, self::CAUSE_FIRE_TICK, self::CAUSE_LAVA])) {
+						$epf += $enchant->getLevel() * 2;
+						if($entity->isOnFire()) {
+							$fireTickReduction[] = ($entity->fireTicks * (15 * $enchant->getLevel())) / 100;
+						}
+					}
+					break;
+				case Enchantment::TYPE_ARMOR_FALL_PROTECTION:
+					$epf += $enchant->getLevel() * 3;
+					break;
+				case Enchantment::TYPE_ARMOR_EXPLOSION_PROTECTION:
+					$epf += $enchant->getLevel() * 2;
+					if($this instanceof EntityDamageByEntityEvent) {
+						$blastKnockbackReduction[] = ($this->getKnockBack() * (15 * $enchant->getLevel())) / 100;
+					}
+					break;
+				case Enchantment::TYPE_ARMOR_PROJECTILE_PROTECTION:
+					$epf += $enchant->getLevel() * 2;
+					break;
 			}
-			
-			$enchantment = null;
-			$multiplier = 2;
-			$modifierId = 0;
-			switch($cause) {
-				case self::CAUSE_FIRE:
-				case self::CAUSE_FIRE_TICK:
-				case self::CAUSE_LAVA:
-					$enchantment = $enchantments[Enchantment::TYPE_ARMOR_FIRE_PROTECTION];
-					$multiplier = 2;
-					$modifierId = self::MODIFIER_EFFECT_FIRE_PROTECTION;
-					break;
-				case self::CAUSE_FALL:
-					$enchantment = $enchantments[Enchantment::TYPE_ARMOR_FALL_PROTECTION];
-					$multiplier = 3;
-					$modifierId = self::MODIFIER_EFFECT_FALL_PROTECTION;
-					break;
-				case self::CAUSE_ENTITY_EXPLOSION:
-				case self::CAUSE_BLOCK_EXPLOSION:
-					$enchantment = $enchantments[Enchantment::TYPE_ARMOR_EXPLOSION_PROTECTION];
-					$multiplier = 2;
-					$modifierId = self::MODIFIER_EFFECT_BLAST_PROTECTION;
-					break;
-				case self::CAUSE_PROJECTILE:
-					$enchantment = $enchantments[Enchantment::TYPE_ARMOR_PROJECTILE_PROTECTION];
-					$multiplier = 2;
-					$modifierId = self::MODIFIER_EFFECT_PROJECTILE_PROTECTION;
-					break;
-			}
-			
-			if (!is_null($enchantment)) {
-				$this->setDamage(-1 * $enchantment->getLevel() * $multiplier, $modifierId);
-			}
+		}
+		$this->setDamage($this->getDamage() * (1 - ($epf > 20 ? 20 : $epf) / 25), self::MODIFIER_ARMOR_ENCHANTMENTS);
+		if(!empty($fireTickReduction)) { // make sure there is at least one enchantment that reduced the fire ticks
+			$this->fireTickReduction -= max($fireTickReduction); // get the highest reduction and store it
+		}
+		if(!empty($blastKnockbackReduction) and $this instanceof EntityDamageByEntityEvent) { // make sure there was at least on enchantment that reduced the knockback
+			$this->blastKnockbackReduction = $this->getKnockBack() - max($fireTickReduction); // get the highest reduction and store it
 		}
 	}
 
@@ -203,6 +218,19 @@ class EntityDamageEvent extends EntityEvent implements Cancellable{
 		}
 
 		return max($damage, 0);
+	}
+
+	/**
+	 * Applies the enchantment effects to the entity and event
+	 * after verifying the event wasn't cancelled
+	 */
+	public function applyEnchantmentEffects() {
+		if($this->fireTickReduction > 0) {
+			$this->entity->fireTicks -= $this->fireTickReduction;
+		}
+		if($this->blastKnockbackReduction > 0 and $this instanceof EntityDamageByEntityEvent) {
+			$this->setKnockBack($this->getKnockBack() - $this->blastKnockbackReduction);
+		}
 	}
 
 }

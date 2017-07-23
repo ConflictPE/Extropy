@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
@@ -129,16 +129,21 @@ abstract class Living extends Entity implements Damageable{
 	}
 
 	public function knockBack(Entity $attacker, $damage, $x, $z, $base = 0.4){
-		$f = sqrt($x ** 2 + $z ** 2);
+		$f = sqrt($x * $x + $z * $z);
+		if($f <= 0){
+			return;
+		}
+
+		$f = 1 / $f;
 
 		$motion = new Vector3($this->motionX, $this->motionY, $this->motionZ);
 
-		$motion->x = $motion->x >> 1;
-		$motion->y = $motion->y >> 1;
-		$motion->z = $motion->z >> 1;
-		$motion->x += ($f != 0) ? ($x / $f) * $base : 0;
+		$motion->x /= 2;
+		$motion->y /= 2;
+		$motion->z /= 2;
+		$motion->x += $x * $f * $base;
 		$motion->y += $base;
-		$motion->z += ($f != 0) ? ($z / $f) * $base : 0;
+		$motion->z += $z * $f * $base;
 
 		if($motion->y > $base){
 			$motion->y = $base;
@@ -198,7 +203,7 @@ abstract class Living extends Entity implements Damageable{
 						$this->sendSelfData();
 					}
 				}
-			} else {			
+			} else {
 				if ($this instanceof WaterAnimal) {
 					$hasUpdate = true;
 					$airTicks = $this->getDataProperty(self::DATA_AIR) - $tickDiff;
@@ -211,7 +216,7 @@ abstract class Living extends Entity implements Damageable{
 					$this->dataProperties[self::DATA_AIR] = [self::DATA_TYPE_SHORT, $airTicks];
 				}else{
 					if($this->getDataProperty(self::DATA_AIR) != 300) {
-						$this->setAirTick(300);					
+						$this->setAirTick(300);
 						if (($this instanceof Player)) {
 							$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_NOT_IN_WATER, true, self::DATA_TYPE_LONG, false);
 							$this->sendSelfData();
@@ -253,7 +258,7 @@ abstract class Living extends Entity implements Damageable{
 		}
 		$blocks = [];
 		$nextIndex = 0;
-		
+
 		$itr = new BlockIterator($this->level, $this->getPosition(), $this->getDirectionVector(), $this->getEyeHeight(), $maxDistance);
 		while ($itr->valid()) {
 			$itr->next();

@@ -36,7 +36,6 @@ use pocketmine\event\entity\EntitySpawnEvent;
 use pocketmine\event\entity\EntityTeleportEvent;
 use pocketmine\event\Timings;
 use pocketmine\item\enchantment\Enchantment;
-use pocketmine\item\Tool;
 use pocketmine\level\format\Chunk;
 use pocketmine\level\format\FullChunk;
 use pocketmine\level\Level;
@@ -55,11 +54,7 @@ use pocketmine\nbt\tag\FloatTag;
 use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\ShortTag;
 use pocketmine\nbt\tag\StringTag;
-use pocketmine\network\Network;
-use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\MobEffectPacket;
-use pocketmine\network\protocol\MoveEntityPacket;
-use pocketmine\network\protocol\MovePlayerPacket;
 use pocketmine\network\protocol\RemoveEntityPacket;
 use pocketmine\network\protocol\SetEntityDataPacket;
 use pocketmine\network\protocol\SetTimePacket;
@@ -790,13 +785,13 @@ abstract class Entity extends Location implements Metadatable{
 			return;
 		}
 
-		if ($source instanceof EntityDamageByEntityEvent) {
+		if($source instanceof EntityDamageByEntityEvent) {
 			$damager = $source->getDamager();
-			if ($damager instanceof Player) {
+			if($damager instanceof Player) {
 				$weapon = $damager->getInventory()->getItemInHand();
-				if ($weapon instanceof Tool) {
+				if($weapon->getId() !== \pocketmine\item\Item::AIR) {
 					$enchantment = $weapon->getEnchantment(Enchantment::TYPE_WEAPON_FIRE_ASPECT);
-					if (!is_null($enchantment)) {
+					if(!is_null($enchantment)) {
 						$fireDamage = max(($enchantment->getLevel() * 4) - 1, 1);
 						$this->setOnFire(4, $fireDamage);
 					}
@@ -805,7 +800,7 @@ abstract class Entity extends Location implements Metadatable{
 		}
 
 		$this->setLastDamageCause($source);
-
+		$source->applyEnchantmentEffects();
 		$this->setHealth($this->getHealth() - $source->getFinalDamage());
 	}
 
