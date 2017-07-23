@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
@@ -72,11 +72,11 @@ class Item extends Entity{
 			$this->thrower = $this->namedtag["Thrower"];
 		}
 		if (isset($this->namedtag->Item)) {
-			$this->item = NBT::getItemHelper($this->namedtag->Item);
+			$this->item = ItemItem::nbtDeserialize($this->namedtag->Item);
 			$this->server->getPluginManager()->callEvent(new ItemSpawnEvent($this));
 		} else {
 			$this->close();
-		}	
+		}
 	}
 
 
@@ -128,7 +128,7 @@ class Item extends Entity{
 			$this->motionZ *= $friction;
 
 			$this->updateMovement();
-			
+
 			if ($this->y < 1) {
 				$this->kill();
 				$hasUpdate = true;
@@ -150,7 +150,7 @@ class Item extends Entity{
 		}
 
 		//$this->timings->stopTiming();
-		
+
 		return $hasUpdate || !$this->onGround || $this->motionX != 0 || $this->motionY != 0 || $this->motionZ != 0;
 	}
 
@@ -242,16 +242,16 @@ class Item extends Entity{
 		parent::spawnTo($player);
 	}
 
-	
-	protected function updateMovement(){	
+
+	protected function updateMovement(){
 		$diffPositionX =  abs($this->x - $this->lastX);
 		$diffPositionY =  abs($this->y - $this->lastY);
-		$diffPositionZ =  abs($this->z - $this->lastZ);		
-		
+		$diffPositionZ =  abs($this->z - $this->lastZ);
+
 		$diffMotionX = abs($this->motionX - $this->lastMotionX);
 		$diffMotionY = abs($this->motionY - $this->lastMotionY);
 		$diffMotionZ = abs($this->motionZ - $this->lastMotionZ);
-		
+
 
 		if($diffPositionX > 0.2 || $diffPositionZ > 0.2 || ($diffPositionX > 0.01 && $diffPositionZ > 0.01 && $diffPositionY > 0.2)){
 			$this->lastX = $this->x;
@@ -259,17 +259,17 @@ class Item extends Entity{
 			$this->lastZ = $this->z;
 			$this->lastYaw = $this->yaw;
 			$this->lastPitch = $this->pitch;
-			
+
 			$this->level->addEntityMovement($this->getViewers(), $this->id, $this->x, $this->y + $this->getEyeHeight(), $this->z, $this->yaw, $this->pitch, $this->yaw);
 		}
 
-		if($diffMotionX > 0.05 || $diffMotionZ > 0.05 || ($diffMotionX > 0.001 && $diffMotionZ > 0.001 && $diffMotionY > 0.05 )){ 
+		if($diffMotionX > 0.05 || $diffMotionZ > 0.05 || ($diffMotionX > 0.001 && $diffMotionZ > 0.001 && $diffMotionY > 0.05 )){
 			$this->lastMotionX = $this->motionX;
 			$this->lastMotionY = $this->motionY;
 			$this->lastMotionZ = $this->motionZ;
-			
+
 			$this->level->addEntityMotion($this->getViewers(), $this->id, $this->motionX, $this->motionY, $this->motionZ);
 		}
 	}
-	
+
 }

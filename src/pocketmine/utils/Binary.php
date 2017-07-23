@@ -23,6 +23,7 @@
  * Various Utilities used around the code
  */
 namespace pocketmine\utils;
+
 use pocketmine\entity\Entity;
 use pocketmine\utils\MetadataConvertor;
 
@@ -32,6 +33,14 @@ class Binary{
 
 	private static function checkLength($str, $expect){
 //		if(($len = strlen($str)) !== $expect) throw new \RuntimeException("Unexpected length: expected ".$expect.", got ".$len);
+	}
+
+	public static function signByte(int $value) : int{
+		return $value << 56 >> 56;
+	}
+
+	public static function unsignByte(int $value) : int{
+		return $value & 0xff;
 	}
 
 	/**

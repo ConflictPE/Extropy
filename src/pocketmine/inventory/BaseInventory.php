@@ -51,6 +51,7 @@ abstract class BaseInventory implements Inventory{
 	/** @var InventoryHolder */
 	protected $holder;
 
+	/** @var Item */
 	protected $air;
 
 	/**

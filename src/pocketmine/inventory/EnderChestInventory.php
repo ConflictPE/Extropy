@@ -44,7 +44,7 @@ class EnderChestInventory extends ContainerInventory{
 		if($contents !== null){
 			if($contents instanceof Enum){ //Saved data to be loaded into the inventory
 				foreach($contents as $item){
-					$this->setItem($item["Slot"], NBT::getItemHelper($item));
+					$this->setItem($item["Slot"], Item::nbtDeserialize($item));
 				}
 			}else{
 				throw new \InvalidArgumentException("Expecting Enum, received " . gettype($contents));

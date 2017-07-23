@@ -1335,7 +1335,7 @@ class Level implements ChunkManager, Metadatable{
 					new FloatTag("", 0)
 				]),
 				"Health" => new ShortTag("Health", 5),
-				"Item" => NBT::putItemHelper($item),
+				"Item" => $item->nbtSerialize(),
 				"PickupDelay" => new ShortTag("PickupDelay", $delay)
 			]));
 

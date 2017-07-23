@@ -136,9 +136,9 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 				if($item["Slot"] >= 0 and $item["Slot"] < 9){ //Hotbar
 					$this->inventory->setHotbarSlotIndex($item["Slot"], isset($item["TrueSlot"]) ? $item["TrueSlot"] : -1);
 				}elseif($item["Slot"] >= 100 and $item["Slot"] < 104){ //Armor
-					$this->inventory->setItem($this->inventory->getSize() + $item["Slot"] - 100, NBT::getItemHelper($item));
+					$this->inventory->setItem($this->inventory->getSize() + $item["Slot"] - 100, ItemItem::nbtDeserialize($item));
 				}else{
-					$this->inventory->setItem($item["Slot"] - 9, NBT::getItemHelper($item));
+					$this->inventory->setItem($item["Slot"] - 9, ItemItem::nbtDeserialize($item));
 				}
 			}
 		}
@@ -169,25 +169,14 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 			for($slot = 0; $slot < 9; ++$slot){
 				$hotbarSlot = $this->inventory->getHotbarSlotIndex($slot);
 				if($hotbarSlot !== -1){
+					/** @var \pocketmine\item\Item $item */
 					$item = $this->inventory->getItem($hotbarSlot);
 					if($item->getId() !== 0 and $item->getCount() > 0){
-						$this->namedtag->Inventory[$slot] = new Compound(false, [
-							new ByteTag("Count", $item->getCount()),
-							new ShortTag("Damage", $item->getDamage()),
-							new ByteTag("Slot", $slot),
-							new ByteTag("TrueSlot", $hotbarSlot),
-							new ShortTag("id", $item->getId()),
-						]);
+						$this->namedtag->Inventory[$slot] = $item->nbtSerialize($slot);
 						continue;
 					}
 				}
-				$this->namedtag->Inventory[$slot] = new Compound(false, [
-					new ByteTag("Count", 0),
-					new ShortTag("Damage", 0),
-					new ByteTag("Slot", $slot),
-					new ByteTag("TrueSlot", -1),
-					new ShortTag("id", 0),
-				]);
+				$this->namedtag->Inventory[$slot] = $item->nbtSerialize($slot);
 			}
 
 			//Normal inventory
@@ -195,24 +184,14 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 			//$slotCount = (($this instanceof Player and ($this->gamemode & 0x01) === 1) ? Player::CREATIVE_SLOTS : Player::SURVIVAL_SLOTS) + 9;
 			for($slot = 9; $slot < $slotCount; ++$slot){
 				$item = $this->inventory->getItem($slot - 9);
-				$this->namedtag->Inventory[$slot] = new Compound(false, [
-					new ByteTag("Count", $item->getCount()),
-					new ShortTag("Damage", $item->getDamage()),
-					new ByteTag("Slot", $slot),
-					new ShortTag("id", $item->getId()),
-				]);
+				$this->namedtag->Inventory[$slot] = $item->nbtSerialize($slot);
 			}
 
 			//Armor
 			for($slot = 100; $slot < 104; ++$slot){
 				$item = $this->inventory->getItem($this->inventory->getSize() + $slot - 100);
 				if($item instanceof ItemItem and $item->getId() !== ItemItem::AIR){
-					$this->namedtag->Inventory[$slot] = new Compound(false, [
-						new ByteTag("Count", $item->getCount()),
-						new ShortTag("Damage", $item->getDamage()),
-						new ByteTag("Slot", $slot),
-						new ShortTag("id", $item->getId()),
-					]);
+					$this->namedtag->Inventory[$slot] = $item->nbtSerialize($slot);
 				}
 			}
 		}
@@ -222,12 +201,7 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 		if($this->enderChestInventory !== null){
 			for($slot = 0; $slot < $this->enderChestInventory->getSize(); $slot++){
 				if(($item = $this->enderChestInventory->getItem($slot)) instanceof ItemItem){
-					$this->namedtag->EnderChestInventory[$slot] = new Compound(false, [
-							new ByteTag("Count", $item->getCount()),
-							new ShortTag("Damage", $item->getDamage()),
-							new ByteTag("Slot", $slot),
-							new ShortTag("id", $item->getId()),
-					]);
+					$this->namedtag->EnderChestInventory[$slot] = $item->nbtSerialize($slot);
 				}
 			}
 		}

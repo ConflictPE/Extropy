@@ -33,6 +33,7 @@ use pocketmine\entity\Villager;
 use pocketmine\inventory\Fuel;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\level\Level;
+use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\Enum;
 use pocketmine\nbt\tag\ShortTag;
 use pocketmine\nbt\tag\StringTag;
@@ -40,6 +41,7 @@ use pocketmine\nbt\tag\IntTag;
 use pocketmine\Player;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\NBT;
+use pocketmine\utils\Binary;
 
 class Item{
 
@@ -1927,6 +1929,60 @@ class Item{
 
 	public function canBeConsumed() {
 		return false;
+	}
+
+	/**
+	 * Serializes the item to an NBT CompoundTag
+	 *
+	 * @param int    $slot optional, the inventory slot of the item
+	 * @param string $tagName the name to assign to the CompoundTag object
+	 *
+	 * @return Compound
+	 */
+	public function nbtSerialize(int $slot = -1, string $tagName = "") : Compound {
+		$tag = new Compound($tagName, [
+			new ShortTag("id", $this->id),
+			new ByteTag("Count", Binary::signByte($this->count)),
+			new ShortTag("Damage", $this->meta),
+		]);
+		if($this->hasCompound()){
+			$tag->tag = clone $this->getNamedTag();
+			$tag->tag->setName("tag");
+		}
+		if(is_int($slot) and $slot >= 0){
+			$tag->Slot = new ByteTag("Slot", $slot);
+		}
+		return $tag;
+	}
+
+	/**
+	 * Deserializes an Item from an NBT CompoundTag
+	 *
+	 * @param Compound $tag
+	 *
+	 * @return Item
+	 */
+	public static function nbtDeserialize(Compound $tag) : Item {
+		if(!isset($tag->id) or !isset($tag->Count)){
+			return Item::get(0);
+		}
+		$count = Binary::unsignByte($tag->Count->getValue());
+		$meta = isset($tag->Damage) ? $tag->Damage->getValue() : 0;
+		if($tag->id instanceof ShortTag){
+			$item = Item::get($tag->id->getValue(), $meta, $count);
+		}elseif($tag->id instanceof StringTag){ //PC item save format
+			$item = Item::fromString($tag->id->getValue());
+			$item->setDamage($meta);
+			$item->setCount($count);
+		}else{
+			throw new \InvalidArgumentException("Item CompoundTag ID must be an instance of StringTag or ShortTag, " . get_class($tag->id) . " given");
+		}
+		if(isset($tag->tag) and $tag->tag instanceof Compound){
+			$t = clone $tag->tag;
+			$t->setName("");
+			$item->setNamedTag($t);
+		}
+		return $item;
 	}
 
 }

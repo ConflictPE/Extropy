@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
@@ -78,43 +78,20 @@ class NBT{
 	/**
 	 * @param Item $item
 	 * @param int  $slot
+	 *
 	 * @return Compound
 	 */
-	public static function putItemHelper(Item $item, $slot = null){
-		$tag = new Compound('Item', [
-			"id" => new ShortTag("id", $item->getId()),
-			"Count" => new ByteTag("Count", $item->getCount()),
-			"Damage" => new ShortTag("Damage", $item->getDamage())
-		]);
-
-		if($slot !== null){
-			$tag->Slot = new ByteTag("Slot", (int) $slot);
-		}
-
-		if($item->hasCompound()){
-			$tag->tag = clone $item->getNamedTag();
-			$tag->tag->setName("tag");
-		}
-
-		return $tag;
+	public static function putItemHelper(Item $item, $slot = null) {
+		return $item->nbtSerialize($slot); // Backwards compatibility
 	}
 
 	/**
 	 * @param Compound $tag
+	 *
 	 * @return Item
 	 */
-	public static function getItemHelper(Compound $tag){
-		if(!isset($tag->id) or !isset($tag->Count)){
-			return Item::get(0);
-		}
-
-		$item = Item::get($tag->id->getValue(), !isset($tag->Damage) ? 0 : $tag->Damage->getValue(), $tag->Count->getValue());
-		
-		if(isset($tag->tag) and $tag->tag instanceof Compound){
-			$item->setNamedTag($tag->tag);
-		}
-
-		return $item;
+	public static function getItemHelper(Compound $tag) {
+		return Item::nbtDeserialize($tag);  // Backwards compatibility
 	}
 
 	public static function matchList(Enum $tag1, Enum $tag2){
@@ -501,7 +478,7 @@ class NBT{
 
 		return false;
 	}
-	
+
 	private function checkGetString($new = false) {
 		if ($new) {
 			$data = $this->getNewString();
@@ -598,16 +575,16 @@ class NBT{
 	public function getInt(){
 		return $this->endianness === self::BIG_ENDIAN ? Binary::readInt($this->get(4)) : Binary::readLInt($this->get(4));
 	}
-	
+
 	public function getNewInt(){
 		return $this->getSignedVarInt();
-		
+
 	}
 
 	public function putOldInt($v){
 		$this->buffer .= $this->endianness === self::BIG_ENDIAN ? pack("N", $v) : pack("V", $v);
 	}
-	
+
 	public function putInt($v){
 		$this->putSignedVarInt($v);
 	}
@@ -639,7 +616,7 @@ class NBT{
 	public function getString(){
 		return $this->get($this->endianness === 1 ? unpack("n", $this->get(2))[1] : unpack("v", $this->get(2))[1]);
 	}
-	
+
 	public function getNewString(){
 		$len = $this->getVarInt();
 		return $this->get($len);
@@ -649,12 +626,12 @@ class NBT{
 		$this->buffer .= $this->endianness === 1 ? pack("n", strlen($v)) : pack("v", strlen($v));
 		$this->buffer .= $v;
 	}
-	
+
 	public function putString($v){
 		$this->putVarInt(strlen($v));
 		$this->buffer .= $v;
 	}
-	
+
 	public function getVarInt() {
 		$result = $shift = 0;
 		do {
@@ -664,7 +641,7 @@ class NBT{
 		} while ($byte > 0x7f);
 		return $result;
 	}
-	
+
 	public function getSignedVarInt() {
 		$result = $this->getVarInt();
 		if ($result % 2 == 0) {
@@ -674,7 +651,7 @@ class NBT{
 		}
 		return $result;
 	}
-	
+
 	public function putSignedVarInt($v) {
 		$this->buffer .= Binary::writeSignedVarInt($v);
 	}
