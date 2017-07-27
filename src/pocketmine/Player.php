@@ -2676,8 +2676,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					$nbt = new NBT(NBT::LITTLE_ENDIAN);
 					$nbt->read($packet->namedtag, false, true);
 					$nbtData = $nbt->getData();
+					$isNotCreator = !isset($t->namedtag->Creator) || $t->namedtag->Creator !== $this->username;
 					// check tile id
-					if ($nbtData["id"] !== Tile::SIGN) {
+					if ($nbtData["id"] !== Tile::SIGN || $isNotCreator) {
 						$t->spawnTo($this);
 						break;
 					}
@@ -2696,9 +2697,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					}
 					// event part
 					$ev = new SignChangeEvent($t->getBlock(), $this, $signText);
-					if (!isset($t->namedtag->Creator) || $t->namedtag["Creator"] !== $this->username) {
-						$ev->setCancelled(true);
-					}
 					$this->server->getPluginManager()->callEvent($ev);
 					if ($ev->isCancelled()) {
 						$t->spawnTo($this);
