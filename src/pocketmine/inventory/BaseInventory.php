@@ -26,9 +26,6 @@ use pocketmine\event\entity\EntityInventoryChangeEvent;
 use pocketmine\event\inventory\InventoryOpenEvent;
 use pocketmine\item\Item;
 use pocketmine\network\multiversion\Multiversion;
-use pocketmine\network\Network;
-use pocketmine\network\protocol\ContainerSetContentPacket;
-use pocketmine\network\protocol\ContainerSetSlotPacket;
 use pocketmine\Player;
 use pocketmine\Server;
 
@@ -64,7 +61,7 @@ abstract class BaseInventory implements Inventory{
 	public function __construct(InventoryHolder $holder, InventoryType $type, array $items = [], $overrideSize = null, $overrideTitle = null){
 		$this->holder = $holder;
 
-		$this->type = $type;
+		$this->type = $type;		
 		if($overrideSize !== null){
 			$this->size = (int) $overrideSize;
 		}else{
