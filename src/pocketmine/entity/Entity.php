@@ -61,6 +61,7 @@ use pocketmine\network\protocol\SetTimePacket;
 use pocketmine\Player;
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
+use pocketmine\utils\Binary;
 use pocketmine\utils\ChunkException;
 use pocketmine\block\Liquid;
 
@@ -654,15 +655,15 @@ abstract class Entity extends Location implements Metadatable{
 		$this->namedtag->OnGround = new ByteTag("OnGround", $this->onGround == true ? 1 : 0);
 		$this->namedtag->Invulnerable = new ByteTag("Invulnerable", $this->invulnerable == true ? 1 : 0);
 
-		if (count($this->effects) > 0) {
+		if(count($this->effects) > 0) {
 			$effects = [];
-			foreach ($this->effects as $effectId => $effect) {
+			foreach($this->effects as $effectId => $effect) {
 				$effects[$effectId] = new Compound($effectId, [
-					"Id" => new ByteTag("Id", $effectId),
-					"Amplifier" => new ByteTag("Amplifier", $effect->getAmplifier()),
-					"Duration" => new IntTag("Duration", $effect->getDuration()),
-					"Ambient" => new ByteTag("Ambient", 0),
-					"ShowParticles" => new ByteTag("ShowParticles", $effect->isVisible() ? 1 : 0)
+					new ByteTag("Id", $effectId),
+					new ByteTag("Amplifier", Binary::signByte($effect->getAmplifier())),
+					new IntTag("Duration", $effect->getDuration()),
+					new ByteTag("Ambient", 0),
+					new ByteTag("ShowParticles", $effect->isVisible() ? 1 : 0)
 				]);
 			}
 
@@ -673,20 +674,21 @@ abstract class Entity extends Location implements Metadatable{
 	}
 
 	protected function initEntity() {
-		if (isset($this->namedtag->ActiveEffects)) {
-			foreach ($this->namedtag->ActiveEffects->getValue() as $e) {
-				$effect = Effect::getEffect($e["Id"]);
-				if ($effect === null) {
-					continue;
-				}
-				$effect->setAmplifier($e["Amplifier"])->setDuration($e["Duration"])->setVisible($e["ShowParticles"] > 0);
-				$this->addEffect($effect);
-			}
-		}
+		//if(isset($this->namedtag->ActiveEffects)) {
+		//	foreach($this->namedtag->ActiveEffects->getValue() as $e) {
+		//		$effect = Effect::getEffect($e["Id"]);
+		//		if($effect === null) {
+		//			continue;
+		//		}
+		//		$amplifier = Binary::unsignByte($e->Amplifier->getValue()); //0-255 only
+		//		$effect->setAmplifier($amplifier)->setDuration($e["Duration"])->setVisible($e["ShowParticles"] > 0);
+		//		$this->addEffect($effect, false);
+		//	}
+		//}
 
-		if (isset($this->namedtag->CustomName)) {
+		if(isset($this->namedtag->CustomName)) {
 			$this->setNameTag($this->namedtag["CustomName"]);
-			if (isset($this->namedtag->CustomNameVisible)) {
+			if(isset($this->namedtag->CustomNameVisible)) {
 				$this->setNameTagVisible($this->namedtag["CustomNameVisible"] > 0);
 			}
 		}

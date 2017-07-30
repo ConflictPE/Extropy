@@ -222,11 +222,11 @@ class BinaryStream extends \stdClass{
 			return;
 		}
 		$this->putSignedVarInt($item->getId());
-		$this->putSignedVarInt((($item->getDamage() ?? -1) << 8) | $item->getCount());
-		$nbt = $item->getCompound();
+		$this->putSignedVarInt((($item->getDamage() & 0x7fff) << 8) | $item->getCount());
+		$nbt = $item->getCompoundTag();
 		$this->putLShort(strlen($nbt));
 		$this->put($nbt);
-		if ($playerProtocol >= Info::PROTOCOL_110) {
+		if($playerProtocol >= Info::PROTOCOL_110) {
 			$this->putByte(0);
 			$this->putByte(0);
 		}
@@ -255,6 +255,7 @@ class BinaryStream extends \stdClass{
 	public function getString(){
 		return $this->get($this->getVarInt());
 	}
+
 	public function putString($v){
 		$this->putVarInt(strlen($v));
 		$this->put($v);

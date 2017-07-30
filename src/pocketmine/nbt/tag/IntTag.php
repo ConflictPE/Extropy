@@ -27,24 +27,31 @@ use pocketmine\nbt\NBT;
 
 class IntTag extends NamedTag{
 
+	/**
+	 * @param string $name
+	 * @param int    $value
+	 */
+	public function __construct(string $name = "", int $value = 0){
+		parent::__construct($name, $value);
+	}
+
 	public function getType(){
 		return NBT::TAG_Int;
 	}
 
-	public function read(NBT $nbt, $new = false){
-		if ($new) {
-			$this->value = $nbt->getNewInt();
-		} else {
-			$this->value = $nbt->getInt();
-		}
+	public function read(NBT $nbt, bool $network = false){
+		$this->value = $nbt->getInt($network);
 	}
 
-	public function write(NBT $nbt, $old = false){
-		if ($old) {
-			$nbt->putOldInt($this->value);
-		} else {
-			$nbt->putInt($this->value);
-		}
+	public function write(NBT $nbt, bool $network = false){
+		$nbt->putInt($this->value, $network);
+	}
+
+	/**
+	 * @return int
+	 */
+	public function &getValue() : int{
+		return parent::getValue();
 	}
 
 	/**

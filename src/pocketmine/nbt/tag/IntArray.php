@@ -26,19 +26,41 @@ use pocketmine\utils\Binary;
 
 class IntArray extends NamedTag{
 
+	/**
+	 * IntArrayTag constructor.
+	 *
+	 * @param string $name
+	 * @param int[]  $value
+	 */
+	public function __construct(string $name = "", array $value = []){
+		parent::__construct($name, $value);
+	}
+
 	public function getType(){
 		return NBT::TAG_IntArray;
 	}
 
-	public function read(NBT $nbt){
-		$this->value = [];
-		$size = $nbt->endianness === 1 ? Binary::readInt($nbt->get(4)) : Binary::readLInt($nbt->get(4));
-		$this->value = unpack($nbt->endianness === NBT::LITTLE_ENDIAN ? "V*" : "N*", $nbt->get($size * 4));
+	public function read(NBT $nbt, bool $network = false){
+		$size = $nbt->getInt($network);
+		$this->value = array_values(unpack($nbt->endianness === NBT::LITTLE_ENDIAN ? "V*" : "N*", $nbt->get($size * 4)));
 	}
 
-	public function write(NBT $nbt){
-		$nbt->buffer .= $nbt->endianness === 1 ? pack("N", \count($this->value)) : pack("V", \count($this->value));
-		$nbt->buffer .= pack($nbt->endianness === NBT::LITTLE_ENDIAN ? "V*" : "N*", ...$this->value);
+	public function write(NBT $nbt, bool $network = false){
+		$nbt->putInt(count($this->value), $network);
+		$nbt->put(pack($nbt->endianness === NBT::LITTLE_ENDIAN ? "V*" : "N*", ...$this->value));
+	}
+
+	public function __toString(){
+		$str = get_class($this) . "{\n";
+		$str .= implode(", ", $this->value);
+		return $str . "}";
+	}
+
+	/**
+	 * @return int[]
+	 */
+	public function &getValue() : array{
+		return parent::getValue();
 	}
 
 	/**
@@ -48,12 +70,13 @@ class IntArray extends NamedTag{
 	 */
 	public function setValue($value){
 		if(!is_array($value)){
-			throw new \TypeError("IntArray value must be of type int[], " . gettype($value) . " given");
+			throw new \TypeError("IntArrayTag value must be of type int[], " . gettype($value) . " given");
 		}
 		assert(count(array_filter($value, function($v){
-				return !is_int($v);
-			})) === 0);
+			return !is_int($v);
+		})) === 0);
 
 		parent::setValue($value);
 	}
+
 }

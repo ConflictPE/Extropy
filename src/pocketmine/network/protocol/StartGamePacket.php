@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
@@ -39,7 +39,10 @@ class StartGamePacket extends PEPacket{
 	public $x;
 	public $y;
 	public $z;
+	public $yaw = 0;
+	public $pitch = 0;
 	public $playerHaveLanguageCode = false;
+	public $currentTick = 0;
 
 	public function decode($playerProtocol){
 
@@ -49,49 +52,50 @@ class StartGamePacket extends PEPacket{
 		$this->reset($playerProtocol);
 		$this->putVarInt($this->eid); //EntityUniqueID
 		$this->putVarInt($this->eid); //EntityUniqueID
-		
+
 		if ($playerProtocol >= Info::PROTOCOL_110 && $this->playerHaveLanguageCode) {
  			$this->putSignedVarInt($this->gamemode);	// Entity gamemode
  		}
-		
+
 		$this->putLFloat($this->x); // default position (4)
 		$this->putLFloat($this->y); // (4)
 		$this->putLFloat($this->z); // (4)
-		
-		$this->putLFloat(0);
-		$this->putLFloat(0);
-		
+
+		$this->putLFloat($this->yaw); // yaw
+		$this->putLFloat($this->pitch); // pitch
+
 		// Level settings
-		
 		$this->putSignedVarInt($this->seed);
-		
+
 		$this->putSignedVarInt($this->dimension);
-		
+
 		$this->putSignedVarInt($this->generator);
-		
+
 		$this->putSignedVarInt($this->gamemode);
-		
+
 		$this->putSignedVarInt(0); // Difficulty
-		
+
 		// default spawn 3x VarInt
 		$this->putSignedVarInt($this->spawnX);
 		$this->putSignedVarInt($this->spawnY);
 		$this->putSignedVarInt($this->spawnZ);
-		
+
 		$this->putByte(1); // hasAchievementsDisabled
-		
 		$this->putSignedVarInt(0); // DayCycleStopTyme 1x VarInt
-		
 		$this->putByte(0); //edu mode
-
 		$this->putLFloat(0); //rain level
-
 		$this->putLFloat(0); //lightning level
-		
 		$this->putByte(1);	//commands enabled
-		
 		$this->putByte(0); // isTexturepacksRequired 1x Byte
-//		$this->putString('iX8AANxLbgA=');
+
+		if($playerProtocol >= Info::PROTOCOL_110) {
+			$this->putDataArray([]); // gamerules
+			$this->putString(""); // level id
+			$this->putString(""); // world name
+			$this->putString(""); // premium world template id
+			$this->putByte(0); // unknown
+			$this->putLLong($this->currentTick);
+		}
 	}
 
 }

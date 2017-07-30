@@ -25,6 +25,7 @@ use pocketmine\inventory\EnderChestInventory;
 use pocketmine\inventory\InventoryHolder;
 use pocketmine\inventory\PlayerInventory;
 use pocketmine\item\Item as ItemItem;
+use pocketmine\nbt\tag\IntTag;
 use pocketmine\network\protocol\PlayerListPacket;
 use pocketmine\utils\UUID;
 use pocketmine\nbt\NBT;
@@ -169,22 +170,32 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 			for($slot = 0; $slot < 9; ++$slot){
 				$hotbarSlot = $this->inventory->getHotbarSlotIndex($slot);
 				if($hotbarSlot !== -1){
-					/** @var \pocketmine\item\Item $item */
 					$item = $this->inventory->getItem($hotbarSlot);
 					if($item->getId() !== 0 and $item->getCount() > 0){
-						$this->namedtag->Inventory[$slot] = $item->nbtSerialize($slot);
+						$tag = $item->nbtSerialize($slot);
+						$tag->TrueSlot = new ByteTag("TrueSlot", $hotbarSlot);
+						$this->namedtag->Inventory[$slot] = $tag;
+
 						continue;
 					}
 				}
-				$this->namedtag->Inventory[$slot] = $item->nbtSerialize($slot);
+
+				$this->namedtag->Inventory[$slot] = new Compound("", [
+					new ByteTag("Count", 0),
+					new ShortTag("Damage", 0),
+					new ByteTag("Slot", $slot),
+					new ByteTag("TrueSlot", -1),
+					new ShortTag("id", 0)
+				]);
 			}
 
 			//Normal inventory
-			$slotCount = Player::SURVIVAL_SLOTS + 9;
-			//$slotCount = (($this instanceof Player and ($this->gamemode & 0x01) === 1) ? Player::CREATIVE_SLOTS : Player::SURVIVAL_SLOTS) + 9;
-			for($slot = 9; $slot < $slotCount; ++$slot){
+			$slotCount = $this->inventory->getSize() + $this->inventory->getHotbarSize();
+			for($slot = $this->inventory->getHotbarSize(); $slot < $slotCount; ++$slot){
 				$item = $this->inventory->getItem($slot - 9);
-				$this->namedtag->Inventory[$slot] = $item->nbtSerialize($slot);
+				if($item->getId() !== ItemItem::AIR){
+					$this->namedtag->Inventory[$slot] = $item->nbtSerialize($slot);
+				}
 			}
 
 			//Armor
@@ -194,6 +205,8 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 					$this->namedtag->Inventory[$slot] = $item->nbtSerialize($slot);
 				}
 			}
+
+			$this->namedtag->SelectedInventorySlot = new IntTag("SelectedInventorySlot", $this->inventory->getHeldItemIndex());
 		}
 
 		$this->namedtag->EnderChestInventory = new Enum("EnderChestInventory", []);

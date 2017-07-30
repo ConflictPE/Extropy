@@ -27,16 +27,33 @@ use pocketmine\nbt\NBT;
 
 class ByteTag extends NamedTag{
 
+	/**
+	 * ByteTag constructor.
+	 *
+	 * @param string $name
+	 * @param int    $value
+	 */
+	public function __construct(string $name = "", int $value = 0){
+		parent::__construct($name, $value);
+	}
+
 	public function getType(){
 		return NBT::TAG_Byte;
 	}
 
-	public function read(NBT $nbt){
-		$this->value = $nbt->getByte();
+	public function read(NBT $nbt, bool $network = false){
+		$this->value = $nbt->getSignedByte();
 	}
 
-	public function write(NBT $nbt){
+	public function write(NBT $nbt, bool $network = false){
 		$nbt->putByte($this->value);
+	}
+
+	/**
+	 * @return int
+	 */
+	public function &getValue() : int{
+		return parent::getValue();
 	}
 
 	/**

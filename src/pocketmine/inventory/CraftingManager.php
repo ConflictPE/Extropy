@@ -103,7 +103,7 @@ class CraftingManager{
 		$this->registerRecipe((new ShapedRecipe(Item::get(Item::WOODEN_PLANK, Planks::JUNGLE, 4),
 			"X"
 		))->setIngredient("X", Item::get(Item::WOOD, Wood::JUNGLE, 1)));
-		
+
 		$this->registerRecipe((new ShapedRecipe(Item::get(Item::WOODEN_PLANK, Planks::ACACIA, 4),
 			"X"
 		))->setIngredient("X", Item::get(Item::WOOD2, Wood2::ACACIA, 1)));
@@ -182,7 +182,7 @@ class CraftingManager{
 		$this->registerRecipe((new BigShapedRecipe(Item::get(Item::FENCE_GATE, 0, 1),
 			"SPS",
 			"SPS",
-			"   "	
+			"   "
 		))->setIngredient("S", Item::get(Item::STICK, 0))->setIngredient("P", Item::get(Item::WOODEN_PLANK, Planks::OAK)));
 
 		$this->registerRecipe((new BigShapedRecipe(Item::get(Item::FENCE_GATE_SPRUCE, 0, 1),
@@ -350,7 +350,7 @@ class CraftingManager{
 		$this->registerRecipe((new BigShapedRecipe(Item::get(Item::MINECART, 0, 1),
 			"I I",
 			"III",
-			"   "	
+			"   "
 		))->setIngredient("I", Item::get(Item::IRON_INGOT, 0)));
 
 		$this->registerRecipe((new BigShapedRecipe(Item::get(Item::BOOK, 0, 1),
@@ -408,7 +408,7 @@ class CraftingManager{
 		$this->registerRecipe(new FurnaceRecipe(Item::get(Item::COAL, 1, 1), Item::get(Item::TRUNK, -1, 1)));
 		$this->registerRecipe(new FurnaceRecipe(Item::get(Item::EMERALD, 0, 1), Item::get(Item::EMERALD_ORE, 0, 1)));
 		// @todo nether quartz
-		
+
 		// food
 		$this->registerRecipe(new FurnaceRecipe(Item::get(Item::COOKED_FISH, 0, 1), Item::get(Item::RAW_FISH, 0, 1)));
 		$this->registerRecipe(new FurnaceRecipe(Item::get(Item::COOKED_FISH, 1, 1), Item::get(Item::RAW_FISH, 1, 1))); // salmon
@@ -418,14 +418,14 @@ class CraftingManager{
 		$this->registerRecipe(new FurnaceRecipe(Item::get(Item::COOKED_CHICKEN, 0, 1), Item::get(Item::RAW_CHICKEN, 0, 1)));
 		// @todo raw mutton
 		// @todo raw rabbit
-		
+
 		// other
 		$this->registerRecipe(new FurnaceRecipe(Item::get(Item::DYE, 2, 1), Item::get(Item::CACTUS, 0, 1)));
 		// @todo sponge
 		// @todo popped chorus fruit
 	}
 
-	protected function registerStonecutter(){	
+	protected function registerStonecutter(){
 		$shapes = [
 			"slab" => [
 				"   ",
@@ -444,7 +444,7 @@ class CraftingManager{
 			],
 			"blockrecipe1" => [
 				"XX",
-				"XX"				
+				"XX"
 			],
 			"blockrecipe2X1" => [
 				"   ",
@@ -464,7 +464,7 @@ class CraftingManager{
 		$buildRecipes = [];
 
 		// Single ingedient stone cutter recipes:
-			$RESULT_ITEMID = 0;         $RESULT_META = 1;           $INGREDIENT_ITEMID = 2;     $INGREDIENT_META = 3; $RECIPE_SHAPE = 4;$RESULT_AMOUNT = 5;                
+			$RESULT_ITEMID = 0;         $RESULT_META = 1;           $INGREDIENT_ITEMID = 2;     $INGREDIENT_META = 3; $RECIPE_SHAPE = 4;$RESULT_AMOUNT = 5;
 		$recipes = [
 			//RESULT_ITEM_ID            RESULT_META                 INGREDIENT_ITEMID           INGREDIENT_META     RECIPE_SHAPE        RESULT_AMOUNT
 			[Item::SLAB,                Slab::STONE,                Item::STONE,                Stone::NORMAL,      "slab",             6],
@@ -496,9 +496,9 @@ class CraftingManager{
 			[Item::QUARTZ_BLOCK,        Quartz::QUARTZ_CHISELED,    Item::SLAB,                 Slab::QUARTZ,       "blockrecipe2X1",   1],
 			[Item::SANDSTONE,           SandStone::CHISELED,        Item::SLAB,                 Slab::SANDSTONE,    "blockrecipe2X1",   1],
 			[Item::STONE_BRICK,         StoneBricks::CHISELED,      Item::SLAB,                 Slab::STONE_BRICK,  "blockrecipe2X1",   1],
-		]; 	
+		];
 		foreach ($recipes as $recipe){
-			$buildRecipes[] = $this->createOneIngedientRecipe($shapes[$recipe[$RECIPE_SHAPE]], $recipe[$RESULT_ITEMID], $recipe[$RESULT_META], $recipe[$RESULT_AMOUNT], $recipe[$INGREDIENT_ITEMID], $recipe[$INGREDIENT_META], "X", "Stonecutter");			                    
+			$buildRecipes[] = $this->createOneIngedientRecipe($shapes[$recipe[$RECIPE_SHAPE]], $recipe[$RESULT_ITEMID], $recipe[$RESULT_META], $recipe[$RESULT_AMOUNT], $recipe[$INGREDIENT_ITEMID], $recipe[$INGREDIENT_META], "X", "Stonecutter");
 		}
 
 		// Multi-ingredient stone recipes:
@@ -533,7 +533,7 @@ class CraftingManager{
 				}
 			}
 			$this->registerRecipe($current);
-		}            
+		}
 	}
 
 	private function createOneIngedientRecipe($recipeshape, $resultitem, $resultitemmeta, $resultitemamound, $ingedienttype, $ingredientmeta, $ingredientname, $inventoryType = ""){
@@ -544,7 +544,7 @@ class CraftingManager{
 			$height += 1;
 			$width = strlen($line);
 			$ingredientamount += substr_count($line, $ingredientname);
-		}		
+		}
 		$recipe = null;
 		if ($height < 3){
 			// Process small recipe
@@ -827,12 +827,12 @@ class CraftingManager{
 
 		$this->recipeLookup[$result->getId() . ":" . $result->getDamage()][$hash] = $recipe;
 	}
-	
+
 	public function getRecipeByHash($hash) {
 		if (isset($this->recipeLookup[$hash])) {
 			foreach ($this->recipeLookup[$hash] as $recipe) {
 				return $recipe;
-			}			
+			}
 		}
 		return null;
 	}
@@ -890,7 +890,7 @@ class CraftingManager{
 				foreach($ingredients as $item){
 					$amount = $item->getCount();
 					foreach($checkInput as $k => $checkItem){
-						if($checkItem->equals($item, $checkItem->getDamage() === null ? false : true, $checkItem->getCompound() === null ? false : true)){
+						if($checkItem->equals($item, $checkItem->getDamage() === null ? false : true, $checkItem->getCompoundTag() === null ? false : true)){
 							$remove = min($checkItem->getCount(), $amount);
 							$checkItem->setCount($checkItem->getCount() - $remove);
 							if($checkItem->getCount() === 0){
@@ -922,7 +922,7 @@ class CraftingManager{
 	 * @param Recipe $recipe
 	 */
 	public function registerRecipe(Recipe $recipe){
-		$recipe->setId(UUID::fromData(++self::$RECIPE_COUNT, $recipe->getResult()->getId(), $recipe->getResult()->getDamage(), $recipe->getResult()->getCount(), $recipe->getResult()->getCompound()));
+		$recipe->setId(UUID::fromData(++self::$RECIPE_COUNT, $recipe->getResult()->getId(), $recipe->getResult()->getDamage(), $recipe->getResult()->getCount(), $recipe->getResult()->getCompoundTag()));
 
 		if($recipe instanceof ShapedRecipe){
 			$this->registerShapedRecipe($recipe);

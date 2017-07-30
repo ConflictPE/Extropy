@@ -28,17 +28,34 @@ use pocketmine\utils\Binary;
 
 class ByteArray extends NamedTag{
 
+	/**
+	 * ByteArrayTag constructor.
+	 *
+	 * @param string $name
+	 * @param string $value
+	 */
+	public function __construct(string $name = "", string $value = ""){
+		parent::__construct($name, $value);
+	}
+
 	public function getType(){
 		return NBT::TAG_ByteArray;
 	}
 
-	public function read(NBT $nbt){
-		$this->value = $nbt->get($nbt->endianness === 1 ? Binary::readInt($nbt->get(4)) : Binary::readLInt($nbt->get(4)));
+	public function read(NBT $nbt, bool $network = false){
+		$this->value = $nbt->get($nbt->getInt($network));
 	}
 
-	public function write(NBT $nbt){
-		$nbt->buffer .= $nbt->endianness === 1 ? pack("N", strlen($this->value)) : pack("V", strlen($this->value));
-		$nbt->buffer .= $this->value;
+	public function write(NBT $nbt, bool $network = false){
+		$nbt->putInt(strlen($this->value), $network);
+		$nbt->put($this->value);
+	}
+
+	/**
+	 * @return string
+	 */
+	public function &getValue() : string{
+		return parent::getValue();
 	}
 
 	/**
@@ -48,8 +65,9 @@ class ByteArray extends NamedTag{
 	 */
 	public function setValue($value){
 		if(!is_string($value)){
-			throw new \TypeError("ByteArray value must be of type string, " . gettype($value) . " given");
+			throw new \TypeError("ByteArrayTag value must be of type string, " . gettype($value) . " given");
 		}
 		parent::setValue($value);
 	}
+
 }

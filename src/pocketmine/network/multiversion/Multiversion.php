@@ -4,6 +4,7 @@ namespace pocketmine\network\multiversion;
 
 use pocketmine\inventory\PlayerInventory;
 use pocketmine\inventory\PlayerInventory120;
+use pocketmine\item\Item;
 use pocketmine\Player;
 use pocketmine\network\protocol\ContainerSetContentPacket;
 use pocketmine\network\protocol\ContainerSetSlotPacket;

@@ -28,13 +28,22 @@ use pocketmine\utils\Binary;
 
 class Enum extends NamedTag implements \ArrayAccess, \Countable{
 
-	private $tagType;
+	private $tagType = NBT::TAG_End;
 
-	public function __construct($name = "", $value = []){
+	/**
+	 * ListTag constructor.
+	 *
+	 * @param string     $name
+	 * @param NamedTag[] $value
+	 */
+	public function __construct(string $name = "", array $value = []){
 		parent::__construct($name, $value);
 	}
 
-	public function &getValue(){
+	/**
+	 * @return NamedTag[]
+	 */
+	public function &getValue() : array{
 		$value = [];
 		foreach($this as $k => $v){
 			if($v instanceof Tag){
@@ -54,11 +63,6 @@ class Enum extends NamedTag implements \ArrayAccess, \Countable{
 		if(is_array($value)){
 			foreach($value as $name => $tag){
 				if($tag instanceof NamedTag){
-					if($tag->getName() !== "" and $name === "") {
-						$name = $tag->getName();
-					} elseif($tag->getName() === "" and $name === "") {
-						throw new \InvalidKeyException("Enum members cannot have an empty name!");
-					}
 					$this->{$name} = $tag;
 				}else{
 					throw new \TypeError("Enum members must be NamedTags, got " . gettype($tag) . " in given array");
@@ -109,103 +113,49 @@ class Enum extends NamedTag implements \ArrayAccess, \Countable{
 	}
 
 	public function count($mode = COUNT_NORMAL){
-		for($i = 0; true; $i++){
-			if(!isset($this->{$i})){
-				return $i;
-			}
-			if($mode === COUNT_RECURSIVE){
-				if($this->{$i} instanceof \Countable){
-					$i += count($this->{$i});
-				}
+		$count = 0;
+		for($i = 0; isset($this->{$i}); $i++){
+			if($mode === COUNT_RECURSIVE and $this->{$i} instanceof \Countable){
+				$count += count($this->{$i});
+			}else{
+				$count++;
 			}
 		}
 
-		return $i;
+		return $count;
 	}
 
 	public function getType(){
 		return NBT::TAG_Enum;
 	}
 
-	public function setTagType($type){
+	public function setTagType(int $type){
 		$this->tagType = $type;
 	}
 
-	public function getTagType(){
+	public function getTagType() : int{
 		return $this->tagType;
 	}
 
-	public function read(NBT $nbt, $new = false){
+	public function read(NBT $nbt, bool $network = false){
 		$this->value = [];
-		$this->tagType = ord($nbt->get(1));
-		$size = $nbt->getInt();
+		$this->tagType = $nbt->getByte();
+		$size = $nbt->getInt($network);
+
+		$tagBase = NBT::createTag($this->tagType);
 		for($i = 0; $i < $size and !$nbt->feof(); ++$i){
-			switch($this->tagType){
-				case NBT::TAG_Byte:
-					$tag = new ByteTag("");
-					$tag->read($nbt);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_Short:
-					$tag = new ShortTag("");
-					$tag->read($nbt);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_Int:
-					$tag = new IntTag("");
-					$tag->read($nbt, $new);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_Long:
-					$tag = new LongTag("");
-					$tag->read($nbt);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_Float:
-					$tag = new FloatTag("");
-					$tag->read($nbt);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_Double:
-					$tag = new DoubleTag("");
-					$tag->read($nbt);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_ByteArray:
-					$tag = new ByteArray("");
-					$tag->read($nbt);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_String:
-					$tag = new StringTag("");
-					$tag->read($nbt, $new);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_Enum:
-					$tag = new TagEnum("");
-					$tag->read($nbt, $new);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_Compound:
-					$tag = new Compound("");
-					$tag->read($nbt, $new);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_IntArray:
-					$tag = new IntArray("");
-					$tag->read($nbt);
-					$this->{$i} = $tag;
-					break;
-			}
+			$tag = clone $tagBase;
+			$tag->read($nbt, $network);
+			$this->{$i} = $tag;
 		}
 	}
 
-	public function write(NBT $nbt, $old = false){
-		if(!isset($this->tagType)){
-			$id = null;
+	public function write(NBT $nbt, bool $network = false){
+		if($this->tagType === NBT::TAG_End){ //previously empty list, try detecting type from tag children
+			$id = NBT::TAG_End;
 			foreach($this as $tag){
-				if($tag instanceof Tag){
-					if(!isset($id)){
+				if($tag instanceof Tag and !($tag instanceof End)){
+					if($id === NBT::TAG_End){
 						$id = $tag->getType();
 					}elseif($id !== $tag->getType()){
 						return false;
@@ -215,7 +165,7 @@ class Enum extends NamedTag implements \ArrayAccess, \Countable{
 			$this->tagType = $id;
 		}
 
-		$nbt->buffer .= chr($this->tagType);
+		$nbt->putByte($this->tagType);
 
 		/** @var Tag[] $tags */
 		$tags = [];
@@ -224,10 +174,12 @@ class Enum extends NamedTag implements \ArrayAccess, \Countable{
 				$tags[] = $tag;
 			}
 		}
-		$nbt->buffer .= $nbt->endianness === 1 ? pack("N", count($tags)) : pack("V", count($tags));
+		$nbt->putInt(count($tags), $network);
 		foreach($tags as $tag){
-			$tag->write($nbt, $old);
+			$tag->write($nbt, $network);
 		}
+
+		return true;
 	}
 
 	public function __toString(){
@@ -238,5 +190,13 @@ class Enum extends NamedTag implements \ArrayAccess, \Countable{
 			}
 		}
 		return $str . "}";
+	}
+
+	public function __clone(){
+		foreach($this as $key => $tag){
+			if($tag instanceof Tag){
+				$this->{$key} = clone $tag;
+			}
+		}
 	}
 }

@@ -27,24 +27,33 @@ use pocketmine\nbt\NBT;
 
 class StringTag extends NamedTag{
 
+	/**
+	 * StringTag constructor.
+	 *
+	 * @param string $name
+	 * @param string $value
+	 */
+	public function __construct(string $name = "", string $value = ""){
+		parent::__construct($name, $value);
+	}
+
 	public function getType(){
 		return NBT::TAG_String;
 	}
 
-	public function read(NBT $nbt, $new = false){
-		if ($new) {
-			$this->value = $nbt->getNewString($this->value);
-		} else {
-			$this->value = $nbt->getString($this->value);
-		}
+	public function read(NBT $nbt, bool $network = false){
+		$this->value = $nbt->getString($network);
 	}
 
-	public function write(NBT $nbt, $old = false){
-		if ($old) {
-			$nbt->putOldString($this->value);
-		} else {
-			$nbt->putString($this->value);
-		}
+	public function write(NBT $nbt, bool $network = false){
+		$nbt->putString($this->value, $network);
+	}
+
+	/**
+	 * @return string
+	 */
+	public function &getValue() : string{
+		return parent::getValue();
 	}
 
 	/**

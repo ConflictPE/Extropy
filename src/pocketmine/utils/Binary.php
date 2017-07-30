@@ -43,6 +43,33 @@ class Binary{
 		return $value & 0xff;
 	}
 
+	public static function signShort(int $value) : int{
+		return $value << 48 >> 48;
+	}
+
+	public function unsignShort(int $value) : int{
+		return $value & 0xffff;
+	}
+
+	public static function signInt(int $value) : int{
+		return $value << 32 >> 32;
+	}
+
+	public static function unsignInt(int $value) : int{
+		return $value & 0xffffffff;
+	}
+
+	/**
+	 * Reads a signed byte (-128 - 127)
+	 *
+	 * @param string $c
+	 * @return int
+	 */
+	public static function readSignedByte(string $c) : int{
+		return self::signByte(ord($c{0}));
+	}
+
+
 	/**
 	 * Reads a 3-byte big-endian number
 	 *
@@ -465,19 +492,14 @@ class Binary{
 		return strrev(self::writeLong($value));
 	}
 
-	public static function readSignedVarInt($stream){
+	public static function readSignedVarInt(BinaryStream $stream){
 		$shift = PHP_INT_SIZE === 8 ? 63 : 31;
 		$raw = self::readVarInt($stream);
 		$temp = ((($raw << $shift) >> $shift) ^ $raw) >> 1;
 		return $temp ^ ($raw & (1 << $shift));
 	}
 
-	/**
-	 * @param BinaryStream $stream
-	 *
-	 * @return int
-	 */
-	public static function readVarInt($stream){
+	public static function readVarInt(BinaryStream $stream){
 		$value = 0;
 		$i = 0;
 		do{
@@ -487,14 +509,12 @@ class Binary{
 			$value |= ((($b = $stream->getByte()) & 0x7f) << $i);
 			$i += 7;
 		}while($b & 0x80);
-
 		return $value;
 	}
 
 	public static function writeSignedVarInt($v){
 		return self::writeVarInt(($v << 1) ^ ($v >> (PHP_INT_SIZE === 8 ? 63 : 31)));
 	}
-
 
 	public static function writeVarInt($v){
 		$buf = "";
@@ -507,7 +527,6 @@ class Binary{
 			}
 			$v = (($v>> 7) & (PHP_INT_MAX >> 6)); //PHP really needs a logical right-shift operator
 		}
-
 		throw new \InvalidArgumentException("Value too large to be encoded as a varint");
 	}
 

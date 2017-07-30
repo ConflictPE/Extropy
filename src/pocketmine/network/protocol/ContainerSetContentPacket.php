@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
@@ -61,18 +61,18 @@ class ContainerSetContentPacket extends PEPacket{
 	public function encode($playerProtocol){
 		$this->reset($playerProtocol);
 		$this->putByte($this->windowid);
-		if ($playerProtocol >= Info::PROTOCOL_110) {
+		if($playerProtocol >= Info::PROTOCOL_110) {
 			$this->putVarInt($this->eid);
 		}
 		$this->putVarInt(count($this->slots));
 		foreach($this->slots as $slot){
-			$this->putSlot($slot, $playerProtocol);	
+			$this->putSlot($slot, $playerProtocol);
 		}
 		if($this->windowid === self::SPECIAL_INVENTORY and count($this->hotbar) > 0){
 			$this->putVarInt(count($this->hotbar));
 			foreach($this->hotbar as $slot){
 				$this->putSignedVarInt($slot);
-			}	
+			}
 		}else{
 			$this->putVarInt(0);
 		}

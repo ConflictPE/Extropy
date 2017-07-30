@@ -28,11 +28,24 @@ use pocketmine\nbt\NBT;
 class Compound extends NamedTag implements \ArrayAccess{
 
 	/**
+	 * CompoundTag constructor.
+	 *
 	 * @param string     $name
 	 * @param NamedTag[] $value
 	 */
-	public function __construct($name = "", $value = []){
+	public function __construct(string $name = "", array $value = []){
 		parent::__construct($name, $value);
+	}
+
+	public function getCount(){
+		$count = 0;
+		foreach($this as $tag){
+			if($tag instanceof Tag){
+				++$count;
+			}
+		}
+
+		return $count;
 	}
 
 	/**
@@ -59,17 +72,6 @@ class Compound extends NamedTag implements \ArrayAccess{
 		}
 	}
 
-	public function getCount(){
-		$count = 0;
-		foreach($this as $tag){
-			if($tag instanceof Tag){
-				++$count;
-			}
-		}
-
-		return $count;
-	}
-
 	public function offsetExists($offset){
 		return isset($this->{$offset}) and $this->{$offset} instanceof Tag;
 	}
@@ -82,6 +84,8 @@ class Compound extends NamedTag implements \ArrayAccess{
 				return $this->{$offset}->getValue();
 			}
 		}
+
+		assert(false, "Offset $offset not found");
 
 		return null;
 	}
@@ -102,23 +106,23 @@ class Compound extends NamedTag implements \ArrayAccess{
 		return NBT::TAG_Compound;
 	}
 
-	public function read(NBT $nbt, $new = false){
+	public function read(NBT $nbt, bool $network = false){
 		$this->value = [];
 		do{
-			$tag = $nbt->readTag($new);
+			$tag = $nbt->readTag($network);
 			if($tag instanceof NamedTag and $tag->getName() !== ""){
 				$this->{$tag->getName()} = $tag;
 			}
 		}while(!($tag instanceof End) and !$nbt->feof());
 	}
 
-	public function write(NBT $nbt, $old = false){
+	public function write(NBT $nbt, bool $network = false){
 		foreach($this as $tag){
 			if($tag instanceof Tag and !($tag instanceof End)){
-				$nbt->writeTag($tag, $old);
+				$nbt->writeTag($tag, $network);
 			}
 		}
-		$nbt->writeTag(new End, $old);
+		$nbt->writeTag(new End, $network);
 	}
 
 	public function __toString(){
@@ -130,4 +134,13 @@ class Compound extends NamedTag implements \ArrayAccess{
 		}
 		return $str . "}";
 	}
+
+	public function __clone(){
+		foreach($this as $key => $tag){
+			if($tag instanceof Tag){
+				$this->{$key} = clone $tag;
+			}
+		}
+	}
+
 }
