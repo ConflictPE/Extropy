@@ -80,7 +80,7 @@ class Anvil extends McRegion {
 		foreach($chunk->getTiles() as $tile){
 			if($tile instanceof Spawnable){
 				$nbt->setData($tile->getSpawnCompound());
-				$tiles .= $nbt->write();
+				$tiles .= $nbt->write(true);
 			}
 		}
 
@@ -171,7 +171,7 @@ class Anvil extends McRegion {
 	}
 
 	public static function createChunkSection($Y) {
-		return new ChunkSection(new Compound(null, [
+		return new ChunkSection(new Compound("", [
 			new ByteTag("Y", $Y),
 			new ByteArray("Blocks", str_repeat("\x00", 4096)),
 			new ByteArray("Data", str_repeat("\x00", 2048)),

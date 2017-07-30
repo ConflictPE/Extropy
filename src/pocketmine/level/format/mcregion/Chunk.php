@@ -403,7 +403,7 @@ class Chunk extends BaseFullChunk{
 
 		$writer = new NBT(NBT::BIG_ENDIAN);
 		$nbt->setName("Level");
-		$writer->setData(new Compound("", ["Level" => $nbt]));
+		$writer->setData(new Compound("", [$nbt]));
 
 		return $writer->writeCompressed(ZLIB_ENCODING_DEFLATE, RegionLoader::$COMPRESSION_LEVEL);
 	}
@@ -447,7 +447,7 @@ class Chunk extends BaseFullChunk{
 			return null;
 		}
 	}
-	
+
 	public function setLightPopulated($value = 1){
 		$this->nbt->LightPopulated = new ByteTag("LightPopulated", $value ? 1 : 0);
 		$this->hasChanged = true;

@@ -26,6 +26,7 @@ use pocketmine\level\format\FullChunk;
 use pocketmine\level\format\LevelProvider;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\Player;
+use pocketmine\tile\Spawnable;
 use pocketmine\tile\Tile;
 use pocketmine\utils\Binary;
 use pocketmine\block\Block;
@@ -72,7 +73,7 @@ abstract class BaseFullChunk implements FullChunk{
 	protected $hasChanged = false;
 
 	public $allowUnload = true;
-	
+
 	public $incorrectHeightMap = false;
 	/**
 	 * @param LevelProvider $provider
@@ -115,46 +116,50 @@ abstract class BaseFullChunk implements FullChunk{
 	}
 
 	public function initChunk(){
-		if($this->getProvider() instanceof LevelProvider and $this->NBTentities !== null){
+		if($this->getProvider() instanceof LevelProvider){
 			//$this->getProvider()->getLevel()->timings->syncChunkLoadEntitiesTimer->startTiming();
-			foreach($this->NBTentities as $nbt){
-				if($nbt instanceof Compound){
-					if(!isset($nbt->id)){
-						$this->setChanged();
-						continue;
-					}
-
-					if(($nbt["Pos"][0] >> 4) !== $this->x or ($nbt["Pos"][2] >> 4) !== $this->z){
-						$this->setChanged();
-						continue; //Fixes entities allocated in wrong chunks.
-					}
-
-					if(($entity = Entity::createEntity($nbt["id"], $this, $nbt)) instanceof Entity){
-						$entity->spawnToAll();
-					}else{
-						$this->setChanged();
-						continue;
+			if($this->NBTentities !== null) {
+				foreach($this->NBTentities as $nbt) {
+					if($nbt instanceof Compound) {
+						if(!isset($nbt->id)) {
+							$this->setChanged();
+							continue;
+						}
+						if(($nbt["Pos"][0] >> 4) !== $this->x or ($nbt["Pos"][2] >> 4) !== $this->z) {
+							$this->setChanged();
+							continue; //Fixes entities allocated in wrong chunks.
+						}
+						if(($entity = Entity::createEntity($nbt["id"], $this, $nbt)) instanceof Entity) {
+							$entity->spawnToAll();
+						} else {
+							$this->setChanged();
+							continue;
+						}
 					}
 				}
 			}
 			//$this->getProvider()->getLevel()->timings->syncChunkLoadEntitiesTimer->stopTiming();
 
 			//$this->getProvider()->getLevel()->timings->syncChunkLoadTileEntitiesTimer->startTiming();
-			foreach($this->NBTtiles as $nbt){
-				if($nbt instanceof Compound){
-					if(!isset($nbt->id)){
-						$this->setChanged();
-						continue;
-					}
-
-					if(($nbt["x"] >> 4) !== $this->x or ($nbt["z"] >> 4) !== $this->z){
-						$this->setChanged();
-						continue; //Fixes tiles allocated in wrong chunks.
-					}
-
-					if(Tile::createTile($nbt["id"], $this, $nbt) === null){
-						$this->setChanged();
-						continue;
+			if($this->NBTtiles !== null) {
+				foreach($this->NBTtiles as $nbt) {
+					if($nbt instanceof Compound) {
+						if(!isset($nbt->id)) {
+							$this->setChanged();
+							continue;
+						}
+						if(($nbt["x"] >> 4) !== $this->x or ($nbt["z"] >> 4) !== $this->z) {
+							$this->setChanged();
+							continue; //Fixes tiles allocated in wrong chunks.
+						}
+						if(($tile = Tile::createTile($nbt["id"], $this, $nbt)) instanceof Tile) {
+							if($tile instanceof Spawnable) {
+								$tile->spawnToAll();
+							}
+						} else {
+							$this->setChanged();
+							continue;
+						}
 					}
 				}
 			}
@@ -356,7 +361,7 @@ abstract class BaseFullChunk implements FullChunk{
 	public function getHeightMapArray(){
 		return $this->heightMap;
 	}
-	
+
 	public function hasChanged(){
 		return $this->hasChanged;
 	}
@@ -372,7 +377,7 @@ abstract class BaseFullChunk implements FullChunk{
 	public function toFastBinary(){
 		return $this->toBinary();
 	}
-	
+
 	public function recalculateHeightMap(){
 		for($z = 0; $z < 16; ++$z){
 			for($x = 0; $x < 16; ++$x){
@@ -380,7 +385,7 @@ abstract class BaseFullChunk implements FullChunk{
 			}
 		}
 	}
-	
+
 	public function populateSkyLight(){
 		for($z = 0; $z < 16; ++$z){
 			for($x = 0; $x < 16; ++$x){
@@ -402,15 +407,15 @@ abstract class BaseFullChunk implements FullChunk{
 			}
 		}
 	}
-	
+
 	public function setLightPopulated($value = 1){
 
 	}
-	
+
 	public function setBlockIdArray($arr){
 		$this->blocks = $arr;
 	}
-	
+
 	public function setBlockDataArray($arr){
 		$this->data = $arr;
 	}

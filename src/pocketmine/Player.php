@@ -791,6 +791,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					$entity->spawnTo($this);
 				}
 			}
+			foreach($this->level->getChunkTiles($x, $z) as $tile) {
+				if(!$tile->closed and ($tile instanceof Spawnable)) {
+					$tile->spawnTo($this);
+				}
+			}
 		}
 	}
 
@@ -3020,21 +3025,21 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			throw new \InvalidStateException("Tried to save closed player");
 		}
 
-		parent::saveNBT();
-		if($this->level instanceof Level){
-			$this->namedtag->Level = new StringTag("Level", $this->level->getName());
-			if($this->spawnPosition instanceof Position and $this->spawnPosition->getLevel() instanceof Level){
-				$this->namedtag["SpawnLevel"] = $this->spawnPosition->getLevel()->getName();
-				$this->namedtag["SpawnX"] = (int) $this->spawnPosition->x;
-				$this->namedtag["SpawnY"] = (int) $this->spawnPosition->y;
-				$this->namedtag["SpawnZ"] = (int) $this->spawnPosition->z;
-			}
-
-			$this->namedtag["playerGameType"] = $this->gamemode;
-			$this->namedtag["lastPlayed"] = floor(microtime(true) * 1000);
-
-			if($this->username != "" and $this->namedtag instanceof Compound){
-				$this->server->saveOfflinePlayerData($this->username, $this->namedtag, true);
+		if($this->spawned) {
+			parent::saveNBT();
+			if($this->level instanceof Level) {
+				$this->namedtag->Level = new StringTag("Level", $this->level->getName());
+				if($this->spawnPosition instanceof Position and $this->spawnPosition->getLevel() instanceof Level) {
+					$this->namedtag["SpawnLevel"] = $this->spawnPosition->getLevel()->getName();
+					$this->namedtag["SpawnX"] = (int) $this->spawnPosition->x;
+					$this->namedtag["SpawnY"] = (int) $this->spawnPosition->y;
+					$this->namedtag["SpawnZ"] = (int) $this->spawnPosition->z;
+				}
+				$this->namedtag["playerGameType"] = $this->gamemode;
+				$this->namedtag["lastPlayed"] = floor(microtime(true) * 1000);
+				if($this->username != "" and $this->namedtag instanceof Compound) {
+					$this->server->saveOfflinePlayerData($this->username, $this->namedtag, true);
+				}
 			}
 		}
 	}

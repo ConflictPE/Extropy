@@ -70,8 +70,22 @@ class BinaryStream extends \stdClass{
 		return $len === 1 ? $this->buffer{$this->offset++} : substr($this->buffer, ($this->offset += $len) - $len, $len);
 	}
 
+	public function getRemaining() : string{
+		$str = substr($this->buffer, $this->offset);
+		$this->offset = strlen($this->buffer);
+		return $str;
+	}
+
 	public function put($str){
 		$this->buffer .= $str;
+	}
+
+	public function getBool() : bool{
+		return $this->get(1) !== "\x00";
+	}
+
+	public function putBool(bool $v){
+		$this->buffer .= ($v ? "\x01" : "\x00");
 	}
 
 	public function getLong(){
@@ -118,6 +132,10 @@ class BinaryStream extends \stdClass{
 		return Binary::readFloat($this->get(4));
 	}
 
+	public function getRoundedFloat(int $accuracy) : float{
+		return Binary::readRoundedFloat($this->get(4), $accuracy);
+	}
+
 	public function putFloat($v){
 		$this->buffer .= Binary::writeFloat($v);
 	}
@@ -132,6 +150,10 @@ class BinaryStream extends \stdClass{
 
 	public function getLFloat(){
 		return Binary::readLFloat($this->get(4));
+	}
+
+	public function getRoundedLFloat(int $accuracy) : float{
+		return Binary::readRoundedLFloat($this->get(4), $accuracy);
 	}
 
 	public function putLFloat($v){
@@ -250,6 +272,38 @@ class BinaryStream extends \stdClass{
 
 	public function putVarInt($v) {
 		$this->put(Binary::writeVarInt($v));
+	}
+
+	/**
+	 * Reads a 64-bit variable-length integer from the buffer and returns it.
+	 * @return int
+	 */
+	public function getVarLong() : int{
+		return Binary::readVarLong($this->buffer, $this->offset);
+	}
+
+	/**
+	 * Writes a 64-bit variable-length integer to the end of the buffer.
+	 * @param int $v
+	 */
+	public function putVarLong(int $v){
+		$this->buffer .= Binary::writeVarLong($v);
+	}
+
+	/**
+	 * Reads a 64-bit zigzag-encoded variable-length integer from the buffer and returns it.
+	 * @return int
+	 */
+	public function getSignedVarLong() : int{
+		return Binary::readSignedVarLong($this->buffer, $this->offset);
+	}
+
+	/**
+	 * Writes a 64-bit zigzag-encoded variable-length integer to the end of the buffer.
+	 * @param int
+	 */
+	public function putSignedVarLong(int $v){
+		$this->buffer .= Binary::writeSignedVarLong($v);
 	}
 
 	public function getString(){

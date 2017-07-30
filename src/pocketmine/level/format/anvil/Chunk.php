@@ -226,7 +226,7 @@ class Chunk extends BaseChunk {
 			if ($section instanceof EmptyChunkSection) {
 				continue;
 			}
-			$nbt->Sections[$section->getY()] = new Compound(null, [
+			$nbt->Sections[$section->getY()] = new Compound("", [
 				new ByteTag("Y", $section->getY()),
 				new ByteArray("Blocks", $section->getIdArray()),
 				new ByteArray("Data", $section->getDataArray()),
@@ -271,11 +271,11 @@ class Chunk extends BaseChunk {
 
 		$nbt->Sections = new Enum("Sections", []);
 		$nbt->Sections->setTagType(NBT::TAG_Compound);
-		foreach ($this->getSections() as $section) {
+		foreach($this->getSections() as $section) {
 			if ($section instanceof EmptyChunkSection) {
 				continue;
 			}
-			$nbt->Sections[$section->getY()] = new Compound(null, [
+			$nbt->Sections[$section->getY()] = new Compound("", [
 				new ByteTag("Y", $section->getY()),
 				new ByteArray("Blocks", $section->getIdArray()),
 				new ByteArray("Data", $section->getDataArray()),
@@ -290,7 +290,7 @@ class Chunk extends BaseChunk {
 
 		$entities = [];
 
-		foreach ($this->getEntities() as $entity) {
+		foreach($this->getEntities() as $entity) {
 			if (!($entity instanceof Player) and ! $entity->closed) {
 				$entity->saveNBT();
 				$entities[] = $entity->namedtag;
@@ -302,7 +302,7 @@ class Chunk extends BaseChunk {
 
 
 		$tiles = [];
-		foreach ($this->getTiles() as $tile) {
+		foreach($this->getTiles() as $tile) {
 			$tile->saveNBT();
 			$tiles[] = $tile->namedtag;
 		}

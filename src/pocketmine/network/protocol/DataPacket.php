@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
@@ -28,6 +28,8 @@ namespace pocketmine\network\protocol;
 #endif
 
 
+use pocketmine\entity\Entity;
+use pocketmine\item\Item;
 use pocketmine\utils\BinaryStream;
 use pocketmine\utils\Utils;
 
@@ -39,17 +41,17 @@ abstract class DataPacket extends BinaryStream{
 
 	public $isEncoded = false;
 	private $channel = 0;
-	
+
 	protected static $packetsIds = [];
 
 	public function pid(){
 		return $this::NETWORK_ID;
 	}
-	
+
 	public function pname(){
 		return $this::PACKET_NAME;
 	}
-	
+
 	/**
 	 * @deprecated This adds extra overhead on the network, so its usage is now discouraged. It was a test for the viability of this.
 	 */
@@ -83,7 +85,7 @@ abstract class DataPacket extends BinaryStream{
 
 		return $data;
 	}
-	
+
 	public static function initPackets() {
 		$oClass = new \ReflectionClass ('pocketmine\network\protocol\Info');
 		self::$packetsIds[Info::BASE_PROTOCOL] = $oClass->getConstants();
@@ -94,5 +96,281 @@ abstract class DataPacket extends BinaryStream{
 		$oClass = new \ReflectionClass ('pocketmine\network\protocol\Info120');
 		self::$packetsIds[Info::PROTOCOL_120] = $oClass->getConstants();
 	}
-	
+
+	/**
+	 * Decodes entity metadata from the stream.
+	 *
+	 * @param bool $types Whether to include metadata types along with values in the returned array
+	 *
+	 * @return array
+	 */
+	public function getEntityMetadata(int $playerProtocol, bool $types = true) : array{
+		$count = $this->getVarInt();
+		$data = [];
+		for($i = 0; $i < $count; ++$i){
+			$key = $this->getVarInt();
+			$type = $this->getVarInt();
+			$value = null;
+			switch($type){
+				case Entity::DATA_TYPE_BYTE:
+					$value = $this->getByte();
+					break;
+				case Entity::DATA_TYPE_SHORT:
+					$value = $this->getLShort();
+					break;
+				case Entity::DATA_TYPE_INT:
+					$value = $this->getVarInt();
+					break;
+				case Entity::DATA_TYPE_FLOAT:
+					$value = $this->getLFloat();
+					break;
+				case Entity::DATA_TYPE_STRING:
+					$value = $this->getString();
+					break;
+				case Entity::DATA_TYPE_SLOT:
+					//TODO: use objects directly
+					$value = [];
+					/** @var Item $item */
+					$item = $this->getSlot($playerProtocol);
+					$value[0] = $item->getId();
+					$value[1] = $item->getCount();
+					$value[2] = $item->getDamage();
+					break;
+				case Entity::DATA_TYPE_POS:
+					$value = [0, 0, 0];
+					$this->getSignedBlockPosition(...$value);
+					break;
+				case Entity::DATA_TYPE_LONG:
+					$value = $this->getSignedVarLong();
+					break;
+				//case Entity::DATA_TYPE_VECTOR3F:
+				//	$value = [0.0, 0.0, 0.0];
+				//	$this->getVector3f(...$value);
+				//	break;
+				default:
+					$value = [];
+			}
+			if($types === true){
+				$data[$key] = [$type, $value];
+			}else{
+				$data[$key] = $value;
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Writes entity metadata to the packet buffer.
+	 *
+	 * @param array $metadata
+	 */
+	public function putEntityMetadata(int $playerProtocol, array $metadata){
+		$this->putVarInt(count($metadata));
+		foreach($metadata as $key => $d){
+			$this->putVarInt($key); //data key
+			$this->putVarInt($d[0]); //data type
+			switch($d[0]){
+				case Entity::DATA_TYPE_BYTE:
+					$this->putByte($d[1]);
+					break;
+				case Entity::DATA_TYPE_SHORT:
+					$this->putLShort($d[1]); //SIGNED short!
+					break;
+				case Entity::DATA_TYPE_INT:
+					$this->putVarInt($d[1]);
+					break;
+				case Entity::DATA_TYPE_FLOAT:
+					$this->putLFloat($d[1]);
+					break;
+				case Entity::DATA_TYPE_STRING:
+					$this->putString($d[1]);
+					break;
+				case Entity::DATA_TYPE_SLOT:
+					//TODO: change this implementation (use objects)
+					$this->putSlot(Item::get($d[1][0], $d[1][2], $d[1][1]), $playerProtocol); //ID, damage, count
+					break;
+				case Entity::DATA_TYPE_POS:
+					//TODO: change this implementation (use objects)
+					$this->putSignedBlockPosition(...$d[1]);
+					break;
+				case Entity::DATA_TYPE_LONG:
+					$this->putSignedVarLong($d[1]);
+					break;
+				//case Entity::DATA_TYPE_VECTOR3F:
+				//	//TODO: change this implementation (use objects)
+				//	$this->putVector3f(...$d[1]); //x, y, z
+			}
+		}
+	}
+
+
+	/**
+	 * Reads and returns an EntityUniqueID
+	 * @return int
+	 */
+	public function getEntityUniqueId() : int{
+		return $this->getSignedVarLong();
+	}
+
+	/**
+	 * Writes an EntityUniqueID
+	 * @param int $eid
+	 */
+	public function putEntityUniqueId(int $eid){
+		$this->putSignedVarLong($eid);
+	}
+
+	/**
+	 * Reads and returns an EntityRuntimeID
+	 * @return int
+	 */
+	public function getEntityRuntimeId() : int{
+		return $this->getVarLong();
+	}
+
+	/**
+	 * Writes an EntityUniqueID
+	 * @param int $eid
+	 */
+	public function putEntityRuntimeId(int $eid){
+		$this->putVarLong($eid);
+	}
+
+	/**
+	 * Reads an block position with unsigned Y coordinate.
+	 * @param int &$x
+	 * @param int &$y
+	 * @param int &$z
+	 */
+	public function getBlockPosition(&$x, &$y, &$z){
+		$x = $this->getSignedVarInt();
+		$y = $this->getVarInt();
+		$z = $this->getSignedVarInt();
+	}
+
+	/**
+	 * Writes a block position with unsigned Y coordinate.
+	 * @param int $x
+	 * @param int $y
+	 * @param int $z
+	 */
+	public function putBlockPosition(int $x, int $y, int $z){
+		$this->putSignedVarInt($x);
+		$this->putVarInt($y);
+		$this->putSignedVarInt($z);
+	}
+
+	/**
+	 * Reads a block position with a signed Y coordinate.
+	 * @param int &$x
+	 * @param int &$y
+	 * @param int &$z
+	 */
+	public function getSignedBlockPosition(&$x, &$y, &$z){
+		$x = $this->getSignedVarInt();
+		$y = $this->getSignedVarInt();
+		$z = $this->getSignedVarInt();
+	}
+
+	/**
+	 * Writes a block position with a signed Y coordinate.
+	 * @param int $x
+	 * @param int $y
+	 * @param int $z
+	 */
+	public function putSignedBlockPosition(int $x, int $y, int $z){
+		$this->putSignedVarInt($x);
+		$this->putSignedVarInt($y);
+		$this->putSignedVarInt($z);
+	}
+
+	/**
+	 * Reads a floating-point vector3 rounded to 4dp.
+	 * @param float $x
+	 * @param float $y
+	 * @param float $z
+	 */
+	public function getVector3f(&$x, &$y, &$z){
+		$x = $this->getRoundedLFloat(4);
+		$y = $this->getRoundedLFloat(4);
+		$z = $this->getRoundedLFloat(4);
+	}
+
+	/**
+	 * Writes a floating-point vector3
+	 * @param float $x
+	 * @param float $y
+	 * @param float $z
+	 */
+	public function putVector3f(float $x, float $y, float $z){
+		$this->putLFloat($x);
+		$this->putLFloat($y);
+		$this->putLFloat($z);
+	}
+
+	public function getByteRotation() : float{
+		return (float) ($this->getByte() * (360 / 256));
+	}
+
+	public function putByteRotation(float $rotation){
+		$this->putByte((int) ($rotation / (360 / 256)));
+	}
+
+	/**
+	 * Reads gamerules
+	 * TODO: implement this properly
+	 *
+	 * @return array
+	 */
+	public function getGameRules() : array{
+		$count = $this->getVarInt();
+		$rules = [];
+		for($i = 0; $i < $count; ++$i){
+			$name = $this->getString();
+			$type = $this->getVarInt();
+			$value = null;
+			switch($type){
+				case 1:
+					$value = $this->getBool();
+					break;
+				case 2:
+					$value = $this->getVarInt();
+					break;
+				case 3:
+					$value = $this->getLFloat();
+					break;
+			}
+
+			$rules[$name] = [$type, $value];
+		}
+
+		return $rules;
+	}
+
+	/**
+	 * Writes a gamerule array
+	 * TODO: implement this properly
+	 *
+	 * @param array $rules
+	 */
+	public function putGameRules(array $rules){
+		$this->putVarInt(count($rules));
+		foreach($rules as $name => $rule){
+			$this->putString($name);
+			$this->putVarInt($rule[0]);
+			switch($rule[0]){
+				case 1:
+					$this->putBool($rule[1]);
+					break;
+				case 2:
+					$this->putVarInt($rule[1]);
+					break;
+				case 3:
+					$this->putLFloat($rule[1]);
+					break;
+			}
+		}
+	}
+
 }

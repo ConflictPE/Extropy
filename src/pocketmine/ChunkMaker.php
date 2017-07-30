@@ -12,10 +12,10 @@ class ChunkMaker extends Worker {
 
 	protected $classLoader;
 	protected $shutdown;
-	
+
 	protected $externalQueue;
 	protected $internalQueue;
-	
+
 	const SUPPORTED_PROTOCOL = [Info::BASE_PROTOCOL, Info::PROTOCOL_105, Info::PROTOCOL_110, Info::PROTOCOL_120];
 
 	public function __construct(\ClassLoader $loader = null) {
@@ -26,7 +26,7 @@ class ChunkMaker extends Worker {
 		$this->start(PTHREADS_INHERIT_CONSTANTS);
 	}
 
-	
+
 	public function registerClassLoader(){
 		if(!interface_exists("ClassLoader", false)){
 			require(\pocketmine\PATH . "src/spl/ClassLoader.php");
@@ -57,6 +57,7 @@ class ChunkMaker extends Worker {
 	public function readMainToThreadPacket() {
 		return $this->internalQueue->shift();
 	}
+
 	public function readThreadToMainPacket() {
 		return $this->externalQueue->shift();
 	}
@@ -88,16 +89,16 @@ class ChunkMaker extends Worker {
 				if ($sections['empty'] == true) {
 					$chunkData .= str_repeat("\x00", 10240);
 				} else {
-					$chunkData .= $this->sortData($sections['blocks']) . 
-							$this->sortHalfData($sections['data']) . 
-							$this->sortHalfData($sections['skyLight']) . 
+					$chunkData .= $this->sortData($sections['blocks']) .
+							$this->sortHalfData($sections['data']) .
+							$this->sortHalfData($sections['skyLight']) .
 							$this->sortHalfData($sections['blockLight']);
 				}
 			}
 			$chunkData .= $data['chunk']['heightMap'] .
 					$data['chunk']['biomeColor'] .
 					Binary::writeLInt(0) .
-					$data['tiles'];		
+					$data['tiles'];
 		} else {
 			$offset = 8;
 			$blockIdArray = substr($data['chunk'], $offset, 32768);
@@ -110,10 +111,10 @@ class ChunkMaker extends Worker {
 			$offset += 16384;
 			$heightMapArray = substr($data['chunk'], $offset, 256);
 			$offset += 256;
-			$biomeColorArray = array_values(unpack("N*", substr($data['chunk'], $offset, 1024)));	
+			$biomeColorArray = array_values(unpack("N*", substr($data['chunk'], $offset, 1024)));
 
 			$countBlocksInChunk = 8;
-			$chunkData = chr($countBlocksInChunk);		
+			$chunkData = chr($countBlocksInChunk);
 
 			for ($blockIndex = 0; $blockIndex < $countBlocksInChunk; $blockIndex++) {
 				$chunkData .= chr(0);
@@ -132,17 +133,14 @@ class ChunkMaker extends Worker {
 				for ($i = 0; $i < 256; $i++) {
 					$chunkData .= substr($blockLightArray, $blockIndex * 8 + $i * 64, 8);
 				}
-
 			}
-
 
 			$chunkData .= $heightMapArray .
 					pack("n*", ...$biomeColorArray) .
 					Binary::writeLInt(0) .
-					$data['tiles'];		
+					$data['tiles'];
 		}
 
-	
 		$result = array();
 		$result['chunkX'] = $data['chunkX'];
 		$result['chunkZ'] = $data['chunkZ'];
@@ -153,7 +151,7 @@ class ChunkMaker extends Worker {
 			$pk->order = FullChunkDataPacket::ORDER_COLUMNS;
 			$pk->data = $chunkData;
 			$pk->encode($protocol);
-			if(!empty($pk->buffer)) {				
+			if(!empty($pk->buffer)) {
 				$str = Binary::writeVarInt(strlen($pk->buffer)) . $pk->buffer;
 				$ordered = zlib_encode($str, ZLIB_ENCODING_DEFLATE, 7);
 				$result[$protocol] = $ordered;
@@ -162,11 +160,10 @@ class ChunkMaker extends Worker {
 		$this->externalQueue[] = serialize($result);
 	}
 
-	public function shutdown(){		
+	public function shutdown(){
 		$this->shutdown = true;
 	}
 
-	
 	public function errorHandler($errno, $errstr, $errfile, $errline, $context, $trace = null){
 		$errorConversion = [
 			E_ERROR => "E_ERROR",
@@ -199,7 +196,6 @@ class ChunkMaker extends Worker {
 		return true;
 	}
 
-	
 	public function getTrace($start = 1, $trace = null){
 		if($trace === null){
 			if(function_exists("xdebug_get_function_stack")){
@@ -229,7 +225,7 @@ class ChunkMaker extends Worker {
 
 		return $messages;
 	}
-	
+
 	private function sortData($data){
 		$result = str_repeat("\x00", 4096);
 		if($data !== $result){
@@ -247,7 +243,7 @@ class ChunkMaker extends Worker {
 		}
 		return $result;
 	}
-	
+
 	private function sortHalfData($data) {
 		$result = str_repeat("\x00", 2048);
 		if ($data !== $result) {

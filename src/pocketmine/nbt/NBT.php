@@ -69,7 +69,7 @@ class NBT{
 	const TAG_IntArray = 11;
 
 	public $buffer;
-	private $offset;
+	public $offset;
 	public $endianness;
 	private $data;
 
@@ -107,25 +107,6 @@ class NBT{
 			default:
 				throw new \InvalidArgumentException("Unknown NBT tag type $type");
 		}
-	}
-
-	/**
-	 * @param Item $item
-	 * @param int  $slot
-	 *
-	 * @return Compound
-	 */
-	public static function putItemHelper(Item $item, $slot = null) {
-		return $item->nbtSerialize($slot); // Backwards compatibility
-	}
-
-	/**
-	 * @param Compound $tag
-	 *
-	 * @return Item
-	 */
-	public static function getItemHelper(Compound $tag) {
-		return Item::nbtDeserialize($tag);  // Backwards compatibility
 	}
 
 	public static function matchList(Enum $tag1, Enum $tag2) : bool{
@@ -314,7 +295,7 @@ class NBT{
 
 	public function getInt(bool $network = false) : int{
 		if($network === true){
-			return Binary::readSignedVarInt($this->buffer, $this->offset);
+			return Binary::readSignedVarInt($this);
 		}
 		return $this->endianness === self::BIG_ENDIAN ? Binary::readInt($this->get(4)) : Binary::readLInt($this->get(4));
 	}
@@ -352,13 +333,13 @@ class NBT{
 	}
 
 	public function getString(bool $network = false){
-		$len = $network ? Binary::readSignedVarInt($this->buffer, $this->offset) : $this->getShort();
+		$len = $network ? Binary::readVarInt($this) : $this->getShort();
 		return $this->get($len);
 	}
 
 	public function putString($v, bool $network = false){
 		if($network === true){
-			$this->put(Binary::writeSignedVarInt(strlen($v)));
+			$this->put(Binary::writeVarInt(strlen($v)));
 		}else{
 			$this->putShort(strlen($v));
 		}
@@ -438,22 +419,6 @@ class NBT{
 	 */
 	public function setData($data){
 		$this->data = $data;
-	}
-
-	public static function parseJSON($data, &$offset = 0){
-		$len = strlen($data);
-		for(; $offset < $len; ++$offset){
-			$c = $data{$offset};
-			if($c === "{"){
-				++$offset;
-				$data = self::parseCompound($data, $offset);
-				return new Compound("", $data);
-			}elseif($c !== " " and $c !== "\r" and $c !== "\n" and $c !== "\t"){
-				throw new \Exception("Syntax error: unexpected '$c' at offset $offset");
-			}
-		}
-
-		return null;
 	}
 
 }

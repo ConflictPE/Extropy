@@ -824,7 +824,6 @@ class Level implements ChunkManager, Metadatable{
 	 * @return bool
 	 */
 	public function save($force = false){
-
 		if($this->getAutoSave() === false and $force === false){
 			return false;
 		}
