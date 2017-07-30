@@ -79,23 +79,23 @@ class McRegion extends BaseLevelProvider{
 		}
 		//TODO, add extra details
 		$levelData = new Compound("Data", [
-			"hardcore" => new ByteTag("hardcore", 0),
-			"initialized" => new ByteTag("initialized", 1),
-			"GameType" => new IntTag("GameType", 0),
-			"generatorVersion" => new IntTag("generatorVersion", 1), //2 in MCPE
-			"SpawnX" => new IntTag("SpawnX", 0),
-			"SpawnY" => new IntTag("SpawnY", 10),
-			"SpawnZ" => new IntTag("SpawnZ", 0),
-			"version" => new IntTag("version", 19133),
-			"DayTime" => new IntTag("DayTime", 0),
-			"LastPlayed" => new LongTag("LastPlayed", microtime(true) * 1000),
-			"RandomSeed" => new LongTag("RandomSeed", $seed),
-			"SizeOnDisk" => new LongTag("SizeOnDisk", 0),
-			"Time" => new LongTag("Time", 0),
-			"generatorName" => new StringTag("generatorName", "FLAT"),
-			"generatorOptions" => new StringTag("generatorOptions", isset($options["preset"]) ? $options["preset"] : ""),
-			"LevelName" => new StringTag("LevelName", $name),
-			"GameRules" => new Compound("GameRules", [])
+			new ByteTag("hardcore", 0),
+			new ByteTag("initialized", 1),
+			new IntTag("GameType", 0),
+			new IntTag("generatorVersion", 1), //2 in MCPE
+			new IntTag("SpawnX", 0),
+			new IntTag("SpawnY", 10),
+			new IntTag("SpawnZ", 0),
+			new IntTag("version", 19133),
+			new IntTag("DayTime", 0),
+			new LongTag("LastPlayed", microtime(true) * 1000),
+			new LongTag("RandomSeed", $seed),
+			new LongTag("SizeOnDisk", 0),
+			new LongTag("Time", 0),
+			new StringTag("generatorName", "FLAT"),
+			new StringTag("generatorOptions", isset($options["preset"]) ? $options["preset"] : ""),
+			new StringTag("LevelName", $name),
+			new Compound("GameRules", [])
 		]);
 		$nbt = new NBT(NBT::BIG_ENDIAN);
 		$nbt->setData(new Compound("", [
@@ -108,29 +108,29 @@ class McRegion extends BaseLevelProvider{
 	public static function getRegionIndex($chunkX, $chunkZ, &$x, &$z){
 		$x = $chunkX >> 5;
 		$z = $chunkZ >> 5;
-	}	
-	
-	public function requestChunkTask($x, $z){	
+	}
+
+	public function requestChunkTask($x, $z){
 		$chunk = $this->getChunk($x, $z, false);
 		if(!($chunk instanceof Chunk)){
 			throw new ChunkException("Invalid Chunk sent");
 		}
-		
+
 		$tiles = "";
-		$nbt = new NBT(NBT::LITTLE_ENDIAN);		
+		$nbt = new NBT(NBT::LITTLE_ENDIAN);
 		foreach($chunk->getTiles() as $tile){
 			if($tile instanceof Spawnable){
 				$nbt->setData($tile->getSpawnCompound());
 				$tiles .= $nbt->write();
 			}
 		}
-		
+
 		$data = array();
 		$data['chunkX'] = $x;
 		$data['chunkZ'] = $z;
 		$data['tiles'] = $tiles;
 		$data['chunk'] = $chunk->toFastBinary();
-		
+
 		$this->getLevel()->chunkMaker->pushMainToThreadPacket(serialize($data));
 		return null;
 	}
@@ -188,7 +188,7 @@ class McRegion extends BaseLevelProvider{
 			return false;
 		}
 	}
-	
+
 	public function getGenerator(){
 		return $this->levelData["generatorName"];
 	}
@@ -305,11 +305,11 @@ class McRegion extends BaseLevelProvider{
 		}
 		$this->level = null;
 	}
-	
+
 	public static function getMaxY() {
 		return 128;
 	}
-	
+
 	public static function getYMask() {
 		return 0x7f;
 	}

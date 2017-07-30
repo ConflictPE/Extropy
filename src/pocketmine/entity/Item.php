@@ -157,9 +157,9 @@ class Item extends Entity{
 	public function saveNBT(){
 		parent::saveNBT();
 		$this->namedtag->Item = new Compound("Item", [
-			"id" => new ShortTag("id", $this->item->getId()),
-			"Damage" => new ShortTag("Damage", $this->item->getDamage()),
-			"Count" => new ByteTag("Count", $this->item->getCount())
+			new ShortTag("id", $this->item->getId()),
+			new ShortTag("Damage", $this->item->getDamage()),
+			new ByteTag("Count", $this->item->getCount())
 		]);
 		$this->namedtag->Health = new ShortTag("Health", $this->getHealth());
 		$this->namedtag->Age = new ShortTag("Age", $this->age);

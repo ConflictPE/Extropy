@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
@@ -186,21 +186,21 @@ class Explosion{
 			if($block->getId() === Block::TNT){
 				$mot = (new Random())->nextSignedFloat() * M_PI * 2;
 				$tnt = Entity::createEntity("PrimedTNT", $this->level->getChunk($block->x >> 4, $block->z >> 4), new Compound("", [
-					"Pos" => new Enum("Pos", [
-						new DoubleTag("", $block->x + 0.5),
-						new DoubleTag("", $block->y),
-						new DoubleTag("", $block->z + 0.5)
+					new Enum("Pos", [
+						new DoubleTag(0, $block->x + 0.5),
+						new DoubleTag(1, $block->y),
+						new DoubleTag(2, $block->z + 0.5)
 					]),
-					"Motion" => new Enum("Motion", [
-						new DoubleTag("", -sin($mot) * 0.02),
-						new DoubleTag("", 0.2),
-						new DoubleTag("", -cos($mot) * 0.02)
+					new Enum("Motion", [
+						new DoubleTag(0, -sin($mot) * 0.02),
+						new DoubleTag(1, 0.2),
+						new DoubleTag(2, -cos($mot) * 0.02)
 					]),
-					"Rotation" => new Enum("Rotation", [
-						new FloatTag("", 0),
-						new FloatTag("", 0)
+					new Enum("Rotation", [
+						new FloatTag(0, 0),
+						new FloatTag(1, 0)
 					]),
-					"Fuse" => new ByteTag("Fuse", mt_rand(10, 30))
+					new ByteTag("Fuse", mt_rand(10, 30))
 				]));
 				$tnt->spawnToAll();
 			}elseif(mt_rand(0, 100) < $yield){
@@ -217,8 +217,8 @@ class Explosion{
 		$pk->z = $this->source->z;
 		$pk->radius = $this->size;
 		$pk->records = $send;
-		Server::broadcastPacket($this->level->getUsingChunk($source->x >> 4, $source->z >> 4), $pk);		
-		$this->level->addParticle(new HugeExplodeParticle(new Vector3($this->source->x,  $this->source->y, $this->source->z)));	
+		Server::broadcastPacket($this->level->getUsingChunk($source->x >> 4, $source->z >> 4), $pk);
+		$this->level->addParticle(new HugeExplodeParticle(new Vector3($this->source->x,  $this->source->y, $this->source->z)));
 		$pk1 = new LevelSoundEventPacket();
 		$pk1->eventId = 45;
 		$pk1->x = $this->source->x;
@@ -227,7 +227,7 @@ class Explosion{
 		$pk1->blockId = -1;
 		$pk1->entityType = 1;
 		Server::broadcastPacket($this->level->getUsingChunk($source->x >> 4, $source->z >> 4), $pk1);
-		
+
 		return true;
 	}
 }

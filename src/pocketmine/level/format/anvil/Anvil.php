@@ -74,32 +74,32 @@ class Anvil extends McRegion {
 		if(!($chunk instanceof Chunk)){
 			throw new ChunkException("Invalid Chunk sent");
 		}
-		
+
 		$tiles = "";
-		$nbt = new NBT(NBT::LITTLE_ENDIAN);		
+		$nbt = new NBT(NBT::LITTLE_ENDIAN);
 		foreach($chunk->getTiles() as $tile){
 			if($tile instanceof Spawnable){
 				$nbt->setData($tile->getSpawnCompound());
 				$tiles .= $nbt->write();
 			}
 		}
-		
+
 		$data = array();
 		$data['chunkX'] = $x;
 		$data['chunkZ'] = $z;
 		$data['tiles'] = $tiles;
 		$data['isAnvil'] = true;
 		$data['chunk'] = $this->getChunkData($chunk);
-		
+
 		$this->getLevel()->chunkMaker->pushMainToThreadPacket(serialize($data));
 		return null;
 	}
-	
+
 	private function getChunkData($chunk) {
 		$data = [
 			'sections' => [],
 			'heightMap' => pack("C*", ...$chunk->getHeightMapArray()),
-			'biomeColor' => pack("n*", ...$chunk->getBiomeColorArray())	
+			'biomeColor' => pack("n*", ...$chunk->getBiomeColorArray())
 		];
 		$sections = [];
 		foreach ($chunk->getSections() as $section) {
@@ -121,7 +121,7 @@ class Anvil extends McRegion {
 			}
 			if (isset($sections[$y])) {
 				$sortedSections[$y] = $sections[$y];
-				unset($sections[$y]);				
+				unset($sections[$y]);
 			} else {
 				$sortedSections[$y] = ['empty' => true];
 			}
@@ -129,7 +129,7 @@ class Anvil extends McRegion {
 		$data['sections'] = $sortedSections;
 		return $data;
 	}
-		
+
 	/**
 	 * @param $x
 	 * @param $z
@@ -172,11 +172,11 @@ class Anvil extends McRegion {
 
 	public static function createChunkSection($Y) {
 		return new ChunkSection(new Compound(null, [
-			"Y" => new ByteTag("Y", $Y),
-			"Blocks" => new ByteArray("Blocks", str_repeat("\x00", 4096)),
-			"Data" => new ByteArray("Data", str_repeat("\x00", 2048)),
-			"SkyLight" => new ByteArray("SkyLight", str_repeat("\xff", 2048)),
-			"BlockLight" => new ByteArray("BlockLight", str_repeat("\x00", 2048))
+			new ByteTag("Y", $Y),
+			new ByteArray("Blocks", str_repeat("\x00", 4096)),
+			new ByteArray("Data", str_repeat("\x00", 2048)),
+			new ByteArray("SkyLight", str_repeat("\xff", 2048)),
+			new ByteArray("BlockLight", str_repeat("\x00", 2048))
 		]));
 	}
 
@@ -197,11 +197,11 @@ class Anvil extends McRegion {
 
 		return true;
 	}
-	
+
 	public static function getMaxY() {
 		return 256;
 	}
-	
+
 	public static function getYMask() {
 		return 0xff;
 	}

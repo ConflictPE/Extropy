@@ -2091,20 +2091,20 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					}
 
 					$nbt = new Compound("", [
-						"Pos" => new Enum("Pos", [
-							new DoubleTag("", $this->x),
-							new DoubleTag("", $this->y + $this->getEyeHeight()),
-							new DoubleTag("", $this->z),
+						new Enum("Pos", [
+							new DoubleTag(0, $this->x),
+							new DoubleTag(1, $this->y + $this->getEyeHeight()),
+							new DoubleTag(2, $this->z),
 						]),
-						"Motion" => new Enum("Motion", [
+						new Enum("Motion", [
 							//TODO: remove this because of a broken client
-							new DoubleTag("", -sin($this->yaw / 180 * M_PI) * cos($this->pitch / 180 * M_PI)),
-							new DoubleTag("", -sin($this->pitch / 180 * M_PI)),
-							new DoubleTag("", cos($this->yaw / 180 * M_PI) * cos($this->pitch / 180 * M_PI)),
+							new DoubleTag(0, -sin($this->yaw / 180 * M_PI) * cos($this->pitch / 180 * M_PI)),
+							new DoubleTag(1, -sin($this->pitch / 180 * M_PI)),
+							new DoubleTag(2, cos($this->yaw / 180 * M_PI) * cos($this->pitch / 180 * M_PI)),
 						]),
-						"Rotation" => new Enum("Rotation", [
-							new FloatTag("", $this->yaw),
-							new FloatTag("", $this->pitch),
+						new Enum("Rotation", [
+							new FloatTag(0, $this->yaw),
+							new FloatTag(1, $this->pitch),
 						]),
 					]);
 
@@ -4440,19 +4440,19 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					$yawRad = $this->yaw / 180 * M_PI;
 					$pitchRad = $this->pitch / 180 * M_PI;
 					$nbt = new Compound("", [
-						"Pos" => new Enum("Pos", [
-							new DoubleTag("", $this->x),
-							new DoubleTag("", $this->y + $this->getEyeHeight()),
-							new DoubleTag("", $this->z)
+						new Enum("Pos", [
+							new DoubleTag(0, $this->x),
+							new DoubleTag(1, $this->y + $this->getEyeHeight()),
+							new DoubleTag(2, $this->z)
 						]),
-						"Motion" => new Enum("Motion", [
-							new DoubleTag("", -sin($yawRad) * cos($pitchRad)),
-							new DoubleTag("", -sin($pitchRad)),
-							new DoubleTag("", cos($yawRad) * cos($pitchRad))
+						new Enum("Motion", [
+							new DoubleTag(0, -sin($yawRad) * cos($pitchRad)),
+							new DoubleTag(1, -sin($pitchRad)),
+							new DoubleTag(2, cos($yawRad) * cos($pitchRad))
 						]),
-						"Rotation" => new Enum("Rotation", [
-							new FloatTag("", $this->yaw),
-							new FloatTag("", $this->pitch)
+						new Enum("Rotation", [
+							new FloatTag(0, $this->yaw),
+							new FloatTag(1, $this->pitch)
 						]),
 					]);
 
@@ -4761,21 +4761,21 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$yawRad = $this->yaw / 180 * M_PI;
 			$pitchRad = $this->pitch / 180 * M_PI;
 			$nbt = new Compound("", [
-				"Pos" => new Enum("Pos", [
-					new DoubleTag("", $this->x),
-					new DoubleTag("", $this->y + $this->getEyeHeight()),
-					new DoubleTag("", $this->z)
+				new Enum("Pos", [
+					new DoubleTag(0, $this->x),
+					new DoubleTag(1, $this->y + $this->getEyeHeight()),
+					new DoubleTag(2, $this->z)
 						]),
-				"Motion" => new Enum("Motion", [
-					new DoubleTag("", -sin($yawRad) * cos($pitchRad)),
-					new DoubleTag("", -sin($pitchRad)),
-					new DoubleTag("", cos($yawRad) * cos($pitchRad))
+				new Enum("Motion", [
+					new DoubleTag(0, -sin($yawRad) * cos($pitchRad)),
+					new DoubleTag(1, -sin($pitchRad)),
+					new DoubleTag(2, cos($yawRad) * cos($pitchRad))
 						]),
-				"Rotation" => new Enum("Rotation", [
-					new FloatTag("", $this->yaw),
-					new FloatTag("", $this->pitch)
+				new Enum("Rotation", [
+					new FloatTag(0, $this->yaw),
+					new FloatTag(1, $this->pitch)
 						]),
-				"Fire" => new ShortTag("Fire", $this->isOnFire() ? 45 * 60 : 0)
+				new ShortTag("Fire", $this->isOnFire() ? 45 * 60 : 0)
 			]);
 
 			$diff = ($this->server->getTick() - $this->startAction);

@@ -33,11 +33,11 @@ abstract class BaseEntity extends Creature{
 	private $friendly = false;
 	private $wallcheck = true;
 	protected $sprintTime = 0;
-	
+
 	protected $speed = 1;
-	
+
 	private static $closeMonsterOnDay = true;
-	
+
 	public static function setCloseMonsterOnDay($val) {
 		self::$closeMonsterOnDay = $val;
 	}
@@ -190,7 +190,7 @@ abstract class BaseEntity extends Creature{
 		if($this->moveTime > 0){
 			$this->moveTime -= $tickDiff;
 		}
-		
+
 		 if($this->sprintTime > 0){
 			$this->sprintTime -= $tickDiff;
 		}
@@ -198,7 +198,7 @@ abstract class BaseEntity extends Creature{
 		if($this->attackTime > 0){
 			$this->attackTime -= $tickDiff;
 		}
-		
+
 		if (self::$closeMonsterOnDay) {
 			$time =  $this->level->getTime() % 30000;
 			$isNight = $time > 16000 && $time < 29000;
@@ -237,8 +237,8 @@ abstract class BaseEntity extends Creature{
 	public function targetOption(Creature $creature, float $distance){
 		return $this instanceof Monster && (!($creature instanceof Player) || ($creature->isSurvival() && $creature->spawned)) && $creature->isAlive() && !$creature->closed && $distance <= 81;
 	}
-	
-	
+
+
 	 public static function create($type, Position $source, ...$args){
 		$chunk = $source->getLevel()->getChunk($source->x >> 4, $source->z >> 4, true);
 		if(!$chunk->isGenerated()){
@@ -249,24 +249,24 @@ abstract class BaseEntity extends Creature{
 		}
 
 		$nbt = new Compound("", [
-			"Pos" => new Enum("Pos", [
-				new DoubleTag("", $source->x),
-				new DoubleTag("", $source->y),
-				new DoubleTag("", $source->z)
+			new Enum("Pos", [
+				new DoubleTag(0, $source->x),
+				new DoubleTag(1, $source->y),
+				new DoubleTag(2, $source->z)
 			]),
-			"Motion" => new Enum("Motion", [
-				new DoubleTag("", 0),
-				new DoubleTag("", 0),
-				new DoubleTag("", 0)
+			new Enum("Motion", [
+				new DoubleTag(0, 0),
+				new DoubleTag(1, 0),
+				new DoubleTag(2, 0)
 			]),
-			"Rotation" => new Enum("Rotation", [
-				new FloatTag("", $source instanceof Location ? $source->yaw : 0),
-				new FloatTag("", $source instanceof Location ? $source->pitch : 0)
+			new Enum("Rotation", [
+				new FloatTag(0, $source instanceof Location ? $source->yaw : 0),
+				new FloatTag(1, $source instanceof Location ? $source->pitch : 0)
 			]),
 		]);
 		return Entity::createEntity($type, $chunk, $nbt, ...$args);
 	}
-	  
-  
+
+
 
 }

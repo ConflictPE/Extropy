@@ -54,6 +54,11 @@ class Enum extends NamedTag implements \ArrayAccess, \Countable{
 		if(is_array($value)){
 			foreach($value as $name => $tag){
 				if($tag instanceof NamedTag){
+					if($tag->getName() !== "" and $name === "") {
+						$name = $tag->getName();
+					} elseif($tag->getName() === "" and $name === "") {
+						throw new \InvalidKeyException("Enum members cannot have an empty name!");
+					}
 					$this->{$name} = $tag;
 				}else{
 					throw new \TypeError("Enum members must be NamedTags, got " . gettype($tag) . " in given array");

@@ -44,6 +44,11 @@ class Compound extends NamedTag implements \ArrayAccess{
 		if(is_array($value)){
 			foreach($value as $name => $tag){
 				if($tag instanceof NamedTag){
+					if($tag->getName() === "" and $name !== "") {
+						$tag->setName($name);
+					} elseif($tag->getName() === "" and $name === "") {
+						throw new \InvalidKeyException("Compound members cannot have an empty name!");
+					}
 					$this->{$tag->getName()} = $tag;
 				}else{
 					throw new \TypeError("Compound members must be NamedTags, got " . gettype($tag) . " in given array");

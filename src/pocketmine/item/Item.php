@@ -1624,8 +1624,8 @@ class Item{
 			}
 			if($entry["id"] === $ench->getId()){
 				$tag->ench->{$k} = new Compound("", [
-					"id" => new ShortTag("id", $ench->getId()),
-					"lvl" => new ShortTag("lvl", $ench->getLevel())
+					new ShortTag("id", $ench->getId()),
+					new ShortTag("lvl", $ench->getLevel())
 				]);
 				$found = true;
 				break;

@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
@@ -50,19 +50,19 @@ class SpawnEgg extends Item{
 		}
 
 		$nbt = new Compound("", [
-			"Pos" => new Enum("Pos", [
-				new DoubleTag("", $block->getX() + 0.5),
-				new DoubleTag("", $block->getY()),
-				new DoubleTag("", $block->getZ() + 0.5)
+			new Enum("Pos", [
+				new DoubleTag(0, $block->getX() + 0.5),
+				new DoubleTag(1, $block->getY()),
+				new DoubleTag(2, $block->getZ() + 0.5)
 			]),
-			"Motion" => new Enum("Motion", [
-				new DoubleTag("", 0),
-				new DoubleTag("", 0),
-				new DoubleTag("", 0)
+			new Enum("Motion", [
+				new DoubleTag(0, 0),
+				new DoubleTag(1, 0),
+				new DoubleTag(2, 0)
 			]),
-			"Rotation" => new Enum("Rotation", [
-				new FloatTag("", lcg_value() * 360),
-				new FloatTag("", 0)
+			new Enum("Rotation", [
+				new FloatTag(0, lcg_value() * 360),
+				new FloatTag(1, 0)
 			]),
 		]);
 

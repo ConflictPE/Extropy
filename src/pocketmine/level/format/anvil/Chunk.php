@@ -40,7 +40,7 @@ class Chunk extends BaseChunk {
 
 	/** @var Compound */
 	protected $nbt;
-	
+
 	const SECTION_COUNT = 16;
 
 	public function __construct($level, Compound $nbt = null) {
@@ -213,7 +213,7 @@ class Chunk extends BaseChunk {
 			return null;
 		}
 	}
-	
+
 	public function toFastBinary() {
 		$nbt = clone $this->getNBT();
 
@@ -227,11 +227,11 @@ class Chunk extends BaseChunk {
 				continue;
 			}
 			$nbt->Sections[$section->getY()] = new Compound(null, [
-				"Y" => new ByteTag("Y", $section->getY()),
-				"Blocks" => new ByteArray("Blocks", $section->getIdArray()),
-				"Data" => new ByteArray("Data", $section->getDataArray()),
-				"BlockLight" => new ByteArray("BlockLight", $section->getLightArray()),
-				"SkyLight" => new ByteArray("SkyLight", $section->getSkyLightArray())
+				new ByteTag("Y", $section->getY()),
+				new ByteArray("Blocks", $section->getIdArray()),
+				new ByteArray("Data", $section->getDataArray()),
+				new ByteArray("BlockLight", $section->getLightArray()),
+				new ByteArray("SkyLight", $section->getSkyLightArray())
 			]);
 		}
 
@@ -276,11 +276,11 @@ class Chunk extends BaseChunk {
 				continue;
 			}
 			$nbt->Sections[$section->getY()] = new Compound(null, [
-				"Y" => new ByteTag("Y", $section->getY()),
-				"Blocks" => new ByteArray("Blocks", $section->getIdArray()),
-				"Data" => new ByteArray("Data", $section->getDataArray()),
-				"BlockLight" => new ByteArray("BlockLight", $section->getLightArray()),
-				"SkyLight" => new ByteArray("SkyLight", $section->getSkyLightArray())
+				new ByteTag("Y", $section->getY()),
+				new ByteArray("Blocks", $section->getIdArray()),
+				new ByteArray("Data", $section->getDataArray()),
+				new ByteArray("BlockLight", $section->getLightArray()),
+				new ByteArray("SkyLight", $section->getSkyLightArray())
 			]);
 		}
 

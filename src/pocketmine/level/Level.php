@@ -1319,24 +1319,24 @@ class Level implements ChunkManager, Metadatable{
 				return;
 			}
 			$itemEntity = Entity::createEntity("Item", $chunk, new Compound("", [
-				"Pos" => new Enum("Pos", [
-					new DoubleTag("", $source->getX()),
-					new DoubleTag("", $source->getY()),
-					new DoubleTag("", $source->getZ())
+				new Enum("Pos", [
+					new DoubleTag(0, $source->getX()),
+					new DoubleTag(1, $source->getY()),
+					new DoubleTag(2, $source->getZ())
 				]),
 
-				"Motion" => new Enum("Motion", [
-					new DoubleTag("", $motion->x),
-					new DoubleTag("", $motion->y),
-					new DoubleTag("", $motion->z)
+				new Enum("Motion", [
+					new DoubleTag(0, $motion->x),
+					new DoubleTag(1, $motion->y),
+					new DoubleTag(2, $motion->z)
 				]),
-				"Rotation" => new Enum("Rotation", [
-					new FloatTag("", lcg_value() * 360),
-					new FloatTag("", 0)
+				new Enum("Rotation", [
+					new FloatTag(0, lcg_value() * 360),
+					new FloatTag(1, 0)
 				]),
-				"Health" => new ShortTag("Health", 5),
-				"Item" => $item->nbtSerialize(),
-				"PickupDelay" => new ShortTag("PickupDelay", $delay)
+				new ShortTag("Health", 5),
+				$item->nbtSerialize(),
+				new ShortTag("PickupDelay", $delay)
 			]));
 
 			$itemEntity->spawnToAll();
@@ -1579,14 +1579,14 @@ class Level implements ChunkManager, Metadatable{
 
 		if($hand->getId() === Item::SIGN_POST or $hand->getId() === Item::WALL_SIGN){
 			$tile = Tile::createTile("Sign", $this->getChunk($block->x >> 4, $block->z >> 4), new Compound(false, [
-				"id" => new StringTag("id", Tile::SIGN),
-				"x" => new IntTag("x", $block->x),
-				"y" => new IntTag("y", $block->y),
-				"z" => new IntTag("z", $block->z),
-				"Text1" => new StringTag("Text1", ""),
-				"Text2" => new StringTag("Text2", ""),
-				"Text3" => new StringTag("Text3", ""),
-				"Text4" => new StringTag("Text4", "")
+				new StringTag("id", Tile::SIGN),
+				new IntTag("x", $block->x),
+				new IntTag("y", $block->y),
+				new IntTag("z", $block->z),
+				new StringTag("Text1", ""),
+				new StringTag("Text2", ""),
+				new StringTag("Text3", ""),
+				new StringTag("Text4", "")
 			]));
 			if($player instanceof Player){
 				$tile->namedtag->Creator = new StringTag("Creator", $player->getName());
