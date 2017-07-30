@@ -274,7 +274,6 @@ abstract class BaseInventory implements Inventory{
 						if($slot->getCount() <= 0){
 							unset($itemSlots[$index]);
 						}
-						$this->onSlotChange($index, $item);
 					}
 				}
 			}
