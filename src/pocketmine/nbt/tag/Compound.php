@@ -35,6 +35,25 @@ class Compound extends NamedTag implements \ArrayAccess{
 		parent::__construct($name, $value);
 	}
 
+	/**
+	 * @param NamedTag[] $value
+	 *
+	 * @throws \TypeError
+	 */
+	public function setValue($value){
+		if(is_array($value)){
+			foreach($value as $name => $tag){
+				if($tag instanceof NamedTag){
+					$this->{$tag->getName()} = $tag;
+				}else{
+					throw new \TypeError("Compound members must be NamedTags, got " . gettype($tag) . " in given array");
+				}
+			}
+		}else{
+			throw new \TypeError("Compound value must be NamedTag[], " . gettype($value) . " given");
+		}
+	}
+
 	public function getCount(){
 		$count = 0;
 		foreach($this as $tag){

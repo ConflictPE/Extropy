@@ -45,6 +45,25 @@ class Enum extends NamedTag implements \ArrayAccess, \Countable{
 		return $value;
 	}
 
+	/**
+	 * @param NamedTag[] $value
+	 *
+	 * @throws \TypeError
+	 */
+	public function setValue($value){
+		if(is_array($value)){
+			foreach($value as $name => $tag){
+				if($tag instanceof NamedTag){
+					$this->{$name} = $tag;
+				}else{
+					throw new \TypeError("Enum members must be NamedTags, got " . gettype($tag) . " in given array");
+				}
+			}
+		}else{
+			throw new \TypeError("Enum value must be NamedTag[], " . gettype($value) . " given");
+		}
+	}
+
 	public function getCount(){
 		$count = 0;
 		foreach($this as $tag){

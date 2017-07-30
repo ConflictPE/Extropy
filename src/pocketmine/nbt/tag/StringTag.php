@@ -46,4 +46,17 @@ class StringTag extends NamedTag{
 			$nbt->putString($this->value);
 		}
 	}
+
+	/**
+	 * @param string $value
+	 *
+	 * @throws \TypeError
+	 */
+	public function setValue($value){
+		if(!is_string($value)){
+			throw new \TypeError("ShortTag value must be of type int, " . gettype($value) . " given");
+		}
+		parent::setValue($value);
+	}
+
 }
