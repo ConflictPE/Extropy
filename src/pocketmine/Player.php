@@ -174,6 +174,7 @@ use pocketmine\network\protocol\LevelEventPacket;
 
 use pocketmine\inventory\win10\Win10InvLogic;
 use pocketmine\network\protocol\v120\ShowModalFormPacket;
+use pocketmine\network\protocol\v120\ServerSettingsResponsetPacket;
 
 /**
  * Main class that handles networking, recovery, and packet sending to the server part
@@ -1204,7 +1205,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 		$flags |= 0x02;
 		$flags |= 0x04;
-		
+
 		$pk = new AdventureSettingsPacket();
 		$pk->flags = $flags;
 		$pk->userId = $this->getId();
@@ -2868,6 +2869,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			/** @minProtocol 120 */
 			case 'MODAL_FORM_RESPONSE_PACKET':
 				$this->checkModal($packet->formId, json_decode($packet->data, true));
+				break;
+			case 'SERVER_SETTINGS_REQUEST_PACKET':
+				$this->sendServerSettings();
 				break;
 			default:
 				break;
@@ -4815,6 +4819,19 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$this->activeModalWindows[$formId]->handle($data, $this);
 			unset($this->activeModalWindows[$formId]);
 		}
+	}
+
+	protected function sendServerSettingsModal($modalWindow) {
+		if ($this->protocol >= Info::PROTOCOL_120) {
+			$pk = new ServerSettingsResponsetPacket();
+			$pk->formId = $this->lastModalId++;
+			$pk->data = $modalWindow->toJSON();
+			$this->dataPacket($pk);
+			$this->activeModalWindows[$pk->formId] = $modalWindow;
+		}
+	}
+
+	protected function sendServerSettings() {
 	}
 
 }
