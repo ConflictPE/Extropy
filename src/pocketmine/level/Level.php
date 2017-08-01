@@ -1948,10 +1948,21 @@ class Level implements ChunkManager, Metadatable{
 		}
 	}
 
-	public function setChunk($x, $z, FullChunk $chunk, $unload = true){
+	public function setChunk($x, $z, FullChunk $chunk, $unload = true, $copyEntities = true, $send = false){
 		$index = self::chunkHash($x, $z);
+		$players = $this->getUsingChunk($x, $z);
+		if($copyEntities and ($old = $this->getChunk($z, $z)) instanceof FullChunk) {
+			foreach($old->getEntities() as $e) {
+				$old->removeEntity($e);
+				$chunk->addEntity($e);
+			}
+			foreach($old->getTiles() as $t) {
+				$old->removeTile($t);
+				$chunk->addTile($t);
+			}
+		}
 		if($unload){
-			foreach($this->getUsingChunk($x, $z) as $player){
+			foreach($players as $player){
 				$player->unloadChunk($x, $z);
 			}
 			$this->provider->setChunk($x, $z, $chunk);
@@ -1964,6 +1975,11 @@ class Level implements ChunkManager, Metadatable{
 			Cache::remove("world:" . $this->getId() . ":" . self::chunkHash($x, $z));
 		}
 		$chunk->setChanged();
+		if($send) {
+			foreach($players as $player) {
+				$this->requestChunk($x, $z, $player);
+			}
+		}
 	}
 
 	/**
