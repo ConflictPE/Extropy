@@ -2420,19 +2420,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				}
 //				$this->craftingType = self::CRAFTING_DEFAULT;
 				if($packet->type === TextPacket::TYPE_CHAT){
-					if ($this->getPlayerProtocol() == ProtocolInfo::PROTOCOL_110 && $packet->message{0} == '#') { //hack for beta version
-						$commandLine = substr($packet->message, 1);
-						$ev = new PlayerCommandPreprocessEvent($this, $commandLine);
-						$this->server->getPluginManager()->callEvent($ev);
-						if ($ev->isCancelled()) {
-							break;
-						}
-						$this->server->dispatchCommand($this, $commandLine);
-						$ev = new PlayerCommandPostprocessEvent($this, $commandLine);
-						$this->server->getPluginManager()->callEvent($ev);
-						break;
-					}
-
 					$packet->message = TextFormat::clean($packet->message, $this->removeFormat);
 					foreach(explode("\n", $packet->message) as $message){
 						if(trim($message) != "" and $this->messageCounter-- > 0){
@@ -3686,7 +3673,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$pk->generator = 1; //0 old, 1 infinite, 2 flat
 		$pk->gamemode = $this->gamemode & 0x01;
 		$pk->eid = $this->id;
-		$pk->playerHaveLanguageCode = ($this->languageCode !== 'unknown');
 		$pk->currentTick = $this->server->getTick();
 		$this->dataPacket($pk);
 
