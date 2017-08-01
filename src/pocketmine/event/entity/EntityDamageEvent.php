@@ -114,45 +114,49 @@ class EntityDamageEvent extends EntityEvent implements Cancellable{
 
 	private function calculateArmorEnchantmentModifiers(Player $entity) {
 		$enchantments = $entity->getProtectionEnchantments();
-		$epf = 0;
-		$fireTickReduction = [];
-		$blastKnockbackReduction = [];
-		/** @var Enchantment $enchant */
-		foreach($enchantments as $enchant) {
-			switch($enchant->getId()) {
-				case Enchantment::TYPE_ARMOR_PROTECTION:
-					if(!in_array($this->cause, [self::CAUSE_VOID, self::CAUSE_SUICIDE])) {
-						$epf += $enchant->getLevel();
-					}
-					break;
-				case Enchantment::TYPE_ARMOR_FIRE_PROTECTION:
-					if(in_array($this->cause, [self::CAUSE_FIRE, self::CAUSE_FIRE_TICK, self::CAUSE_LAVA])) {
-						$epf += $enchant->getLevel() * 2;
-						if($entity->isOnFire()) {
-							$fireTickReduction[] = ($entity->fireTicks * (15 * $enchant->getLevel())) / 100;
+		if(!empty($enchantments)) {
+			$epf = 0;
+			$fireTickReduction = [];
+			$blastKnockbackReduction = [];
+			/** @var Enchantment $enchant */
+			foreach($enchantments as $enchant) {
+				switch($enchant->getId()) {
+					case Enchantment::TYPE_ARMOR_PROTECTION:
+						if(!in_array($this->cause, [self::CAUSE_VOID, self::CAUSE_SUICIDE])) {
+							$epf += $enchant->getLevel();
 						}
-					}
-					break;
-				case Enchantment::TYPE_ARMOR_FALL_PROTECTION:
-					$epf += $enchant->getLevel() * 3;
-					break;
-				case Enchantment::TYPE_ARMOR_EXPLOSION_PROTECTION:
-					$epf += $enchant->getLevel() * 2;
-					if($this instanceof EntityDamageByEntityEvent) {
-						$blastKnockbackReduction[] = ($this->getKnockBack() * (15 * $enchant->getLevel())) / 100;
-					}
-					break;
-				case Enchantment::TYPE_ARMOR_PROJECTILE_PROTECTION:
-					$epf += $enchant->getLevel() * 2;
-					break;
+						break;
+					case Enchantment::TYPE_ARMOR_FIRE_PROTECTION:
+						if(in_array($this->cause, [self::CAUSE_FIRE, self::CAUSE_FIRE_TICK, self::CAUSE_LAVA])) {
+							$epf += $enchant->getLevel() * 2;
+							if($entity->isOnFire()) {
+								$fireTickReduction[] = ($entity->fireTicks * (15 * $enchant->getLevel())) / 100;
+							}
+						}
+						break;
+					case Enchantment::TYPE_ARMOR_FALL_PROTECTION:
+						$epf += $enchant->getLevel() * 3;
+						break;
+					case Enchantment::TYPE_ARMOR_EXPLOSION_PROTECTION:
+						$epf += $enchant->getLevel() * 2;
+						if($this instanceof EntityDamageByEntityEvent) {
+							$blastKnockbackReduction[] = ($this->getKnockBack() * (15 * $enchant->getLevel())) / 100;
+						}
+						break;
+					case Enchantment::TYPE_ARMOR_PROJECTILE_PROTECTION:
+						$epf += $enchant->getLevel() * 2;
+						break;
+				}
 			}
-		}
-		$this->setDamage($this->getDamage() * (1 - ($epf > 20 ? 20 : $epf) / 25), self::MODIFIER_ARMOR_ENCHANTMENTS);
-		if(!empty($fireTickReduction)) { // make sure there is at least one enchantment that reduced the fire ticks
-			$this->fireTickReduction -= max($fireTickReduction); // get the highest reduction and store it
-		}
-		if(!empty($blastKnockbackReduction) and $this instanceof EntityDamageByEntityEvent) { // make sure there was at least on enchantment that reduced the knockback
-			$this->blastKnockbackReduction = $this->getKnockBack() - max($fireTickReduction); // get the highest reduction and store it
+			if($epf > 0) {
+				$this->setDamage(-floor($this->getFinalDamage() * 1 - (min($epf, 20) / 25)), self::MODIFIER_ARMOR_ENCHANTMENTS);
+			}
+			if(!empty($fireTickReduction)) { // make sure there is at least one enchantment that reduced the fire ticks
+				$this->fireTickReduction -= max($fireTickReduction); // get the highest reduction and store it
+			}
+			if(!empty($blastKnockbackReduction) and $this instanceof EntityDamageByEntityEvent) { // make sure there was at least on enchantment that reduced the knockback
+				$this->blastKnockbackReduction = $this->getKnockBack() - max($fireTickReduction); // get the highest reduction and store it
+			}
 		}
 	}
 

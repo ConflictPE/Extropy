@@ -2387,7 +2387,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					//Timings::$timerDropItemPacket->stopTiming();
 					break;
 				}
-				
+
 				$remainingCount = $item->getCount() - $packet->item->getCount();
 				if ($remainingCount > 0) {
 					$item->setCount($remainingCount);
@@ -2395,7 +2395,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				} else {
 					$this->inventory->setItem($slot, Item::get(Item::AIR));
 				}
-				
+
 				$motion = $this->getDirectionVector()->multiply(0.4);
 				$this->level->dropItem($this->add(0, 1.3, 0), $packet->item, $motion, 40);
 				$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, false);
@@ -4209,7 +4209,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			EntityDamageEvent::MODIFIER_BASE => isset($damageTable[$item->getId()]) ? $damageTable[$item->getId()] : 1,
 		];
 
-		if($this->distance($target) > 3) {
+		if($this->distance($target) > 4) {
 			return;
 		} elseif ($target instanceof Player) {
 			$armorValues = [
@@ -4246,11 +4246,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 		$timeDiff = microtime(true) - $this->lastDamegeTime;
 		$this->lastDamegeTime = microtime(true);
-		foreach (self::$damegeTimeList as $time => $koef) {
+		foreach(self::$damegeTimeList as $time => $koef) {
 			if ($timeDiff <= $time) {
-				if ($koef == 0) {
-					return;
-				}
 				$damage[EntityDamageEvent::MODIFIER_BASE] *= $koef;
 				break;
 			}
