@@ -214,7 +214,7 @@ class Chunk extends BaseChunk {
 		}
 	}
 
-	public function toFastBinary() {
+	public function toFastBinary($network = true) {
 		$nbt = clone $this->getNBT();
 
 		$nbt->xPos = new IntTag("xPos", $this->x);
@@ -250,7 +250,7 @@ class Chunk extends BaseChunk {
 
 		$extraData = new BinaryStream();
 		$extraData->putInt(count($this->getBlockExtraDataArray()));
-		foreach ($this->getBlockExtraDataArray() as $key => $value) {
+		foreach($this->getBlockExtraDataArray() as $key => $value) {
 			$extraData->putInt($key);
 			$extraData->putShort($value);
 		}
@@ -260,7 +260,7 @@ class Chunk extends BaseChunk {
 		$writer = new NBT(NBT::BIG_ENDIAN);
 		$nbt->setName("Level");
 		$writer->setData(new Compound("", ["Level" => $nbt]));
-		return $writer->write(true);
+		return $writer->write($network);
 	}
 
 	public function toBinary() {
