@@ -1955,10 +1955,12 @@ class Level implements ChunkManager, Metadatable{
 			foreach($old->getEntities() as $e) {
 				$old->removeEntity($e);
 				$chunk->addEntity($e);
+				$e->chunk = $chunk;
 			}
 			foreach($old->getTiles() as $t) {
 				$old->removeTile($t);
 				$chunk->addTile($t);
+				$t->chunk = $t;
 			}
 		}
 		if($unload){
