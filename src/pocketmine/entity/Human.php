@@ -66,6 +66,7 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 	protected $skinName = 'Standard_Custom';
 	protected $skinGeometryName = "geometry.humanoid.custom";
 	protected $skinGeometryData = "";
+	protected $capeData = "";
 
 	public function getSkinData(){
 		return $this->skin;
@@ -81,6 +82,10 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 	
 	public function getSkinGeometryData(){
 		return $this->skinGeometryData;
+	}
+	
+	public function getCapeData(){
+		return $this->capeData;
 	}
 
 	/**
@@ -101,7 +106,7 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 	 * @param string $str
 	 * @param bool   $skinName
 	 */
-	public function setSkin($str, $skinName, $skinGeometryName = "", $skinGeometryData = ""){
+	public function setSkin($str, $skinName, $skinGeometryName = "", $skinGeometryData = "", $capeData = ""){
 		$this->skin = $str;
 		if (is_string($skinName)) {
 			$this->skinName = $skinName;
@@ -111,6 +116,9 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 		}
 		if (!empty($skinGeometryData)) {
 			$this->skinGeometryData = $skinGeometryData;
+		}
+		if (!empty($capeData)) {
+			$this->capeData = $capeData;
 		}
 	}
 
@@ -241,7 +249,7 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 			$this->hasSpawned[$player->getId()] = $player;
 
 			$xuid = ($this instanceof Player) ? $this->getXUID() : "";
-			$this->server->updatePlayerListData($this->getUniqueId(), $this->getId(), $this->getName(), $this->skinName, $this->skin, $this->skinGeometryName, $this->skinGeometryData, $xuid, [$player]);
+			$this->server->updatePlayerListData($this->getUniqueId(), $this->getId(), $this->getName(), $this->skinName, $this->skin, $this->skinGeometryName, $this->skinGeometryData, $this->capeData, $xuid, [$player]);
 
 			$pk = new AddPlayerPacket();
 			$pk->uuid = $this->getUniqueId();
