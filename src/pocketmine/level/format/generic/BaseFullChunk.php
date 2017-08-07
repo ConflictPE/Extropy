@@ -330,7 +330,6 @@ abstract class BaseFullChunk implements FullChunk{
 		foreach($this->getTiles() as $tile){
 			$tile->close();
 		}
-		$this->provider = null;
 		return true;
 	}
 
