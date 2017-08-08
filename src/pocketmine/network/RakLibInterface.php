@@ -64,7 +64,8 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 
 	public $count = 0;
 	public $maxcount = 31360;
-	public $name = "Steadfast server";
+
+	public $name = "";
 
 	public function setCount($count, $maxcount) {
 		$this->count = $count;
