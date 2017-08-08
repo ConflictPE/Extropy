@@ -118,6 +118,7 @@ use pocketmine\network\protocol\LevelEventPacket;
 use pocketmine\network\protocol\LevelSoundEventPacket;
 use pocketmine\network\protocol\MovePlayerPacket;
 use pocketmine\network\protocol\PlayerActionPacket;
+use pocketmine\network\protocol\PlayerListPacket;
 use pocketmine\network\protocol\PlayStatusPacket;
 use pocketmine\network\protocol\ResourcePackClientResponsePacket;
 use pocketmine\network\protocol\ResourcePacksInfoPacket;
@@ -2852,6 +2853,19 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$commandPostprocessEvent = new PlayerCommandPostprocessEvent($this, $commandLine);
 				$this->server->getPluginManager()->callEvent($commandPostprocessEvent);
 				break;
+
+			/** @minProtocol 120 */
+			case 'PLAYER_SKIN_PACKET':
+				// Send new skin to other players
+				$this->setSkin($packet->newSkinByteData, $packet->newSkinName, $packet->newSkinGeometryName, $packet->newSkinGeometryData, $packet->newCapeByteData);
+				// Send it to yourself (would like a cleaner solution) but the updatePlayerList method does not get sent to you
+				$pk = new PlayerListPacket();
+				$pk->clean();
+				$pk->entries[] = [$this->getUniqueId(), $this->getId(), $this->getName(), $packet->newSkinName, $packet->newSkinByteData, $packet->newCapeByteData, $packet->newSkinGeometryName, $packet->newSkinGeometryData, $this->getXUID()];
+				$pk->encode($this->getPlayerProtocol());
+				$this->dataPacket($packet);
+				break;
+
 			/** @minProtocol 120 */
 			case 'MODAL_FORM_RESPONSE_PACKET':
 				$this->checkModal($packet->formId, json_decode($packet->data, true));
