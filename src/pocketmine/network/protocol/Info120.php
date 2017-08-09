@@ -108,7 +108,7 @@ interface Info120 {
 	const AVAILABLE_COMMANDS_PACKET = 0x4c;
 	const COMMAND_REQUEST_PACKET = 0x4d;
 	const COMMAND_BLOCK_UPDATE_PACKET = 0x4e;
-	// 0x4f - теперь не используется. неуверен
+	const COMMAND_OUTPUT_PACKET = 0x4f;						// NEW
 	const UPDATE_TRADE_PACKET = 0x50;
 	const UPDATE_EQUIPMENT_PACKET = 0x51;
 	const RESOURCE_PACK_DATA_INFO_PACKET = 0x52;
