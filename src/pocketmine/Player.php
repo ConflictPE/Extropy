@@ -150,6 +150,9 @@ use pocketmine\tile\Sign;
 use pocketmine\tile\Spawnable;
 use pocketmine\tile\Tile;
 use pocketmine\utils\TextFormat;
+use pocketmine\network\protocol\v120\PlayerSkinPacket;
+use pocketmine\network\protocol\AddPlayerPacket;
+use pocketmine\network\protocol\RemoveEntityPacket;
 
 /**
  * Main class that handles networking, recovery, and packet sending to the server part
@@ -671,13 +674,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	 */
 	public function getNameTag(){
 		return $this->nameTag;
-	}
-
-	public function setSkin($str, $skinName, $skinGeometryName = "", $skinGeometryData = "", $capeData = ""){
-		parent::setSkin($str, $skinName, $skinGeometryName, $skinGeometryData, $capeData);
-		if($this->spawned === true){
-			$this->server->updatePlayerListData($this->getUniqueId(), $this->getId(), $this->getName(), $this->skinName, $this->skin, $this->skinGeometryName, $this->skinGeometryData, $this->capeData, $this->getXUID(), $this->getViewers());
-		}
 	}
 
 	/**
@@ -2858,14 +2854,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 			/** @minProtocol 120 */
 			case 'PLAYER_SKIN_PACKET':
-				// Send new skin to other players
-				$this->setSkin($packet->newSkinByteData, $packet->newSkinName, $packet->newSkinGeometryName, $packet->newSkinGeometryData, $packet->newCapeByteData);
-				// Send it to yourself (would like a cleaner solution) but the updatePlayerList method does not get sent to you
-				$pk = new PlayerListPacket();
-				$pk->clean();
-				$pk->entries[] = [$this->getUniqueId(), $this->getId(), $this->getName(), $packet->newSkinName, $packet->newSkinByteData, $packet->newCapeByteData, $packet->newSkinGeometryName, $packet->newSkinGeometryData, $this->getXUID()];
-				$pk->encode($this->getPlayerProtocol());
-				$this->dataPacket($packet);
+				$this->setSkin($packet->newSkinByteData, $packet->newSkinId, $packet->newSkinGeometryName, $packet->newSkinGeometryData, $packet->newCapeByteData);
+				// Send new skin to viewers and to self
+				$this->updatePlayerSkin($packet->oldSkinName, $packet->newSkinName);
 				break;
 
 			/** @minProtocol 120 */
@@ -2915,7 +2906,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			}
 		}
 	}
-	
+
 	public function sendChatMessage($senderName, $message) {
 		$pk = new TextPacket();
 		$pk->type = TextPacket::TYPE_CHAT;
@@ -4764,6 +4755,64 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	protected function sendServerSettings() {
+	}
+
+	public function updatePlayerSkin($oldSkinName, $newSkinName) {
+		$pk = new RemoveEntityPacket();
+		$pk->eid = $this->getId();
+
+		$pk2 = new PlayerListPacket();
+		$pk2->type = PlayerListPacket::TYPE_REMOVE;
+		$pk2->entries[] = [$this->getUniqueId()];
+
+		$pk3 = new PlayerListPacket();
+		$pk3->type = PlayerListPacket::TYPE_ADD;
+		$pk3->entries[] = [$this->getUniqueId(), $this->getId(), $this->getName(), $this->skinName, $this->skin, $this->capeData, $this->skinGeometryName, $this->skinGeometryData, $this->getXUID()];
+
+		$pk4 = new AddPlayerPacket();
+		$pk4->uuid = $this->getUniqueId();
+		$pk4->username = $this->getName();
+		$pk4->eid = $this->getId();
+		$pk4->x = $this->x;
+		$pk4->y = $this->y;
+		$pk4->z = $this->z;
+		$pk4->speedX = $this->motionX;
+		$pk4->speedY = $this->motionY;
+		$pk4->speedZ = $this->motionZ;
+		$pk4->yaw = $this->yaw;
+		$pk4->pitch = $this->pitch;
+		$pk4->metadata = $this->dataProperties;
+
+		$pk120 = new PlayerSkinPacket();
+		$pk120->uuid = $this->getUniqueId();
+		$pk120->newSkinId = $this->skinName;
+		$pk120->newSkinName = $newSkinName;
+		$pk120->oldSkinName = $oldSkinName;
+		$pk120->newSkinByteData = $this->skin;
+		$pk120->newCapeByteData = $this->capeData;
+		$pk120->newSkinGeometryName = $this->skinGeometryName;
+		$pk120->newSkinGeometryData = $this->skinGeometryData;
+
+		$viewers120 = [];
+		$oldViewers = [];
+		$recipients = $this->getViewers();
+		$recipients[] = $this;
+
+		foreach($recipients as $viewer) {
+			if($viewer->getPlayerProtocol() >= ProtocolInfo::PROTOCOL_120) {
+				$viewers120[] = $viewer;
+			} else {
+				$oldViewers[] = $viewer;
+			}
+		}
+
+		if(!empty($viewers120)) {
+			$this->server->batchPackets($viewers120, [$pk120]);
+		}
+
+		if(!empty($oldViewers)) {
+			$this->server->batchPackets($oldViewers, [$pk, $pk2, $pk3, $pk4]);
+		}
 	}
 
 }
