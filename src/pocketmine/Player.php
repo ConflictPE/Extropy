@@ -3700,16 +3700,10 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	public function transfer($address, $port = false) {
-		if($this->isAvailableTansferPacket()) {
-			$pk = new TransferPacket();
-			$pk->ip = $address;
-			$pk->port = ($port === false ? 19132 : $port);
-			$this->dataPacket($pk);
-		}
-	}
-
-	public function isAvailableTansferPacket() {
-		return ($this->protocol >= 101);
+		$pk = new TransferPacket();
+		$pk->ip = $address;
+		$pk->port = ($port === false ? 19132 : $port);
+		$this->dataPacket($pk);
 	}
 
 	public function sendSelfData() {
@@ -3718,6 +3712,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$pk->metadata = $this->dataProperties;
 		$this->dataPacket($pk);
 	}
+
 	/**
 	 * Create new transaction pair for transaction or add it to suitable one
 	 *
