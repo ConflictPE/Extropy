@@ -161,7 +161,7 @@ class Potion extends Item{
 		if($human instanceof Player && $human->isCreative() or $human->isSpectator()){
 			return;
 		}
-		$human->getInventory()->setItemInHand(Item::get(self::GLASS_BOTTLE));
+		$human->getInventory()->setItemInHand(Item::get(self::AIR));
 	}
 
 	public static function getEffectId(int $meta) : int{
