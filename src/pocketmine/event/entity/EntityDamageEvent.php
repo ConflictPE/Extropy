@@ -135,16 +135,22 @@ class EntityDamageEvent extends EntityEvent implements Cancellable{
 						}
 						break;
 					case Enchantment::TYPE_ARMOR_FALL_PROTECTION:
-						$epf += $enchant->getLevel() * 3;
+						if($this->cause === self::CAUSE_FALL) {
+							$epf += $enchant->getLevel() * 3;
+						}
 						break;
 					case Enchantment::TYPE_ARMOR_EXPLOSION_PROTECTION:
-						$epf += $enchant->getLevel() * 2;
-						if($this instanceof EntityDamageByEntityEvent) {
-							$blastKnockbackReduction[] = ($this->getKnockBack() * (15 * $enchant->getLevel())) / 100;
+						if($this->cause === self::CAUSE_BLOCK_EXPLOSION) {
+							$epf += $enchant->getLevel() * 2;
+							if($this instanceof EntityDamageByEntityEvent) {
+								$blastKnockbackReduction[] = ($this->getKnockBack() * (15 * $enchant->getLevel())) / 100;
+							}
 						}
 						break;
 					case Enchantment::TYPE_ARMOR_PROJECTILE_PROTECTION:
-						$epf += $enchant->getLevel() * 2;
+						if($this->cause === self::CAUSE_PROJECTILE) {
+							$epf += $enchant->getLevel() * 2;
+						}
 						break;
 				}
 			}

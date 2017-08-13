@@ -210,7 +210,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	const SURVIVAL_SLOTS = 36;
 	const CREATIVE_SLOTS = 112;
 
-	const DEFAULT_SPEED = 0.1;
+	const DEFAULT_SPEED = 0.10;
 	const MAXIMUM_SPEED = 0.5;
 
 	/** @var array */
@@ -1631,6 +1631,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			Item::RAW_CHICKEN => 2,
 			Item::MELON_SLICE => 2,
 			Item::GOLDEN_APPLE => 4,
+			Item::ENCHANTED_GOLDEN_APPLE => 4,
 			Item::PUMPKIN_PIE => 8,
 			Item::CARROT => 3,
 			Item::POTATO => 1,
@@ -1652,7 +1653,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$slot = $this->inventory->getItemInHand();
 		$slotId = $slot->getId();
 		if(isset($items[$slotId])) {
-			if($this->getFood() < 20 or ($slot->getId() !== Item::GOLDEN_APPLE or $slot->getId() !== Item::ENCHANTED_GOLDEN_APPLE)) {
+			if($this->getFood() < 20 or $slot->getId() === Item::GOLDEN_APPLE or $slot->getId() === Item::ENCHANTED_GOLDEN_APPLE) {
 				$this->server->getPluginManager()->callEvent($ev = new PlayerItemConsumeEvent($this, $slot));
 				if($ev->isCancelled()){
 					$this->inventory->sendContents($this);
@@ -3935,6 +3936,10 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->updateAttribute(UpdateAttributesPacket::SPEED, $this->movementSpeed, 0, self::MAXIMUM_SPEED, $this->movementSpeed);
 	}
 
+	public function getMovementSpeed() : float {
+		return $this->movementSpeed;
+	}
+
 	public function setSprinting($value = true, $setDefault = false) {
 		if(!$setDefault && $this->isSprinting() == $value) {
 			return;
@@ -4209,9 +4214,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			EntityDamageEvent::MODIFIER_BASE => isset($damageTable[$item->getId()]) ? $damageTable[$item->getId()] : 1,
 		];
 
-		if($this->distance($target) > 4) {
+		/*if($this->distanceSquared($target) > 48) {
 			return;
-		} elseif ($target instanceof Player) {
+		} else*/if ($target instanceof Player) {
 			$armorValues = [
 				Item::LEATHER_CAP => 1,
 				Item::LEATHER_TUNIC => 3,
@@ -4714,12 +4719,16 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			} else {
 				$projectile->setMotion($projectile->getMotion()->multiply($ev->getForce()));
 				if ($this->isSurvival()) {
-					$this->inventory->removeItemWithCheckOffHand(Item::get(Item::ARROW, 0, 1));
-					$bow->setDamage($bow->getDamage() + 1);
-					if ($bow->getDamage() >= 385) {
-						$this->inventory->setItemInHand(Item::get(Item::AIR, 0, 0));
+					if($bow->hasEnchantments() and $bow->getEnchantment(Enchantment::TYPE_BOW_INFINITY) !== null) {
+
 					} else {
-						$this->inventory->setItemInHand($bow);
+						$this->inventory->removeItemWithCheckOffHand(Item::get(Item::ARROW, 0, 1));
+						$bow->setDamage($bow->getDamage() + 1);
+						if($bow->getDamage() >= 385) {
+							$this->inventory->setItemInHand(Item::get(Item::AIR, 0, 0));
+						} else {
+							$this->inventory->setItemInHand($bow);
+						}
 					}
 				}
 				if ($projectile instanceof Projectile) {

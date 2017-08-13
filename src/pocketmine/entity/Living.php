@@ -134,7 +134,7 @@ abstract class Living extends Entity implements Damageable{
 			return;
 		}
 
-		$f = 1 / $f;
+		$f = 1.2 / $f;
 
 		$motion = new Vector3($this->motionX, $this->motionY, $this->motionZ);
 

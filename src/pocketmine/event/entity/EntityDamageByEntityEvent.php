@@ -40,7 +40,7 @@ class EntityDamageByEntityEvent extends EntityDamageEvent{
 	 * @param int|int[] $damage
 	 * @param float     $knockBack
 	 */
-	public function __construct(Entity $damager, Entity $entity, $cause, $damage, $knockBack = 0.4){
+	public function __construct(Entity $damager, Entity $entity, $cause, $damage, $knockBack = 0.42){
 		$this->damager = $damager;
 		$this->knockBack = $knockBack;
 		parent::__construct($entity, $cause, $damage);
@@ -55,7 +55,7 @@ class EntityDamageByEntityEvent extends EntityDamageEvent{
 		if($damager->hasEffect(Effect::WEAKNESS)){
 			$this->setDamage(-($this->getDamage(self::MODIFIER_BASE) * 0.2 * ($damager->getEffect(Effect::WEAKNESS)->getAmplifier() + 1)), self::MODIFIER_WEAKNESS);
 		}
-		
+
 		if ($damager instanceof Player) {
 			$baseDamage = $this->getDamage(self::MODIFIER_BASE);
 			$weapon = $damager->getInventory()->getItemInHand();

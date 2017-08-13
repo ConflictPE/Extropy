@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
@@ -52,15 +52,15 @@ interface Info105{
     const MOVE_PLAYER_PACKET = 0x14;
 //	const RIDER_JUMP_PACKET = 0x15;
     const REMOVE_BLOCK_PACKET = 0x16;
-    const UPDATE_BLOCK_PACKET = 0x17;	
+    const UPDATE_BLOCK_PACKET = 0x17;
     const ADD_PAINTING_PACKET = 0x18;
     const EXPLODE_PACKET = 0x19;
 	const LEVEL_SOUND_EVENT_PACKET = 0x1a;
-    const LEVEL_EVENT_PACKET = 0x1b;	
+    const LEVEL_EVENT_PACKET = 0x1b;
     const TILE_EVENT_PACKET = 0x1c;
     const ENTITY_EVENT_PACKET = 0x1d;
     const MOB_EFFECT_PACKET = 0x1e;
-    const UPDATE_ATTRIBUTES_PACKET = 0x1f;	
+    const UPDATE_ATTRIBUTES_PACKET = 0x1f;
     const MOB_EQUIPMENT_PACKET = 0x20;
     const MOB_ARMOR_EQUIPMENT_PACKET = 0x21;
     const INTERACT_PACKET = 0x22;
@@ -68,7 +68,7 @@ interface Info105{
     const USE_ITEM_PACKET = 0x24;
     const PLAYER_ACTION_PACKET = 0x25;
 //	const PLAYER_FALL = 0x26;
-    const HURT_ARMOR_PACKET = 0x27;	
+    const HURT_ARMOR_PACKET = 0x27;
     const SET_ENTITY_DATA_PACKET = 0x28;
     const SET_ENTITY_MOTION_PACKET = 0x29;
     const SET_ENTITY_LINK_PACKET = 0x2a;
@@ -105,7 +105,7 @@ interface Info105{
 //	const GAME_RULES_CHANGED_PACKET = 0x49;
 //	const CAMERA_PACKET = 0x4a;
 //	const ADD_ITEM_PACKET = 0x4b;
-//	const BOSS_EVENT_PACKET = 0x4c;
+	const BOSS_EVENT_PACKET = 0x4c;
 //	const SHOW_CREDITS_PACKET = 0x4d;
     const AVAILABLE_COMMANDS_PACKET = 0x4e;
     const COMMAND_STEP_PACKET = 0x4f;
@@ -118,7 +118,7 @@ interface Info105{
 //  const PLAY_SOUND_PACKET = 0x56;
 //  const STOP_SOUND_PACKET = 0x57;
 	const SET_TITLE_PACKET = 0x58;
-	
+
 }
 
 

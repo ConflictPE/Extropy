@@ -31,6 +31,7 @@ use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\AdventureSettingsPacket;
 use pocketmine\network\protocol\AnimatePacket;
 use pocketmine\network\protocol\BatchPacket;
+use pocketmine\network\protocol\BossEventPacket;
 use pocketmine\network\protocol\ContainerClosePacket;
 use pocketmine\network\protocol\ContainerOpenPacket;
 use pocketmine\network\protocol\ContainerSetContentPacket;
@@ -107,16 +108,16 @@ class Network {
 
 	/** @var \SplFixedArray */
 	private $packetPool;
-	
+
 	/** @var \SplFixedArray */
 	private $packetPool105;
-	
+
 	/** @var \SplFixedArray */
 	private $packetPool110;
-	
+
 	/** @var \SplFixedArray */
 	private $packetPool120;
-	
+
 	/** @var \SplFixedArray */
 	private $proxyPacketPool;
 
@@ -237,39 +238,39 @@ class Network {
 
 	/**
 	 * @param int        $id 0-255
-	 * @param DataPacket $class
+	 * @param string $class
 	 */
 	public function registerPacket($id, $class){
 		$this->packetPool[$id] = new $class;
 	}
-	
+
 	/**
 	 * @param int        $id 0-255
-	 * @param DataPacket $class
+	 * @param string $class
 	 */
 	public function registerPacket105($id, $class){
 		$this->packetPool105[$id] = new $class;
 	}
-	
+
 	/**
 	 * @param int        $id 0-255
-	 * @param DataPacket $class
+	 * @param string $class
 	 */
 	public function registerPacket110($id, $class){
 		$this->packetPool110[$id] = new $class;
 	}
-	
+
 	/**
 	 * @param int        $id 0-255
-	 * @param DataPacket $class
+	 * @param string $class
 	 */
 	public function registerPacket120($id, $class){
 		$this->packetPool120[$id] = new $class;
 	}
-	
+
 	/**
 	 * @param int        $id 0-255
-	 * @param DataPacket $class
+	 * @param string $class
 	 */
 	public function registerProxyPacket($id, $class){
 		$this->proxyPacketPool[$id] = new $class;
@@ -278,7 +279,7 @@ class Network {
 	public function getServer(){
 		return $this->server;
 	}
-			
+
 	public function processBatch(BatchPacket $packet, Player $p){
 		$str = @\zlib_decode($packet->payload, 1024 * 1024 * 64); //Max 64MB
 		if ($str === false) {
@@ -297,7 +298,7 @@ class Network {
 //				if (ord($buf{0}) !== 0x13) {
 //					echo 'Recive: 0x'. bin2hex($buf{0}).PHP_EOL;
 //				}
-				
+
 				if (($pk = $this->getPacket(ord($buf{0}), $p->getPlayerProtocol())) !== null) {
 					if ($pk::NETWORK_ID === Info::BATCH_PACKET) {
 						throw new \InvalidStateException("Invalid BatchPacket inside BatchPacket");
@@ -355,7 +356,7 @@ class Network {
 		}
 		return null;
 	}
-	
+
 		/**
 	 * @param $id
 	 *
@@ -450,9 +451,10 @@ class Network {
 		$this->registerPacket(ProtocolInfo::RESOURCE_PACK_DATA_INFO_PACKET, ResourcePackDataInfoPacket::class);
 		$this->registerPacket(ProtocolInfo::RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket::class);
 		$this->registerPacket(ProtocolInfo::RESOURCE_PACKS_CLIENT_RESPONSE_PACKET, ResourcePackClientResponsePacket::class);
+		$this->registerPacket(ProtocolInfo::BOSS_EVENT_PACKET, BossEventPacket::class);
 
 	}
-	
+
 	private function registerPackets105(){
 		$this->packetPool105 = new \SplFixedArray(256);
 		$this->registerPacket105(ProtocolInfo105::LOGIN_PACKET, LoginPacket::class);
@@ -510,11 +512,11 @@ class Network {
 		$this->registerPacket105(ProtocolInfo105::RESOURCE_PACK_DATA_INFO_PACKET, ResourcePackDataInfoPacket::class);
 		$this->registerPacket105(ProtocolInfo105::RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket::class);
 		$this->registerPacket105(ProtocolInfo105::RESOURCE_PACKS_CLIENT_RESPONSE_PACKET, ResourcePackClientResponsePacket::class);
-		
-		
+		$this->registerPacket105(ProtocolInfo105::BOSS_EVENT_PACKET, BossEventPacket::class);
+
 	}
-	
-	
+
+
 	private function registerPackets110(){
 		$this->packetPool110 = new \SplFixedArray(256);
 		$this->registerPacket110(ProtocolInfo110::LOGIN_PACKET, LoginPacket::class);
@@ -571,16 +573,16 @@ class Network {
 		$this->registerPacket110(ProtocolInfo110::RESOURCE_PACK_DATA_INFO_PACKET, ResourcePackDataInfoPacket::class);
 		$this->registerPacket110(ProtocolInfo110::RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket::class);
 		$this->registerPacket110(ProtocolInfo110::RESOURCE_PACKS_CLIENT_RESPONSE_PACKET, ResourcePackClientResponsePacket::class);
-	
+		$this->registerPacket110(ProtocolInfo110::BOSS_EVENT_PACKET, BossEventPacket::class);
 	}
-	
+
 	private function registerProxyPackets(){
 		$this->proxyPacketPool = new \SplFixedArray(256);
 		$this->registerProxyPacket(ProtocolProxyInfo::CONNECT_PACKET, ConnectPacket::class);
 		$this->registerProxyPacket(ProtocolProxyInfo::DISCONNECT_PACKET, ProxyDisconnectPacket::class);
-		$this->registerProxyPacket(ProtocolProxyInfo::PING_PACKET, PingPacket::class);		
+		$this->registerProxyPacket(ProtocolProxyInfo::PING_PACKET, PingPacket::class);
 	}
-	
+
 	private function registerPackets120() {
 		$this->packetPool120 = new \SplFixedArray(256);
 		$this->registerPacket120(ProtocolInfo120::LOGIN_PACKET, LoginPacket::class);
@@ -631,6 +633,7 @@ class Network {
 		$this->registerPacket120(ProtocolInfo120::RESOURCE_PACK_DATA_INFO_PACKET, ResourcePackDataInfoPacket::class);
 		$this->registerPacket120(ProtocolInfo120::RESOURCE_PACKS_INFO_PACKET, ResourcePackDataInfoPacket::class);
 		$this->registerPacket120(ProtocolInfo120::RESOURCE_PACKS_CLIENT_RESPONSE_PACKET, ResourcePackClientResponsePacket::class);
+		$this->registerPacket120(ProtocolInfo120::BOSS_EVENT_PACKET, BossEventPacket::class);
 		// new
 		$this->registerPacket120(ProtocolInfo120::INVENTORY_TRANSACTION_PACKET, InventoryTransactionPacket::class);
 		$this->registerPacket120(ProtocolInfo120::INVENTORY_CONTENT_PACKET, InventoryContentPacket::class);

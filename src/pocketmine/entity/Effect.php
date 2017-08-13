@@ -288,6 +288,10 @@ class Effect{
 		$this->color = (($r & 0xff) << 16) + (($g & 0xff) << 8) + ($b & 0xff);
 	}
 
+	/**
+	 * @param Entity|Player $entity
+	 * @param bool $modify
+	 */
 	public function add(Entity $entity, $modify = false) {
 		$isPlayer = $entity instanceof Player;
 		if($isPlayer) {
@@ -301,35 +305,35 @@ class Effect{
 			$entity->dataPacket($pk);
 		}
 
-		switch ($this->id) {
+		switch($this->id) {
 			case Effect::INVISIBILITY:
 				$entity->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_INVISIBLE, true);
 				$entity->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_SHOW_NAMETAG, false);
 				break;
 			case Effect::SPEED:
-				if ($isPlayer) {
-					$newSpeedValue = $entity::DEFAULT_SPEED * (1 + ($this->amplifier + 1) * 0.2);
-					$entity->updateSpeed($newSpeedValue);
+				if($isPlayer) {
+					$entity->updateSpeed($entity->getMovementSpeed() * (1 + 0.2 * ($this->amplifier + 1)));
 				}
 				break;
 			case Effect::SLOWNESS:
-				if ($isPlayer) {
-					$newSpeedValue = $entity::DEFAULT_SPEED * (1 - ($this->amplifier + 1) * 0.15);
-					$entity->updateSpeed($newSpeedValue);
+				if($isPlayer) {
+					$entity->updateSpeed($entity->getMovementSpeed() * (1 - 0.15 * ($this->amplifier + 1)));
 				}
 				break;
 			case Effect::ABSORPTION:
 				if($isPlayer) {
-					/** @var Player $entity */
 					$entity->addAbsorption(4 * ($this->amplifier + 1));
 				}
 				break;
 		}
 	}
 
+	/**
+	 * @param Entity|Player $entity
+	 */
 	public function remove(Entity $entity) {
 		$isPlayer = $entity instanceof Player;
-		if ($isPlayer) {
+		if($isPlayer) {
 			$pk = new MobEffectPacket();
 			$pk->eid = $entity->getId();
 			$pk->eventId = MobEffectPacket::EVENT_REMOVE;
@@ -338,20 +342,23 @@ class Effect{
 			$entity->dataPacket($pk);
 		}
 
-		switch ($this->id) {
+		switch($this->id) {
 			case Effect::INVISIBILITY:
 				$entity->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_INVISIBLE, false);
 				$entity->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_SHOW_NAMETAG, true);
 				break;
 			case Effect::SPEED:
+				if($isPlayer) {
+					$entity->updateSpeed($entity->getMovementSpeed() / (1 + 0.2 * ($this->amplifier + 1)));
+				}
+				break;
 			case Effect::SLOWNESS:
-				if ($isPlayer) {
-					$entity->updateSpeed($entity::DEFAULT_SPEED);
+				if($isPlayer) {
+					$entity->updateSpeed($entity->getMovementSpeed() / (1 - 0.15 * ($this->amplifier + 1)));
 				}
 				break;
 			case Effect::ABSORPTION:
 				if($isPlayer) {
-					/** @var Player $entity */
 					$entity->setAbsorption(0);
 				}
 				break;

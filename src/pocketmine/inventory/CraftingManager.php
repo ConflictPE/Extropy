@@ -734,19 +734,25 @@ class CraftingManager{
 			Item::REDSTONE_BLOCK => Item::REDSTONE_DUST,
 			Item::COAL_BLOCK => Item::COAL,
 			Item::HAY_BALE => Item::WHEAT,
+			Item::GOLD_INGOT => Item::GOLD_NUGGET
 		];
 
 		foreach($ingots as $block => $ingot){
-			$this->registerRecipe((new BigShapelessRecipe(Item::get($block, 0, 1)))->addIngredient(Item::get($ingot, 0, 9)));
-			$this->registerRecipe((new ShapelessRecipe(Item::get($ingot, 0, 9)))->addIngredient(Item::get($block, 0, 1)));
+			$this->registerRecipe((new BigShapedRecipe(Item::get($block, 0, 1),
+				"XXX",
+				"X X",
+				"XXX"))->setIngredient("X", Item::get($ingot, 0, 1)));
+			$this->registerRecipe((new ShapedRecipe(Item::get($ingot, 0, 9),
+				"  ",
+				"X "))->setIngredient("X", Item::get($block, 0, 1)));
 		}
 
 
-		$this->registerRecipe((new BigShapelessRecipe(Item::get(Item::LAPIS_BLOCK, 0, 1)))->addIngredient(Item::get(Item::DYE, 4, 9)));
+		$this->registerRecipe((new BigShapedRecipe(Item::get(Item::LAPIS_BLOCK, 0, 1),
+			"XXX",
+			"X X",
+			"XXX"))->setIngredient("X", Item::get(Item::DYE, 4, 1)));
 		$this->registerRecipe((new ShapelessRecipe(Item::get(Item::DYE, 4, 9)))->addIngredient(Item::get(Item::LAPIS_BLOCK, 0, 1)));
-
-		$this->registerRecipe((new BigShapelessRecipe(Item::get(Item::GOLD_INGOT, 0, 1)))->addIngredient(Item::get(Item::GOLD_NUGGET, 0, 9)));
-		$this->registerRecipe((new ShapelessRecipe(Item::get(Item::GOLD_NUGGET, 0, 9)))->addIngredient(Item::get(Item::GOLD_INGOT, 0, 1)));
 
 	}
 
