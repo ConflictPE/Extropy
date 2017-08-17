@@ -948,40 +948,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			return false;
 		}
 
-		$allowedPackets = [
-			'pocketmine\network\protocol\BatchPacket',
-			'pocketmine\network\protocol\PlayStatusPacket',
-			'pocketmine\network\protocol\StartGamePacket',
-			'pocketmine\network\protocol\ResourcePackStackPacket',
-			'pocketmine\network\protocol\ResourcePacksInfoPacket',
-			'pocketmine\network\protocol\UpdateAttributesPacket',
-			'pocketmine\network\protocol\SetTimePacket',
-			'pocketmine\network\protocol\SetDifficultyPacket',
-			'pocketmine\network\protocol\SetSpawnPositionPacket',
-			'pocketmine\network\protocol\SetEntityDataPacket',
-			'pocketmine\network\protocol\ChunkRadiusUpdatePacket',
-			'pocketmine\network\protocol\MovePlayerPacket',
-			'pocketmine\network\protocol\v120\InventoryContentPacket',
-			'pocketmine\network\protocol\v120\InventorySlotPacket',
-			'pocketmine\network\protocol\v120\InventoryContentPacket',
-			'pocketmine\network\protocol\SetEntityMotionPacket',
-			'pocketmine\network\protocol\UpdateBlockPacket',
-			'pocketmine\network\protocol\LevelEventPacket',
-			'pocketmine\network\protocol\LevelSoundEventPacket',
-			'pocketmine\network\protocol\MobEquipmentPacket',
-			'pocketmine\network\protocol\EntityEventPacket',
-			'pocketmine\network\protocol\MobArmorEquipmentPacket',
-			'pocketmine\network\protocol\RemoveEntityPacket',
-			'pocketmine\network\protocol\PlayerListPacket',
-		];
-		$disallowedPackets = [
-			'pocketmine\network\protocol\AddPlayerPacket',
-			'pocketmine\network\protocol\AvailableCommandsPacket',
-			'pocketmine\network\protocol\AdventureSettingsPacket',
-		];
-		if (!in_array(get_class($packet), $allowedPackets)) {
-			var_dump(get_class($packet));
-			return;
+		if($this->getPlayerProtocol() >= ProtocolInfo::PROTOCOL_120) {
+			$disallowedPackets = Protocol120::getDisallowedPackets();
+			if (in_array(get_class($packet), $disallowedPackets)) {
+				return;
+			}
 		}
 
 		$this->server->getPluginManager()->callEvent($ev = new DataPacketSendEvent($this, $packet));
