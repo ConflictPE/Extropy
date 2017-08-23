@@ -2881,7 +2881,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	 * Kicks a player from the server
 	 *
 	 * @param string $reason
-	 * @param bool   $isAdmin
 	 *
 	 * @return bool
 	 */
