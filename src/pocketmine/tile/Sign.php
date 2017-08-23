@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
@@ -43,6 +43,8 @@ class Sign extends Spawnable{
 		}
 
 		parent::__construct($chunk, $nbt);
+
+		$this->fixSignText();
 	}
 
 	public function saveNBT(){
@@ -82,6 +84,27 @@ class Sign extends Spawnable{
 			new IntTag("y", (int) $this->y),
 			new IntTag("z", (int) $this->z)
 		]);
+	}
+
+	/**
+	 * Strips beginning and ending quotation marks from each line of the sign text (PC -> PE error)
+	 */
+	private function fixSignText() {
+		$this->namedtag->Text1->setValue(self::stripQuotes($this->namedtag->Text1->getValue()));
+		$this->namedtag->Text2->setValue(self::stripQuotes($this->namedtag->Text2->getValue()));
+		$this->namedtag->Text3->setValue(self::stripQuotes($this->namedtag->Text3->getValue()));
+		$this->namedtag->Text4->setValue(self::stripQuotes($this->namedtag->Text4->getValue()));
+	}
+
+	/**
+	 * Quick hack to remove quotation marks from beginning and end of sign lines
+	 *
+	 * @param string $text
+	 *
+	 * @return string
+	 */
+	public static function stripQuotes(string $text) {
+		return preg_replace('/(^[\"\']|[\"\']$)/', '', $text);;
 	}
 
 }
