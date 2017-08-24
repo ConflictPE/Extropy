@@ -2165,7 +2165,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						$this->releaseUseItem();
 						$this->startAction = -1;
 						break;
-					case 'STOP_SLEEPENG':
+					case 'STOP_SLEEPING':
 						$this->stopSleep();
 						break;
 					case 'RESPAWN':
