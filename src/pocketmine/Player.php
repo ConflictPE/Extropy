@@ -21,7 +21,6 @@
 
 namespace pocketmine;
 
-use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\customUI\CustomUI;
 use pocketmine\entity\Arrow;
@@ -58,11 +57,12 @@ use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
+use pocketmine\event\player\PlayerReceiptsReceivedEvent;
+use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\event\player\PlayerRespawnAfterEvent;
 use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\event\player\PlayerToggleSneakEvent;
 use pocketmine\event\player\PlayerToggleSprintEvent;
-use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\event\TextContainer;
 use pocketmine\inventory\BaseTransaction;
@@ -1711,12 +1711,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			return;
 		}
 
-		$this->server->getPluginManager()->callEvent($ev = new DataPacketReceiveEvent($this, $packet));
-		if($ev->isCancelled()){
-			return;
-		}
+		$beforeLoginAvailablePackets = ['LOGIN_PACKET', 'REQUEST_CHUNK_RADIUS_PACKET', 'RESOURCE_PACKS_CLIENT_RESPONSE_PACKET', 'CLIENT_TO_SERVER_HANDSHAKE_PACKET'];
 
-		$beforeLoginAvailablePackets = ['LOGIN_PACKET', 'REQUEST_CHUNK_RADIUS_PACKET', 'RESOURCE_PACKS_CLIENT_RESPONSE_PACKET'];
 		if (!$this->isOnline() && !in_array($packet->pname(), $beforeLoginAvailablePackets)) {
 			return;
 		}
@@ -2868,6 +2864,13 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			case 'MODAL_FORM_RESPONSE_PACKET':
 				$this->checkModal($packet->formId, json_decode($packet->data, true));
 				break;
+
+			/** @minProtocol 120 */
+			case 'PURCHASE_RECEIPT_PACKET':
+				$event = new PlayerReceiptsReceivedEvent($this, $packet->receipts);
+				$this->server->getPluginManager()->callEvent($event);
+				break;
+
 			case 'SERVER_SETTINGS_REQUEST_PACKET':
 				$this->sendServerSettings();
 				break;
