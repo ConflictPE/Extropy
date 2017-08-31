@@ -21,7 +21,6 @@
 
 namespace pocketmine;
 
-use pocketmine\block\Block;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\customUI\CustomUI;
@@ -33,7 +32,6 @@ use pocketmine\entity\Item as DroppedItem;
 use pocketmine\entity\Living;
 use pocketmine\entity\Projectile;
 use pocketmine\event\block\SignChangeEvent;
-use pocketmine\event\entity\EntityDamageByBlockEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityRegainHealthEvent;
@@ -47,8 +45,8 @@ use pocketmine\event\player\PlayerAnimationEvent;
 use pocketmine\event\player\PlayerBedEnterEvent;
 use pocketmine\event\player\PlayerBedLeaveEvent;
 use pocketmine\event\player\PlayerChatEvent;
-use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\event\player\PlayerCommandPostprocessEvent;
+use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerGameModeChangeEvent;
@@ -60,43 +58,39 @@ use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
-use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\event\player\PlayerRespawnAfterEvent;
+use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\event\player\PlayerToggleSneakEvent;
 use pocketmine\event\player\PlayerToggleSprintEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\event\TextContainer;
-use pocketmine\event\Timings;
 use pocketmine\inventory\BaseTransaction;
 use pocketmine\inventory\BigShapedRecipe;
 use pocketmine\inventory\BigShapelessRecipe;
-use pocketmine\inventory\CraftingTransactionGroup;
 use pocketmine\inventory\EnchantInventory;
-use pocketmine\inventory\FurnaceInventory;
 use pocketmine\inventory\Inventory;
 use pocketmine\inventory\InventoryHolder;
 use pocketmine\inventory\PlayerInventory;
+use pocketmine\inventory\PlayerInventory120;
 use pocketmine\inventory\ShapedRecipe;
 use pocketmine\inventory\ShapelessRecipe;
 use pocketmine\inventory\SimpleTransactionGroup;
-
-use pocketmine\item\Item;
+use pocketmine\inventory\win10\Win10InvLogic;
 use pocketmine\item\Armor;
+use pocketmine\item\Elytra;
+use pocketmine\item\enchantment\Enchantment;
+use pocketmine\item\Item;
 use pocketmine\item\Tool;
-use pocketmine\item\Potion;
-use pocketmine\level\format\FullChunk;
 use pocketmine\level\format\LevelProvider;
 use pocketmine\level\Level;
 use pocketmine\level\Location;
 use pocketmine\level\Position;
 use pocketmine\level\sound\LaunchSound;
 use pocketmine\math\AxisAlignedBB;
-use pocketmine\math\Vector2;
 use pocketmine\math\Vector3;
 use pocketmine\metadata\MetadataValue;
 use pocketmine\nbt\NBT;
-use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\DoubleTag;
 use pocketmine\nbt\tag\Enum;
@@ -105,37 +99,53 @@ use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\LongTag;
 use pocketmine\nbt\tag\ShortTag;
 use pocketmine\nbt\tag\StringTag;
-use pocketmine\network\Network;
+use pocketmine\network\multiversion\Multiversion;
+use pocketmine\network\multiversion\MultiversionEnums;
 use pocketmine\network\protocol\AdventureSettingsPacket;
 use pocketmine\network\protocol\AnimatePacket;
+use pocketmine\network\protocol\AvailableCommandsPacket;
 use pocketmine\network\protocol\BatchPacket;
+use pocketmine\network\protocol\ChunkRadiusUpdatePacket;
 use pocketmine\network\protocol\ContainerClosePacket;
 use pocketmine\network\protocol\ContainerSetContentPacket;
 use pocketmine\network\protocol\DataPacket;
 use pocketmine\network\protocol\DisconnectPacket;
 use pocketmine\network\protocol\EntityEventPacket;
-use pocketmine\network\protocol\FullChunkDataPacket;
-use pocketmine\network\protocol\Info as ProtocolInfo;
 use pocketmine\network\protocol\Info;
+use pocketmine\network\protocol\Info as ProtocolInfo;
+use pocketmine\network\protocol\InteractPacket;
+use pocketmine\network\protocol\LevelEventPacket;
+use pocketmine\network\protocol\LevelSoundEventPacket;
+use pocketmine\network\protocol\MovePlayerPacket;
 use pocketmine\network\protocol\PlayerActionPacket;
 use pocketmine\network\protocol\PlayStatusPacket;
+use pocketmine\network\protocol\ResourcePackClientResponsePacket;
+use pocketmine\network\protocol\ResourcePacksInfoPacket;
+use pocketmine\network\protocol\ResourcePackStackPacket;
 use pocketmine\network\protocol\RespawnPacket;
-use pocketmine\network\protocol\SetEntityDataPacket;
-use pocketmine\network\protocol\StrangePacket;
-use pocketmine\network\protocol\TextPacket;
-use pocketmine\network\protocol\MovePlayerPacket;
 use pocketmine\network\protocol\SetDifficultyPacket;
+use pocketmine\network\protocol\SetEntityDataPacket;
 use pocketmine\network\protocol\SetEntityMotionPacket;
+use pocketmine\network\protocol\SetPlayerGameTypePacket;
 use pocketmine\network\protocol\SetSpawnPositionPacket;
 use pocketmine\network\protocol\SetTimePacket;
+use pocketmine\network\protocol\SetTitlePacket;
 use pocketmine\network\protocol\StartGamePacket;
+use pocketmine\network\protocol\StrangePacket;
 use pocketmine\network\protocol\TakeItemEntityPacket;
+use pocketmine\network\protocol\TextPacket;
 use pocketmine\network\protocol\TransferPacket;
 use pocketmine\network\protocol\UpdateAttributesPacket;
-use pocketmine\network\protocol\SetHealthPacket;
 use pocketmine\network\protocol\UpdateBlockPacket;
-use pocketmine\network\protocol\ChunkRadiusUpdatePacket;
-use pocketmine\network\protocol\InteractPacket;
+use pocketmine\network\protocol\v120\InventoryTransactionPacket;
+use pocketmine\network\protocol\v120\Protocol120;
+use pocketmine\network\protocol\v120\ServerSettingsResponsetPacket;
+use pocketmine\network\protocol\v120\ShowModalFormPacket;
+use pocketmine\network\proxy\DisconnectPacket as ProxyDisconnectPacket;
+use pocketmine\network\proxy\Info as ProtocolProxyInfo;
+use pocketmine\network\proxy\ProxyPacket;
+use pocketmine\network\proxy\RedirectPacket;
+use pocketmine\network\ProxyInterface;
 use pocketmine\network\SourceInterface;
 use pocketmine\permission\PermissibleBase;
 use pocketmine\permission\PermissionAttachment;
@@ -145,36 +155,6 @@ use pocketmine\tile\Sign;
 use pocketmine\tile\Spawnable;
 use pocketmine\tile\Tile;
 use pocketmine\utils\TextFormat;
-use pocketmine\network\protocol\SetPlayerGameTypePacket;
-use pocketmine\block\Liquid;
-use pocketmine\network\protocol\SetCommandsEnabledPacket;
-use pocketmine\network\protocol\AvailableCommandsPacket;
-use pocketmine\network\protocol\ResourcePackDataInfoPacket;
-use pocketmine\network\protocol\ResourcePacksInfoPacket;
-use pocketmine\network\protocol\ResourcePackStackPacket;
-use raklib\Binary;
-use pocketmine\network\proxy\Info as ProtocolProxyInfo;
-use pocketmine\network\proxy\DisconnectPacket as ProxyDisconnectPacket;
-use pocketmine\network\ProxyInterface;
-use pocketmine\network\proxy\RedirectPacket;
-use pocketmine\network\proxy\ProxyPacket;
-
-use pocketmine\item\enchantment\Enchantment;
-use pocketmine\item\Elytra;
-use pocketmine\network\protocol\SetTitlePacket;
-use pocketmine\network\protocol\ResourcePackClientResponsePacket;
-use pocketmine\network\protocol\LevelSoundEventPacket;
-
-use pocketmine\network\protocol\v120\InventoryTransactionPacket;
-use pocketmine\network\protocol\v120\Protocol120;
-use pocketmine\inventory\PlayerInventory120;
-use pocketmine\network\multiversion\Multiversion;
-use pocketmine\network\multiversion\MultiversionEnums;
-use pocketmine\network\protocol\LevelEventPacket;
-
-use pocketmine\inventory\win10\Win10InvLogic;
-use pocketmine\network\protocol\v120\ShowModalFormPacket;
-use pocketmine\network\protocol\v120\ServerSettingsResponsetPacket;
 
 /**
  * Main class that handles networking, recovery, and packet sending to the server part
@@ -880,18 +860,58 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 			$this->teleport($pos);
 
-//			if($this->getHealth() <= 0){
-//				$pk = new RespawnPacket();
-//				$pos = $this->getSpawn();
-//				$pk->x = $pos->x;
-//				$pk->y = $pos->y;
-//				$pk->z = $pos->z;
-//				$this->dataPacket($pk);
-//			}
+			if($this->getHealth() <= 0) { // if the player died and left the server we'll automatically respawn them like a new player
+				if($this->server->isHardcore()) {
+					$this->setBanned(true);
+					return;
+				}
 
-			$this->server->getPluginManager()->callEvent($ev = new PlayerJoinEvent($this, ""));
+				$this->craftingType = self::CRAFTING_DEFAULT;
+
+				$this->server->getPluginManager()->callEvent($ev = new PlayerRespawnEvent($this, $this->getSpawn()));
+
+				$this->teleport($ev->getRespawnPosition());
+
+				$this->setSprinting(false, true);
+				$this->setSneaking(false);
+
+				$this->extinguish();
+
+				$this->dataProperties[self::DATA_AIR] = [self::DATA_TYPE_SHORT, 300];
+				$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_NOT_IN_WATER, true, self::DATA_TYPE_LONG, false);
+
+				$this->deadTicks = 0;
+				$this->dead = false;
+				$this->noDamageTicks = 60;
+
+				$this->despawnFromAll();
+
+				$this->setHealth($this->getMaxHealth());
+				$this->setFood(20);
+
+				$this->starvationTick = 0;
+				$this->foodTick = 0;
+				$this->lastSentVitals = 10;
+				$this->foodUsageTime = 0;
+
+				$this->removeAllEffects();
+
+				$this->sendSelfData();
+
+				$this->sendSettings();
+
+				$this->inventory->sendContents($this);
+				$this->inventory->sendArmorContents($this);
+
+				$this->blocked = false;
+
+				$this->scheduleUpdate();
+
+				$this->server->getPluginManager()->callEvent(new PlayerRespawnAfterEvent($this));
 			}
+			$this->server->getPluginManager()->callEvent($ev = new PlayerJoinEvent($this, ""));
 		}
+	}
 
 	protected function orderChunks() {
 		if ($this->connected === false) {
@@ -3059,11 +3079,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	public function kill(){
-		if($this->dead === true or $this->spawned === false){
+		if(!$this->spawned or !$this->isAlive()){
 			return;
 		}
-
-		$message = $this->getName() . " died";
 
 		$cause = $this->getLastDamageCause();
 		$ev = null;
@@ -3149,11 +3167,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				break;
 
 			default:
-
-		}
-
-		if($this->dead){
-			return;
+				$message = $this->getName() . " died";
+				break;
 		}
 
 		Entity::kill();
@@ -3691,10 +3706,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$pk->z = (int) $spawnPosition->z;
 		$this->dataPacket($pk);
 
-		if ($this->getHealth() <= 0) {
-			$this->dead = true;
-		}
-
 
 //		$pk = new ResourcePackDataInfoPacket();
 //		$this->dataPacket($pk);
@@ -3704,10 +3715,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 //		$this->dataPacket($pk);
 
 		$this->sendCommandData();
-
-		if($this->getHealth() <= 0){
-			$this->dead = true;
-		}
 
 		$pk = new SetDifficultyPacket();
 		$pk->difficulty = $this->server->getDifficulty();
@@ -3732,6 +3739,10 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->updateSpeed(self::DEFAULT_SPEED);
 		$this->setMayMove(false);
 //		$this->updateAttribute(UpdateAttributesPacket::EXPERIENCE_LEVEL, 100, 0, 1024, 100);
+
+		if($this->getHealth() <= 0) {
+			$this->dead = true;
+		}
 	}
 
 	public function handleProxyDataPacket($packet) {
