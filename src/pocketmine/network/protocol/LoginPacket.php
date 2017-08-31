@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
  */
 
@@ -76,9 +76,9 @@ class LoginPacket extends PEPacket {
 		}
 		if ($this->protocol1 < Info::PROTOCOL_120) {
 			$this->getByte();
-		}	
+		}
 		$data = $this->getString();
-		if ($this->protocol1 >= Info::PROTOCOL_110) {			
+		if ($this->protocol1 >= Info::PROTOCOL_110) {
 			if (ord($data{0}) != 120 || (($decodedData = @zlib_decode($data)) === false)) {
 				$body = $data;
 			} else {
@@ -92,7 +92,7 @@ class LoginPacket extends PEPacket {
 
 		$this->playerDataLength = Binary::readLInt($this->getFromString($body, 4));
 		$this->playerData = $this->getFromString($body, $this->playerDataLength);
-        
+
 		$this->chains['data'] = array();
 		$index = 0;
 		foreach ($this->chains['chain'] as $key => $jwt) {
@@ -107,7 +107,7 @@ class LoginPacket extends PEPacket {
 			$this->isValidProtocol = false;
 			return;
 		}
-		
+
 		$this->playerData = self::load($this->playerData);
 		$this->username = $this->chains['data'][$dataIndex]['extraData']['displayName'];
 		$this->clientId = $this->chains['data'][$dataIndex]['extraData']['identity'];
@@ -116,19 +116,19 @@ class LoginPacket extends PEPacket {
         if (isset($this->chains['data'][$dataIndex]['extraData']['XUID'])) {
             $this->xuid = $this->chains['data'][$dataIndex]['extraData']['XUID'];
         }
-		
+
 		$this->serverAddress = $this->playerData['ServerAddress'];
 		$this->skinName = $this->playerData['SkinId'];
 		$this->skin = base64_decode($this->playerData['SkinData']);
 		if (isset($this->playerData['SkinGeometryName'])) {
-            $this->skinGeometryName = $this->playerData['SkinGeometryName'];    
+            $this->skinGeometryName = $this->playerData['SkinGeometryName'];
         }
 		if (isset($this->playerData['SkinGeometry'])) {
-            $this->skinGeometryData = base64_decode($this->playerData['SkinGeometry']);  
+            $this->skinGeometryData = base64_decode($this->playerData['SkinGeometry']);
         }
 		$this->clientSecret = $this->playerData['ClientRandomId'];
         if (isset($this->playerData['DeviceOS'])) {
-            $this->osType = $this->playerData['DeviceOS'];    
+            $this->osType = $this->playerData['DeviceOS'];
         }
         if (isset($this->playerData['UIProfile'])) {
             $this->inventoryType = $this->playerData['UIProfile'];
@@ -147,7 +147,7 @@ class LoginPacket extends PEPacket {
 	}
 
 	public function encode($playerProtocol) {
-		
+
 	}
 
 	public static function load($jwsTokenString) {

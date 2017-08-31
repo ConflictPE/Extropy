@@ -21,6 +21,7 @@
 
 namespace pocketmine;
 
+use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\customUI\CustomUI;
 use pocketmine\entity\Arrow;
