@@ -26,6 +26,7 @@ use pocketmine\event\entity\EntityRegainHealthEvent;
 use pocketmine\event\entity\ItemDespawnEvent;
 use pocketmine\event\entity\ItemSpawnEvent;
 use pocketmine\item\Item as ItemItem;
+use pocketmine\level\Level;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\Compound;
@@ -226,20 +227,20 @@ class Item extends Entity{
 	}
 
 	public function spawnTo(Player $player){
-		$pk = new AddItemEntityPacket();
-		$pk->eid = $this->getId();
-		$pk->x = $this->x;
-		$pk->y = $this->y;
-		$pk->z = $this->z;
-		$pk->speedX = $this->motionX;
-		$pk->speedY = $this->motionY;
-		$pk->speedZ = $this->motionZ;
-		$pk->item = $this->getItem();
-		$player->dataPacket($pk);
-
-//		$this->sendData($player);
-
-		parent::spawnTo($player);
+		if (!isset($this->hasSpawned[$player->getId()]) && isset($player->usedChunks[Level::chunkHash($this->chunk->getX(), $this->chunk->getZ())])) {
+			$pk = new AddItemEntityPacket();
+			$pk->eid = $this->getId();
+			$pk->x = $this->x;
+			$pk->y = $this->y;
+			$pk->z = $this->z;
+			$pk->speedX = $this->motionX;
+			$pk->speedY = $this->motionY;
+			$pk->speedZ = $this->motionZ;
+			$pk->item = $this->getItem();
+			$player->dataPacket($pk);
+	//		$this->sendData($player);
+			$this->hasSpawned[$player->getId()] = $player;
+		}
 	}
 
 

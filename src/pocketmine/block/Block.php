@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
@@ -25,8 +25,7 @@
 namespace pocketmine\block;
 
 use pocketmine\entity\Entity;
-
-
+use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\Item;
 use pocketmine\item\Tool;
 use pocketmine\level\Level;
@@ -509,39 +508,39 @@ class Block extends Position implements Metadatable{
 			self::$list[self::STONECUTTER] = Stonecutter::class;
 			self::$list[self::GLOWING_OBSIDIAN] = GlowingObsidian::class;
 			self::$list[self::NETHER_REACTOR] = NetherReactor::class;
-			
+
 			self::$list[self::SLIME_BLOCK] = SlimeBlock::class;
-			
+
 			self::$list[self::WOODEN_BUTTON] = WoodenButton::class;
 			self::$list[self::STONE_BUTTON] = StoneButton::class;
-			
+
 			self::$list[self::ACACIA_DOOR_BLOCK] = AcaciaDoor::class;
 			self::$list[self::BIRCH_DOOR_BLOCK] = BirchDoor::class;
 			self::$list[self::DARK_OAK_DOOR_BLOCK] = DarkOakDoor::class;
 			self::$list[self::JUNGLE_DOOR_BLOCK] = JungleDoor::class;
-			
+
 			self::$list[self::TRIPWIRE] = Tripwire::class;
 			self::$list[self::TRIPWIRE_HOOK] = TripwireHook::class;
-			
+
 			self::$list[self::LEVER] = Lever::class;
-			
+
 			self::$list[self::WOODEN_PRESSURE_PLATE] = WoodenPressurePlate::class;
 			self::$list[self::STONE_PRESSURE_PLATE] = StonePressurePlate::class;
-			
+
 			self::$list[self::REDSTONE_WIRE] = RedstoneWire::class;
 			self::$list[self::REDSTONE_REPEATER_BLOCK] = RedstoneRepeater::class;
 			self::$list[self::REDSTONE_REPEATER_BLOCK_ACTIVE] = RedstoneRepeaterActive::class;
-			
+
 			self::$list[self::POWERED_RAIL] = PoweredRail::class;
 			self::$list[self::DETECTOR_RAIL] = DetectorRail::class;
 			self::$list[self::ACTIVATOR_RAIL] = ActivatorRail::class;
-			
+
 			self::$list[self::WEIGHTED_PRESSURE_PLATE_HEAVY] = WeightedPressurePlateHeavy::class;
 			self::$list[self::WEIGHTED_PRESSURE_PLATE_LIGHT] = WeightedPressurePlateLight::class;
-			
+
 			self::$list[self::MOB_HEAD_BLOCK] = MobHead::class;
 			self::$list[self::FLOWER_POT_BLOCK] = FlowerPot::class;
-            
+
 			// update 1.0
 			self::$list[self::CHORUS_FLOWER] = ChorusFlower::class;
 			self::$list[self::CHORUS_PLANT] = ChorusPlant::class;
@@ -557,10 +556,10 @@ class Block extends Position implements Metadatable{
 
 			self::$list[self::REDSTONE_LAMP] = RedstoneLamp::class;
 			self::$list[self::REDSTONE_LAMP_ACTIVE] = RedstoneLampActive::class;
-			
+
 			self::$list[self::REDSTONE_TORCH] = RedstoneTorch::class;
 			self::$list[self::REDSTONE_TORCH_ACTIVE] = RedstoneTorchActive::class;
-            
+
 			foreach(self::$list as $id => $class){
 				if($class !== null){
 					/** @var Block $block */
@@ -858,72 +857,79 @@ class Block extends Position implements Metadatable{
 	 *  - enchantment effects (Efficiency)
 	 *  - status effect on player (haste, mining fatigue)
 	 *  - player not on ground, player in water
-	 * 
+	 *
 	 * @param Item $item
 	 *
 	 * @return float
 	 */
 	public function getBreakTime(Item $item) {
-		static $tierMultipliers = [
+		$tierMultipliers = [
 			Tool::TIER_WOODEN => 2,
 			Tool::TIER_STONE => 4,
 			Tool::TIER_IRON => 6,
 			Tool::TIER_DIAMOND => 8,
 			Tool::TIER_GOLD => 12,
 		];
-		
-		/** @docs http://minecraft.gamepedia.com/Breaking */
-		if (!$this->canBeBrokenWith($item)) {
-			return -1;
-		}
-		$toolType = $this->getToolType();
-		$isSuitableForHarvest = !empty($this->getDrops($item)) || $toolType == Tool::TYPE_NONE;
-		$secondsForBreak = $this->getHardness() * ($isSuitableForHarvest ? 1.5 : 5);
-		if ($secondsForBreak == 0) {
-			$secondsForBreak = 0.05;
-		}
-		
-		switch ($toolType) {
+
+		$base = $this->getHardness() * (!empty($this->getDrops($item)) or $this->getToolType() === Tool::TYPE_NONE ? 1.5 : 5);
+
+		switch($this->getToolType()) {
+			case Tool::TYPE_NONE:
+				$base /= 1;
+				break;
 			case Tool::TYPE_SWORD:
-				if ($item->isSword()) {
-					if ($this->id == self::COBWEB) {
-						$secondsForBreak = $secondsForBreak / 15;
+				if($item->isSword()) {
+					if($this->id == self::COBWEB) {
+						$base /= 15;
+					} else {
+						$base /= 1.5;
 					}
-					return $secondsForBreak;
+					self::addEfficiencyBonus($item, $base);
 				}
 				break;
 			case Tool::TYPE_SHEARS:
-				if ($item->isShears()) {
-					if ($this->id == self::WOOL) {
-						// line below is simplification of $baseTime = $baseTime * 1.5 / 5
-						$secondsForBreak = $secondsForBreak / 5;
+				if($item->isShears()) {
+					if($this->id == self::WOOL) {
+						$base /= 5;
 					} else {
-						$secondsForBreak = $secondsForBreak / 15;
+						$base /= 15;
 					}
-					return $secondsForBreak;
+					self::addEfficiencyBonus($item, $base);
 				}
 				break;
 			case Tool::TYPE_SHOVEL:
 				$tier = $item->isShovel();
-				if ($tier !== false && isset($tierMultipliers[$tier])) {
-					return $secondsForBreak / $tierMultipliers[$tier];
+				if($tier !== false && isset($tierMultipliers[$tier])) {
+					$base /= $tierMultipliers[$tier];
+					self::addEfficiencyBonus($item, $base);
 				}
 				break;
 			case Tool::TYPE_PICKAXE:
 				$tier = $item->isPickaxe();
-				if ($tier !== false && isset($tierMultipliers[$tier])) {
-					return $secondsForBreak / $tierMultipliers[$tier];
+				if($tier !== false && isset($tierMultipliers[$tier])) {
+					$base /= $tierMultipliers[$tier];
+					self::addEfficiencyBonus($item, $base);
 				}
 				break;
 			case Tool::TYPE_AXE:
 				$tier = $item->isAxe();
-				if ($tier !== false && isset($tierMultipliers[$tier])) {
-					return $secondsForBreak / $tierMultipliers[$tier];
+				if($tier !== false && isset($tierMultipliers[$tier])) {
+					$base /= $tierMultipliers[$tier];
+					self::addEfficiencyBonus($item, $base);
 				}
 				break;
 		}
-		
-		return $secondsForBreak;
+
+		return $base;
+	}
+
+	public static function addEfficiencyBonus(Item $item, int &$time) {
+		if($item->hasEnchantments()) {
+			$eff = $item->getEnchantment(Enchantment::TYPE_MINING_EFFICIENCY);
+			if($eff instanceof Enchantment) {
+				$time /= (sqrt($eff->getLevel()) + 1);
+			}
+		}
 	}
 
 	public function canBeBrokenWith(Item $item){

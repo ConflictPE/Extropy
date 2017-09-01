@@ -60,6 +60,43 @@ class PlayerInventory extends BaseInventory{
 	}
 
 	/**
+	 * Called when a client equips a hotbar slot. This method should not be used by plugins.
+	 *
+	 * @param int $hotbarSlot
+	 * @param int|null $inventorySlot
+	 *
+	 * @return bool    If the equipment change was successful, false if not.
+	 */
+	public function equipItem(int $hotbarSlot, $inventorySlot = null) : bool {
+		if($inventorySlot === null) {
+			$inventorySlot = $this->getHotbarSlotIndex($hotbarSlot);
+		}
+
+		if($hotbarSlot < 0 or $hotbarSlot >= $this->getHotbarSize() or $inventorySlot < -1 or $inventorySlot >= $this->getSize()) {
+			$this->sendContents($this->getHolder());
+			return false;
+		}
+
+		if($inventorySlot === -1) {
+			$item = Item::get(Item::AIR);
+		} else {
+			$item = $this->getItem($inventorySlot);
+		}
+
+		$this->getHolder()->getServer()->getPluginManager()->callEvent($ev = new PlayerItemHeldEvent($this->getHolder(), $item, $inventorySlot, $hotbarSlot));
+
+		if($ev->isCancelled()) {
+			$this->sendContents($this->getHolder());
+			return false;
+		}
+
+		$this->setHotbarSlotIndex($hotbarSlot, $inventorySlot);
+		$this->setHeldItemIndex($hotbarSlot, false);
+
+		return true;
+	}
+
+	/**
 	 *
 	 * @param int $index
 	 * @return Item

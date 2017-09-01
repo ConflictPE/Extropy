@@ -2,56 +2,58 @@
 
 namespace pocketmine\network\multiversion;
 
+use pocketmine\network\protocol\PlayerActionPacket;
+
 abstract class MultiversionEnums {
 
 	private static $playerActionType = [
 		'default' => [
 			-1 => 'UNKNOWN',
-			0 => 'START_DESTROY_BLOCK',
-			1 => 'ABORT_DESTROY_BLOCK',
-			2 => 'STOP_DESTROY_BLOCK',
-			3 => 'GET_UPDATED_BLOCK',
-			4 => 'DROP_ITEM',
-			5 => 'RELEASE_USE_ITEM',
-			6 => 'STOP_SLEEPENG',
-			7 => 'RESPAWN',
-			8 => 'START_JUMP',
-			9 => 'START_SPRINTING',
-			10 => 'STOP_STRINTING',
-			11 => 'START_SNEAKING',
-			12 => 'STOP_SNEAKING',
-			13 => 'CHANGE_DEMENSION',
-			14 => 'CHANGE_DEMENSION_ACK',
-			15 => 'START_GLIDING',
-			16 => 'STOP_GLIDING',
-			17 => 'DENY_DESTROY_BLOCK',
-			18 => 'CRACK_BLOCK',
+			0 => PlayerActionPacket::ACTION_START_BREAK,
+			1 => PlayerActionPacket::ACTION_ABORT_BREAK,
+			2 => PlayerActionPacket::ACTION_STOP_BREAK,
+			3 => PlayerActionPacket::ACTION_UPDATE_BLOCK,
+			4 => PlayerActionPacket::ACTION_DROP_ITEM,
+			5 => PlayerActionPacket::ACTION_RELEASE_ITEM,
+			6 => PlayerActionPacket::ACTION_STOP_SLEEPING,
+			7 => PlayerActionPacket::ACTION_RESPAWN,
+			8 => PlayerActionPacket::ACTION_JUMP,
+			9 => PlayerActionPacket::ACTION_START_SPRINT,
+			10 => PlayerActionPacket::ACTION_STOP_SPRINT,
+			11 => PlayerActionPacket::ACTION_START_SNEAK,
+			12 => PlayerActionPacket::ACTION_STOP_SNEAK,
+			13 => PlayerActionPacket::ACTION_DIMENSION_CHANGE,
+			14 => PlayerActionPacket::ACTION_DIMENSION_CHANGE_ACK,
+			15 => PlayerActionPacket::ACTION_START_GLIDE,
+			16 => PlayerActionPacket::ACTION_STOP_GLIDE,
+			17 => PlayerActionPacket::ACTION_BUILD_DENIED,
+			18 => PlayerActionPacket::ACTION_CONTINUE_BREAK,
 		],
 		'120' => [
 			-1 => 'UNKNOWN',
-			0 => 'START_DESTROY_BLOCK',
-			1 => 'ABORT_DESTROY_BLOCK',
-			2 => 'STOP_DESTROY_BLOCK',
-			3 => 'GET_UPDATED_BLOCK',
-			4 => 'DROP_ITEM',
-			5 => 'START_SLEEPING',
-			6 => 'STOP_SLEEPING',
-			7 => 'RESPAWN',
-			8 => 'START_JUMP',
-			9 => 'START_SPRINTING',
-			10 => 'STOP_STRINTING',
-			11 => 'START_SNEAKING',
-			12 => 'STOP_SNEAKING',
-			13 => 'CHANGE_DEMENSION',
-			14 => 'CHANGE_DEMENSION_ACK',
-			15 => 'START_GLIDING',
-			16 => 'STOP_GLIDING',
-			17 => 'DENY_DESTROY_BLOCK',
-			18 => 'CRACK_BLOCK',
-			19 => 'CHANGE_SKIN',
+			0 => PlayerActionPacket::ACTION_START_BREAK,
+			1 => PlayerActionPacket::ACTION_ABORT_BREAK,
+			2 => PlayerActionPacket::ACTION_STOP_BREAK,
+			3 => PlayerActionPacket::ACTION_UPDATE_BLOCK,
+			4 => PlayerActionPacket::ACTION_DROP_ITEM,
+			5 => PlayerActionPacket::ACTION_START_SLEEPING,
+			6 => PlayerActionPacket::ACTION_STOP_SLEEPING,
+			7 => PlayerActionPacket::ACTION_RESPAWN,
+			8 => PlayerActionPacket::ACTION_JUMP,
+			9 => PlayerActionPacket::ACTION_START_SPRINT,
+			10 => PlayerActionPacket::ACTION_STOP_SPRINT,
+			11 => PlayerActionPacket::ACTION_START_SNEAK,
+			12 => PlayerActionPacket::ACTION_STOP_SNEAK,
+			13 => PlayerActionPacket::ACTION_DIMENSION_CHANGE,
+			14 => PlayerActionPacket::ACTION_DIMENSION_CHANGE_ACK,
+			15 => PlayerActionPacket::ACTION_START_GLIDE,
+			16 => PlayerActionPacket::ACTION_STOP_GLIDE,
+			17 => PlayerActionPacket::ACTION_BUILD_DENIED,
+			18 => PlayerActionPacket::ACTION_CONTINUE_BREAK,
+			19 => PlayerActionPacket::ACTION_CHANGE_SKIN,
 		],
 	];
-	
+
 	private static $textPacketType = [
 		'default' => [
 			0 => 'TYPE_RAW',
@@ -75,7 +77,7 @@ abstract class MultiversionEnums {
 			8 => 'TYPE_ANNOUNCEMENT',
 		],
 	];
-	
+
 	public static function getPlayerAction($playerProtocol, $actionId) {
 		if (!isset(self::$playerActionType[$playerProtocol])) {
 			$playerProtocol = 'default';
@@ -85,7 +87,7 @@ abstract class MultiversionEnums {
 		}
 		return self::$playerActionType[$playerProtocol][$actionId];
 	}
-	
+
 	public static function getPlayerActionId($playerProtocol, $actionName) {
 		if (!isset(self::$playerActionType[$playerProtocol])) {
 			$playerProtocol = "default";
@@ -97,7 +99,7 @@ abstract class MultiversionEnums {
 		}
 		return -1;
 	}
-	
+
 	public static function getMessageType($playerProtocol, $typeId) {
 		if (!isset(self::$textPacketType[$playerProtocol])) {
 			$playerProtocol = 'default';
@@ -107,7 +109,7 @@ abstract class MultiversionEnums {
 		}
 		return self::$textPacketType[$playerProtocol][$typeId];
 	}
-	
+
 	public static function getMessageTypeId($playerProtocol, $typeName) {
 		if (!isset(self::$textPacketType[$playerProtocol])) {
 			$playerProtocol = "default";
@@ -119,5 +121,5 @@ abstract class MultiversionEnums {
 		}
 		return 0;
 	}
-	
+
 }

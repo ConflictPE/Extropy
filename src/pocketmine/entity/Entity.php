@@ -43,6 +43,7 @@ use pocketmine\level\Location;
 use pocketmine\level\Position;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Math;
+use pocketmine\math\Vector2;
 use pocketmine\math\Vector3;
 use pocketmine\metadata\Metadatable;
 use pocketmine\metadata\MetadataValue;
@@ -284,6 +285,8 @@ abstract class Entity extends Location implements Metadatable{
 
 	protected $fireDamage = 1;
 
+	public $temporalVector;
+
 
 	public function __construct(FullChunk $chunk, Compound $nbt){
 		if($chunk === null or $chunk->getProvider() === null){
@@ -291,6 +294,8 @@ abstract class Entity extends Location implements Metadatable{
 		}
 
 		$this->timings = Timings::getEntityTimings($this);
+
+		$this->temporalVector = new Vector3();
 
 		if($this->eyeHeight === null){
 			$this->eyeHeight = $this->height / 2 + 0.1;
@@ -306,7 +311,7 @@ abstract class Entity extends Location implements Metadatable{
 
 		$this->boundingBox = new AxisAlignedBB(0, 0, 0, 0, 0, 0);
 		$this->setPositionAndRotation(
-			new Vector3(
+			$this->temporalVector->setComponents(
 				$this->namedtag["Pos"][0],
 				$this->namedtag["Pos"][1],
 				$this->namedtag["Pos"][2]
@@ -315,10 +320,12 @@ abstract class Entity extends Location implements Metadatable{
 			$this->namedtag["Rotation"][1],
 			true
 		);
-		$this->motionX = $this->namedtag["Motion"][0];
-		$this->motionY = $this->namedtag["Motion"][1];
-		$this->motionZ = $this->namedtag["Motion"][2];
-//		$this->setMotion(new Vector3($this->namedtag["Motion"][0], $this->namedtag["Motion"][1], $this->namedtag["Motion"][2]));
+
+		if(isset($this->namedtag->Motion)){
+			$this->setMotion($this->temporalVector->setComponents($this->namedtag["Motion"][0], $this->namedtag["Motion"][1], $this->namedtag["Motion"][2]));
+		}else{
+			$this->setMotion($this->temporalVector->setComponents(0, 0, 0));
+		}
 
 		if(!isset($this->namedtag->FallDistance)){
 			$this->namedtag->FallDistance = new FloatTag("FallDistance", 0);
@@ -1060,13 +1067,16 @@ abstract class Entity extends Location implements Metadatable{
 	/**
 	 * @return Vector3
 	 */
-	public function getDirectionVector(){
+	public function getDirectionVector() : Vector3{
 		$y = -sin(deg2rad($this->pitch));
 		$xz = cos(deg2rad($this->pitch));
 		$x = -$xz * sin(deg2rad($this->yaw));
 		$z = $xz * cos(deg2rad($this->yaw));
+		return $this->temporalVector->setComponents($x, $y, $z)->normalize();
+	}
 
-		return new Vector3($x, $y, $z);
+	public function getDirectionPlane() : Vector2 {
+		return (new Vector2(-cos(deg2rad($this->yaw) - M_PI_2), -sin(deg2rad($this->yaw) - M_PI_2)))->normalize();
 	}
 
 	public function onUpdate($currentTick){
