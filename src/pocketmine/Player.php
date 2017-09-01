@@ -2038,11 +2038,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						}
 
 						$target = $this->level->getBlock($pos);
-						$this->getServer()->getPluginManager()->callEvent($ev = new PlayerInteractEvent($this, $this->inventory->getItemInHand(), $target, $packet->face, $target->getId() === 0 ? PlayerInteractEvent::LEFT_CLICK_AIR : PlayerInteractEvent::LEFT_CLICK_BLOCK));
-						if($ev->isCancelled()) {
-							$this->inventory->sendHeldItem($this);
-							break;
-						}
+						//$this->getServer()->getPluginManager()->callEvent($ev = new PlayerInteractEvent($this, $this->inventory->getItemInHand(), $target, $packet->face, $target->getId() === 0 ? PlayerInteractEvent::LEFT_CLICK_AIR : PlayerInteractEvent::LEFT_CLICK_BLOCK));
+						//if($ev->isCancelled()) {
+						//	$this->inventory->sendHeldItem($this);
+						//	break;
+						//}
 
 						$block = $target->getSide($packet->face);
 						if($block->getId() === Block::FIRE) {
