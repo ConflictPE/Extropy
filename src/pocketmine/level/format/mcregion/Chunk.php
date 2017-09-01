@@ -31,7 +31,6 @@ use pocketmine\nbt\tag\Enum;
 use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\IntArray;
 use pocketmine\nbt\tag\LongTag;
-use pocketmine\Player;
 use pocketmine\utils\Binary;
 use pocketmine\utils\BinaryStream;
 use pocketmine\entity\Human;
@@ -102,6 +101,7 @@ class Chunk extends BaseFullChunk{
 		}
 
 		parent::__construct($level, $this->nbt["xPos"], $this->nbt["zPos"], $this->nbt->Blocks->getValue(), $this->nbt->Data->getValue(), $this->nbt->SkyLight->getValue(), $this->nbt->BlockLight->getValue(), $this->nbt->BiomeColors->getValue(), $this->nbt->HeightMap->getValue(), $this->nbt->Entities->getValue(), $this->nbt->TileEntities->getValue());
+
 		unset($this->nbt->Blocks);
 		unset($this->nbt->Data);
 		unset($this->nbt->SkyLight);
@@ -290,7 +290,7 @@ class Chunk extends BaseFullChunk{
 		$nbt = new NBT(NBT::BIG_ENDIAN);
 
 		try{
-			$nbt->readCompressed($data, ZLIB_ENCODING_DEFLATE);
+			$nbt->readCompressed($data);
 			$chunk = $nbt->getData();
 
 			if(!isset($chunk->Level) or !($chunk->Level instanceof Compound)){

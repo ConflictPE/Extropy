@@ -240,7 +240,7 @@ class McRegion extends BaseLevelProvider{
 	 * @param int  $chunkZ
 	 * @param bool $create
 	 *
-	 * @return Chunk
+	 * @return FullChunk
 	 */
 	public function getChunk($chunkX, $chunkZ, $create = false){
 		$index = Level::chunkHash($chunkX, $chunkZ);

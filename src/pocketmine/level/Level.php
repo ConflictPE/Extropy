@@ -44,9 +44,12 @@ use pocketmine\block\Sapling;
 use pocketmine\block\SnowLayer;
 use pocketmine\block\Sugarcane;
 use pocketmine\block\Wheat;
+use pocketmine\ChunkMaker;
+use pocketmine\entity\animal\Animal;
 use pocketmine\entity\Arrow;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Item as DroppedItem;
+use pocketmine\entity\monster\Monster;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\block\BlockUpdateEvent;
@@ -58,7 +61,6 @@ use pocketmine\event\level\LevelUnloadEvent;
 use pocketmine\event\level\SpawnChangeEvent;
 use pocketmine\event\LevelTimings;
 use pocketmine\event\player\PlayerInteractEvent;
-use pocketmine\event\Timings;
 use pocketmine\inventory\InventoryHolder;
 use pocketmine\item\Item;
 use pocketmine\level\format\Chunk;
@@ -67,6 +69,11 @@ use pocketmine\level\format\generic\BaseFullChunk;
 use pocketmine\level\format\generic\BaseLevelProvider;
 use pocketmine\level\format\generic\EmptyChunkSection;
 use pocketmine\level\format\LevelProvider;
+use pocketmine\level\generator\GenerationTask;
+use pocketmine\level\generator\Generator;
+use pocketmine\level\generator\GeneratorRegisterTask;
+use pocketmine\level\generator\GeneratorUnregisterTask;
+use pocketmine\level\generator\PopulationTask;
 use pocketmine\level\particle\Particle;
 use pocketmine\level\sound\Sound;
 use pocketmine\math\AxisAlignedBB;
@@ -76,7 +83,6 @@ use pocketmine\math\Vector3;
 use pocketmine\metadata\BlockMetadataStore;
 use pocketmine\metadata\Metadatable;
 use pocketmine\metadata\MetadataValue;
-use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\DoubleTag;
 use pocketmine\nbt\tag\Enum;
@@ -84,38 +90,20 @@ use pocketmine\nbt\tag\FloatTag;
 use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\ShortTag;
 use pocketmine\nbt\tag\StringTag;
-use pocketmine\network\Network;
-use pocketmine\network\protocol\FullChunkDataPacket;
-use pocketmine\network\protocol\MoveEntityPacket;
-use pocketmine\network\protocol\SetEntityMotionPacket;
+use pocketmine\network\protocol\LevelSoundEventPacket;
 use pocketmine\network\protocol\SetTimePacket;
 use pocketmine\network\protocol\UpdateBlockPacket;
 use pocketmine\Player;
 use pocketmine\plugin\Plugin;
-use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
 use pocketmine\tile\Chest;
-use pocketmine\tile\Spawnable;
 use pocketmine\tile\Tile;
-use pocketmine\utils\BinaryStream;
 use pocketmine\utils\Cache;
 use pocketmine\utils\LevelException;
 use pocketmine\utils\MainLogger;
+use pocketmine\utils\Random;
 use pocketmine\utils\ReversePriorityQueue;
 use pocketmine\utils\TextFormat;
-use pocketmine\network\protocol\Info;
-use pocketmine\ChunkMaker;
-use pocketmine\level\generator\GenerationTask;
-use pocketmine\level\generator\Generator;
-use pocketmine\level\generator\GeneratorRegisterTask;
-use pocketmine\level\generator\GeneratorUnregisterTask;
-use pocketmine\utils\Random;
-use pocketmine\level\generator\LightPopulationTask;
-use pocketmine\level\generator\PopulationTask;
-use pocketmine\entity\monster\Monster;
-use pocketmine\entity\animal\Animal;
-use pocketmine\nbt\NBT;
-use pocketmine\network\protocol\LevelSoundEventPacket;
 
 class Level implements ChunkManager, Metadatable{
 
@@ -219,33 +207,32 @@ class Level implements ChunkManager, Metadatable{
 	protected $chunksPerTick;
 	protected $clearChunksOnTick;
 	protected $randomTickBlocks = [
-		Block::GRASS => Grass::class,
-		Block::SAPLING => Sapling::class,
-		Block::LEAVES => Leaves::class,
-		Block::WHEAT_BLOCK => Wheat::class,
-		Block::FARMLAND => Farmland::class,
-		Block::SNOW_LAYER => SnowLayer::class,
-		Block::ICE => Ice::class,
-		Block::CACTUS => Cactus::class,
-		Block::SUGARCANE_BLOCK => Sugarcane::class,
-		Block::RED_MUSHROOM => RedMushroom::class,
-		Block::BROWN_MUSHROOM => BrownMushroom::class,
-		Block::PUMPKIN_STEM => PumpkinStem::class,
-		Block::MELON_STEM => MelonStem::class,
+		//Block::GRASS => Grass::class,
+		//Block::SAPLING => Sapling::class,
+		//Block::LEAVES => Leaves::class,
+		//Block::WHEAT_BLOCK => Wheat::class,
+		//Block::FARMLAND => Farmland::class,
+		//Block::SNOW_LAYER => SnowLayer::class,
+		//Block::ICE => Ice::class,
+		//Block::CACTUS => Cactus::class,
+		//Block::SUGARCANE_BLOCK => Sugarcane::class,
+		//Block::RED_MUSHROOM => RedMushroom::class,
+		//Block::BROWN_MUSHROOM => BrownMushroom::class,
+		//Block::PUMPKIN_STEM => PumpkinStem::class,
+		//Block::MELON_STEM => MelonStem::class,
 		//Block::VINE => true,
-		Block::MYCELIUM => Mycelium::class,
+		//Block::MYCELIUM => Mycelium::class,
 		//Block::COCOA_BLOCK => true,
-		Block::CARROT_BLOCK => Carrot::class,
-		Block::POTATO_BLOCK => Potato::class,
-		Block::LEAVES2 => Leaves2::class,
-
-		Block::BEETROOT_BLOCK => Beetroot::class,
+		//Block::CARROT_BLOCK => Carrot::class,
+		//Block::POTATO_BLOCK => Potato::class,
+		//Block::LEAVES2 => Leaves2::class,
+		//Block::BEETROOT_BLOCK => Beetroot::class,
 	];
 
 	/** @var LevelTimings */
 	public $timings;
 
-		 private $isFrozen = false;
+	private $isFrozen = false;
 
 	protected static $isMemoryLeakHappend = false;
 
@@ -1295,21 +1282,21 @@ class Level implements ChunkManager, Metadatable{
 				new Enum("Pos", [
 					new DoubleTag(0, $source->getX()),
 					new DoubleTag(1, $source->getY()),
-					new DoubleTag(2, $source->getZ())
+					new DoubleTag(2, $source->getZ()),
 				]),
 
 				new Enum("Motion", [
 					new DoubleTag(0, $motion->x),
 					new DoubleTag(1, $motion->y),
-					new DoubleTag(2, $motion->z)
+					new DoubleTag(2, $motion->z),
 				]),
 				new Enum("Rotation", [
 					new FloatTag(0, lcg_value() * 360),
-					new FloatTag(1, 0)
+					new FloatTag(1, 0),
 				]),
 				new ShortTag("Health", 5),
 				$item->nbtSerialize(),
-				new ShortTag("PickupDelay", $delay)
+				new ShortTag("PickupDelay", $delay),
 			]));
 
 			$itemEntity->spawnToAll();
@@ -1559,7 +1546,7 @@ class Level implements ChunkManager, Metadatable{
 				new StringTag("Text1", ""),
 				new StringTag("Text2", ""),
 				new StringTag("Text3", ""),
-				new StringTag("Text4", "")
+				new StringTag("Text4", ""),
 			]));
 			if($player instanceof Player){
 				$tile->namedtag->Creator = new StringTag("Creator", $player->getName());
@@ -1948,39 +1935,42 @@ class Level implements ChunkManager, Metadatable{
 		}
 	}
 
-	public function setChunk($x, $z, FullChunk $chunk, $unload = true, $copyEntities = true, $send = false){
-		$index = self::chunkHash($x, $z);
-		$players = $this->getUsingChunk($x, $z);
-		if($copyEntities and ($old = $this->getChunk($z, $z)) instanceof FullChunk) {
-			foreach($old->getEntities() as $e) {
-				$old->removeEntity($e);
-				$chunk->addEntity($e);
-				$e->chunk = $chunk;
-			}
-			foreach($old->getTiles() as $t) {
-				$old->removeTile($t);
-				$chunk->addTile($t);
-				$t->chunk = $t;
-			}
+	public function setChunk($x, $z, FullChunk $chunk = null, $unload = true){
+		if(!($chunk instanceof FullChunk)) {
+			return;
 		}
+
+		$index = self::chunkHash($x, $z);
+		$oldChunk = $this->getChunk($x, $z, false);
+
 		if($unload){
-			foreach($players as $player){
-				$player->unloadChunk($x, $z);
-			}
+			$this->unloadChunk($x, $z, false);
 			$this->provider->setChunk($x, $z, $chunk);
 			$this->chunks[$index] = $chunk;
 		}else{
+			if($oldChunk !== null) {
+				foreach($oldChunk->getEntities() as $e) {
+					$chunk->addEntity($e);
+					$oldChunk->removeEntity($e);
+					$e->chunk = $chunk;
+				}
+
+				foreach($oldChunk->getTiles() as $t) {
+					$chunk->addTile($t);
+					$oldChunk->removeTile($t);
+					$t->chunk = $chunk;
+				}
+			}
+
 			$this->provider->setChunk($x, $z, $chunk);
 			$this->chunks[$index] = $chunk;
 		}
-		if(ADVANCED_CACHE == true){
-			Cache::remove("world:" . $this->getId() . ":" . self::chunkHash($x, $z));
-		}
-		$chunk->setChanged();
-		if($send) {
-			foreach($players as $player) {
-				$this->requestChunk($x, $z, $player);
-			}
+
+		$this->chunkCacheClear($x, $z);
+		$chunk->setChanged(true);
+
+		foreach($this->getUsingChunk($x, $z) as $player) {
+			$this->requestChunk($x, $z, $player);
 		}
 	}
 
@@ -2079,10 +2069,7 @@ class Level implements ChunkManager, Metadatable{
 				}else{
 					$this->chunkSendTasks[$index] = true;
 					//$this->timings->syncChunkSendPrepareTimer->startTiming();
-					$task = $this->provider->requestChunkTask($x, $z);
-					if($task instanceof AsyncTask){
-						$this->server->getScheduler()->scheduleAsyncTask($task);
-					}
+					$this->provider->requestChunkTask($x, $z);
 					//$this->timings->syncChunkSendPrepareTimer->stopTiming();
 				}
 			}
@@ -2105,7 +2092,6 @@ class Level implements ChunkManager, Metadatable{
 				/** @var Player $player */
 				if($player->isConnected() and isset($player->usedChunks[$index])){
 					$player->sendChunk($x, $z, $payload);
-
 				}
 			}
 			unset($this->chunkSendQueue[$index]);
@@ -2566,7 +2552,7 @@ class Level implements ChunkManager, Metadatable{
 			if(!isset($this->motionToSend[$p->getIdentifier()])){
 				$this->motionToSend[$p->getIdentifier()] = array(
 					'data' => array(),
-					'playerProtocol' => $p->getPlayerProtocol()
+					'playerProtocol' => $p->getPlayerProtocol(),
 				);
 			}
 			$this->motionToSend[$p->getIdentifier()]['data'][] = $motion;
@@ -2579,7 +2565,7 @@ class Level implements ChunkManager, Metadatable{
 			if(!isset($this->moveToSend[$p->getIdentifier()])){
 				$this->moveToSend[$p->getIdentifier()] = array(
 					'data' => array(),
-					'playerProtocol' => $p->getPlayerProtocol()
+					'playerProtocol' => $p->getPlayerProtocol(),
 				);
 			}
 			$this->moveToSend[$p->getIdentifier()]['data'][] = $move;
@@ -2593,7 +2579,7 @@ class Level implements ChunkManager, Metadatable{
 		$this->playerHandItemQueue[$sender->getId()][$recipient->getId()] = array(
 			'sender' => $sender,
 			'recipient' => $recipient,
-			'time' => microtime(true)
+			'time' => microtime(true),
 		);
 
 	}

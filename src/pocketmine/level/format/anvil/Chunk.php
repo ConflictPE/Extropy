@@ -98,7 +98,7 @@ class Chunk extends BaseChunk {
 
 		$extraData = [];
 
-		if (!isset($this->nbt->ExtraData) or ! ($this->nbt->ExtraData instanceof ByteArray)) {
+		if(!isset($this->nbt->ExtraData) or ! ($this->nbt->ExtraData instanceof ByteArray)) {
 			$this->nbt->ExtraData = new ByteArray("ExtraData", Binary::writeInt(0));
 		} else {
 			$stream = new BinaryStream($this->nbt->ExtraData->getValue());
@@ -109,7 +109,7 @@ class Chunk extends BaseChunk {
 			}
 		}
 
-		parent::__construct($level, (int) $this->nbt["xPos"], (int) $this->nbt["zPos"], $sections, $this->nbt->BiomeColors->getValue(), $this->nbt->HeightMap->getValue(), $this->nbt->Entities->getValue(), $this->nbt->TileEntities->getValue(), $extraData);
+		parent::__construct($level, (int) $this->nbt["xPos"], (int) $this->nbt["zPos"], $sections, $this->nbt->BiomeColors->getValue(), $this->nbt->HeightMap->getValue(), $this->nbt->Entities->getValue(), $this->nbt->TileEntities->getValue());
 
 		unset($this->nbt->Blocks);
 		unset($this->nbt->Data);
@@ -178,7 +178,7 @@ class Chunk extends BaseChunk {
 		$nbt = new NBT(NBT::BIG_ENDIAN);
 
 		try {
-			$nbt->readCompressed($data, ZLIB_ENCODING_DEFLATE);
+			$nbt->readCompressed($data);
 			$chunk = $nbt->getData();
 
 			if (!isset($chunk->Level) or ! ($chunk->Level instanceof Compound)) {
@@ -194,14 +194,15 @@ class Chunk extends BaseChunk {
 	/**
 	 * @param string        $data
 	 * @param LevelProvider $provider
+	 * @param bool          $network
 	 *
 	 * @return Chunk
 	 */
-	public static function fromFastBinary($data, LevelProvider $provider = null) {
+	public static function fromFastBinary($data, LevelProvider $provider = null, $network = true) {
 		$nbt = new NBT(NBT::BIG_ENDIAN);
 
 		try {
-			$nbt->read($data);
+			$nbt->read($data, false, $network);
 			$chunk = $nbt->getData();
 
 			if (!isset($chunk->Level) or ! ($chunk->Level instanceof Compound)) {

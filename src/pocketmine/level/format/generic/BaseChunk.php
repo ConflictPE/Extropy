@@ -38,7 +38,6 @@ abstract class BaseChunk extends BaseFullChunk implements Chunk{
 	 * @param int            $x
 	 * @param int            $z
 	 * @param ChunkSection[] $sections
-	 * @param string         $biomeIds
 	 * @param int[]          $biomeColors
 	 * @param int[]          $heightMap
 	 * @param Compound[]     $entities
@@ -50,6 +49,7 @@ abstract class BaseChunk extends BaseFullChunk implements Chunk{
 		$this->provider = $provider;
 		$this->x = (int) $x;
 		$this->z = (int) $z;
+
 		foreach($sections as $Y => $section){
 			if($section instanceof ChunkSection){
 				$this->sections[$Y] = $section;
@@ -75,8 +75,8 @@ abstract class BaseChunk extends BaseFullChunk implements Chunk{
 			$this->incorrectHeightMap = true;
 		}
 
-		$this->NBTtiles = $tiles;
-		$this->NBTentities = $entities;
+		$this->NBTTiles = $tiles;
+		$this->NBTEntities = $entities;
 	}
 
 	public function getBlock($x, $y, $z, &$blockId, &$meta = null){

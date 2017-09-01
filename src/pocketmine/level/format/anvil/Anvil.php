@@ -84,7 +84,7 @@ class Anvil extends McRegion {
 			}
 		}
 
-		$data = array();
+		$data = [];
 		$data['chunkX'] = $x;
 		$data['chunkZ'] = $z;
 		$data['tiles'] = $tiles;
@@ -138,17 +138,6 @@ class Anvil extends McRegion {
 	 */
 	protected function getRegion($x, $z) {
 		return isset($this->regions[$index = Level::chunkHash($x, $z)]) ? $this->regions[$index] : null;
-	}
-
-	/**
-	 * @param int  $chunkX
-	 * @param int  $chunkZ
-	 * @param bool $create
-	 *
-	 * @return Chunk
-	 */
-	public function getChunk($chunkX, $chunkZ, $create = false) {
-		return parent::getChunk($chunkX, $chunkZ, $create);
 	}
 
 	public function setChunk($chunkX, $chunkZ, FullChunk $chunk) {
