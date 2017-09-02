@@ -2012,7 +2012,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					case PlayerActionPacket::ACTION_CONTINUE_BREAK:
 						$target = $this->level->getBlock($pos);
 						$pk = new LevelEventPacket();
-						$pk->evid = LevelEventPacket::EVENT_PARTICLE_DESTROY;
+						$pk->evid = LevelEventPacket::EVENT_PARTICLE_PUNCH_BLOCK;
 						$pk->x = $packet->x;
 						$pk->y = $packet->y;
 						$pk->z = $packet->z;
