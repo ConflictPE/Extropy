@@ -1768,30 +1768,36 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$this->processLogin();
 				return true;
 			case 'MOVE_PLAYER_PACKET':
-				$newPos = new Vector3($packet->x, $packet->y - $this->getEyeHeight(), $packet->z);
-
-				if(!$this->isMayMove and $newPos->distanceSquared($this) > 1) {  // Tolerate up to 1 block to avoid problems with client-sided physics when spawning in blocks
-					$this->setMayMove(true);
-					$spawn = $this->getSpawn();
-					$spawn->y += 0.2;
-					$this->teleport($spawn);
-				} elseif((!$this->isAlive() or !$this->spawned) and $newPos->distanceSquared($this) > 0.01) {
-					$this->sendPosition($this, null. null, MovePlayerPacket::MODE_RESET);
+				if(!$this->isAlive() or !$this->spawned) {
+					$this->forceMovement = new Vector3($this->x, $this->y, $this->z);
+					$this->sendPosition($this->forceMovement, $packet->yaw, $packet->pitch, MovePlayerPacket::MODE_RESET);
 				} else {
-					if(!$this->isMayMove) {  // Once we get a movement within a reasonable distance, treat it as a teleport ACK and remove position lock
-						$this->isMayMove = true;
+					$newPos = new Vector3($packet->x, $packet->y - $this->getEyeHeight(), $packet->z);
+					if(!($this->forceMovement instanceof Vector3) or $newPos->distanceSquared($this->forceMovement) <= 0.1) {
+						$packet->yaw %= 360;
+						$packet->pitch %= 360;
+
+						if($packet->yaw < 0) {
+							$packet->yaw += 360;
+						}
+
+						if(!$this->isMayMove) {
+							if($this->yaw != $packet->yaw or $this->pitch != $packet->pitch or abs($this->x - $packet->x) >= 0.05 or abs($this->z - $packet->z) >= 0.05) {
+								$this->setMayMove(true);
+								$spawn = $this->getSpawn();
+								$spawn->y += 0.1;
+								$this->teleport($spawn);
+							}
+						}
+
+						$this->setRotation($packet->yaw, $packet->pitch);
+						$this->newPosition = $newPos;
+						$this->forceMovement = null;
+					} elseif(microtime(true) - $this->lastTeleportTime > 2) {
+						$this->forceMovement = new Vector3($this->x, $this->y, $this->z);
+						$this->sendPosition($this->forceMovement, $packet->yaw, $packet->pitch, MovePlayerPacket::MODE_RESET);
+						$this->lastTeleportTime = microtime(true);
 					}
-
-					$packet->yaw %= 360;
-					$packet->pitch %= 360;
-
-					if($packet->yaw < 0){
-						$packet->yaw += 360;
-					}
-
-					$this->setRotation($packet->yaw, $packet->pitch);
-					$this->newPosition = $newPos;
-					$this->forceMovement = null;
 				}
 				return true;
 			case 'MOB_EQUIPMENT_PACKET':
