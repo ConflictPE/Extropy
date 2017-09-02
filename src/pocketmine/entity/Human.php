@@ -75,15 +75,15 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 	public function getSkinName(){
 		return $this->skinName;
 	}
-	
+
 	public function getSkinGeometryName(){
 		return $this->skinGeometryName;
 	}
-	
+
 	public function getSkinGeometryData(){
 		return $this->skinGeometryData;
 	}
-	
+
 	public function getCapeData(){
 		return $this->capeData;
 	}
@@ -137,7 +137,6 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 
 		if($this instanceof Player){
 			$this->inventory = Multiversion::getPlayerInventory($this);
-			$this->addWindow($this->inventory, 0);
 		} else {
 			$this->inventory = new PlayerInventory($this);
 		}

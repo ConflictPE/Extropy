@@ -3311,11 +3311,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			return;
 		}
 
-		$oldPos = $this->getPosition();
 		if(parent::teleport($pos, $yaw, $pitch)){
-			if(!is_null($this->currentWindow)) {
-				$this->removeWindow($this->currentWindow);
-			}
 			$this->forceMovement = new Vector3($this->x, $this->y, $this->z);
 			$this->sendPosition($this, $this->pitch, $this->yaw, MovePlayerPacket::MODE_RESET);
 
@@ -3361,7 +3357,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	/**
-	 * Returns the created/existing window id
+	 * Returns the current or created window id
 	 *
 	 * @param Inventory $inventory
 	 * @param int       $forceId
@@ -3369,11 +3365,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	 * @return int
 	 */
 	public function addWindow(Inventory $inventory, $forceId = null) {
-		if ($this->currentWindow === $inventory) {
+		if($this->currentWindow === $inventory) {
 			return $this->currentWindowId;
 		}
-		if (!is_null($this->currentWindow)) {
-			echo '[INFO] Trying to open window when previous inventory still open'.PHP_EOL;
+		if($this->currentWindow instanceof Inventory) {
+			$this->server->getLogger()->debug($this->username . " tried to open a new inventory while previous inventory still open.");
 			$this->removeWindow($this->currentWindow);
 		}
 		$this->currentWindow = $inventory;
@@ -3386,7 +3382,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	public function removeWindow(Inventory $inventory) {
 		if ($this->currentWindow !== $inventory) {
-			echo '[INFO] Trying to close not open window'.PHP_EOL;
+			$this->server->getLogger()->debug($this->username . " tried to close a closed inventory window.");
 		} else {
 			$inventory->close($this);
 			$this->currentWindow = null;
