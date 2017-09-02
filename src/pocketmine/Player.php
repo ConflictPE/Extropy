@@ -63,8 +63,8 @@ use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\player\PlayerReceiptsReceivedEvent;
-use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\event\player\PlayerRespawnAfterEvent;
+use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\event\player\PlayerToggleSneakEvent;
 use pocketmine\event\player\PlayerToggleSprintEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
@@ -107,6 +107,7 @@ use pocketmine\nbt\tag\ShortTag;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\network\multiversion\Multiversion;
 use pocketmine\network\multiversion\MultiversionEnums;
+use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\AdventureSettingsPacket;
 use pocketmine\network\protocol\AnimatePacket;
 use pocketmine\network\protocol\AvailableCommandsPacket;
@@ -126,6 +127,7 @@ use pocketmine\network\protocol\MovePlayerPacket;
 use pocketmine\network\protocol\PlayerActionPacket;
 use pocketmine\network\protocol\PlayerListPacket;
 use pocketmine\network\protocol\PlayStatusPacket;
+use pocketmine\network\protocol\RemoveEntityPacket;
 use pocketmine\network\protocol\ResourcePackClientResponsePacket;
 use pocketmine\network\protocol\ResourcePacksInfoPacket;
 use pocketmine\network\protocol\ResourcePackStackPacket;
@@ -144,6 +146,7 @@ use pocketmine\network\protocol\TransferPacket;
 use pocketmine\network\protocol\UpdateAttributesPacket;
 use pocketmine\network\protocol\UpdateBlockPacket;
 use pocketmine\network\protocol\v120\InventoryTransactionPacket;
+use pocketmine\network\protocol\v120\PlayerSkinPacket;
 use pocketmine\network\protocol\v120\Protocol120;
 use pocketmine\network\protocol\v120\ServerSettingsResponsetPacket;
 use pocketmine\network\protocol\v120\ShowModalFormPacket;
@@ -156,9 +159,6 @@ use pocketmine\tile\Sign;
 use pocketmine\tile\Spawnable;
 use pocketmine\tile\Tile;
 use pocketmine\utils\TextFormat;
-use pocketmine\network\protocol\v120\PlayerSkinPacket;
-use pocketmine\network\protocol\AddPlayerPacket;
-use pocketmine\network\protocol\RemoveEntityPacket;
 
 /**
  * Main class that handles networking, recovery, and packet sending to the server part
@@ -1856,177 +1856,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				if(!$this->spawned or !$this->isAlive()){
 					return true;
 				}
-
-				$blockVector = new Vector3($packet->x, $packet->y, $packet->z);
-				$facePos = new Vector3($packet->fx, $packet->fy, $packet->fz);
-
-				if($packet->face >= 0 and $packet->face <= 5) { //Use Block, place
-					$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, false);
-
-					if(!$this->canInteract($blockVector->add(0.5, 0.5, 0.5), 13) or $this->isSpectator()) {
-					} elseif ($this->isCreative()) {
-						$item = $this->inventory->getItemInHand();
-						if ($this->level->useItemOn($blockVector, $item, $packet->face, $packet->fx, $packet->fy, $packet->fz, $this) === true) {
-							return true;
-						}
-					} elseif (!$this->inventory->getItemInHand()->equals($packet->item)) {
-						$this->inventory->sendHeldItem($this);
-					} else {
-						$item = $this->inventory->getItemInHand();
-						$oldItem = clone $item;
-						//TODO: Implement adventure mode checks
-						if ($this->level->useItemOn($blockVector, $item, $packet->face, $packet->fx, $packet->fy, $packet->fz, $this)) {
-							if(!$item->equals($oldItem) or $item->getCount() !== $oldItem->getCount()) {
-								$this->inventory->setItemInHand($item);
-								$this->inventory->sendHeldItem($this->hasSpawned);
-							}
-							return true;
-						}
-					}
-
-					$this->inventory->sendHeldItem($this);
-
-					if($blockVector->distanceSquared($this) > 10000){
-						return true;
-					}
-
-					$target = $this->level->getBlock($blockVector);
-					$block = $target->getSide($packet->face);
-
-					$this->level->sendBlocks([$this], [$target, $block], UpdateBlockPacket::FLAG_ALL_PRIORITY);
-
-					return true;
-				} elseif ($packet->face === -1) {  // -1 for 0.16
-					if ($this->isSpectator()) {
-						$this->inventory->sendHeldItem($this);
-						if ($this->inventory->getHeldItemSlot() !== -1) {
-							$this->inventory->sendContents($this);
-						}
-						//Timings::$timerUseItemPacket->stopTiming();
-						break;
-					}
-
-					if(!$this->inventory->getItemInHand()->equals($packet->item)){
-						$this->inventory->sendHeldItem($this);
-						return true;
-					}else{
-						$item = $this->inventory->getItemInHand();
-					}
-
-					$aimPos = new Vector3(
-						-sin($this->yaw / 180 * M_PI) * cos($this->pitch / 180 * M_PI),
-						-sin($this->pitch / 180 * M_PI),
-						cos($this->yaw / 180 * M_PI) * cos($this->pitch / 180 * M_PI)
-					);
-
-					$ev = new PlayerInteractEvent($this, $item, $aimPos, $packet->face, PlayerInteractEvent::RIGHT_CLICK_AIR);
-					$this->server->getPluginManager()->callEvent($ev);
-					if ($ev->isCancelled()) {
-						$this->inventory->sendHeldItem($this);
-						break;
-					}
-
-					$nbt = new Compound("", [
-						new Enum("Pos", [
-							new DoubleTag("", $this->x),
-							new DoubleTag("", $this->y + $this->getEyeHeight()),
-							new DoubleTag("", $this->z),
-						]),
-						new Enum("Motion", [
-							new DoubleTag("", $aimPos->x),
-							new DoubleTag("", $aimPos->y),
-							new DoubleTag("", $aimPos->z),
-						]),
-						new Enum("Rotation", [
-							new FloatTag("", $this->yaw),
-							new FloatTag("", $this->pitch),
-						]),
-					]);
-
-					$entity = null;
-					$reduceCount = true;
-					$chunk = $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4);
-
-					switch($item->getId()){
-						//case Item::FISHING_ROD:
-						//	$this->server->getPluginManager()->callEvent($ev = new PlayerUseFishingRodEvent($this, ($this->isFishing() ? PlayerUseFishingRodEvent::ACTION_STOP_FISHING : PlayerUseFishingRodEvent::ACTION_START_FISHING)));
-						//	if(!$ev->isCancelled()){
-						//		if(!$this->isFishing()){
-						//			$f = 0.6;
-						//			$entity = Entity::createEntity("FishingHook", $this->getLevel(), $nbt, $this);
-						//			$entity->setMotion($entity->getMotion()->multiply($f));
-						//		}
-						//	}
-						//	$this->setFishingHook($entity);
-						//	$reduceCount = false;
-						//	break;
-						case Item::SNOWBALL:
-							$f = 1.5;
-							/** @var Snowball $entity */
-							$entity = Entity::createEntity("Snowball", $chunk, $nbt, $this);
-							$entity->setMotion($entity->getMotion()->multiply($f));
-							$this->server->getPluginManager()->callEvent($ev = new ProjectileLaunchEvent($entity));
-							if($ev->isCancelled()){
-								$entity->kill();
-							}
-							break;
-						case Item::EGG:
-							$f = 1.5;
-							/** @var Egg $entity */
-							$entity = Entity::createEntity("Egg", $chunk, $nbt, $this);
-							$entity->setMotion($entity->getMotion()->multiply($f));
-							$this->server->getPluginManager()->callEvent($ev = new ProjectileLaunchEvent($entity));
-							if($ev->isCancelled()){
-								$entity->kill();
-							}
-							break;
-						//case Item::ENCHANTING_BOTTLE:
-						//	$f = 1.1;
-						//	$entity = Entity::createEntity("ThrownExpBottle", $this->getLevel(), $nbt, $this);
-						//	$entity->setMotion($entity->getMotion()->multiply($f));
-						//	$this->server->getPluginManager()->callEvent($ev = new ProjectileLaunchEvent($entity));
-						//	if($ev->isCancelled()){
-						//		$entity->kill();
-						//	}
-						//	break;
-						case Item::SPLASH_POTION:
-							$f = 1.1;
-							$nbt["PotionId"] = new ShortTag("PotionId", $item->getDamage());
-							/** @var ThrownPotion $entity */
-							$entity = Entity::createEntity("ThrownPotion", $chunk, $nbt, $this);
-							$entity->setMotion($entity->getMotion()->multiply($f));
-							$this->server->getPluginManager()->callEvent($ev = new ProjectileLaunchEvent($entity));
-							if($ev->isCancelled()){
-								$entity->kill();
-							}
-						//case Item::ENDER_PEARL:
-						//	if(floor(($time = microtime(true)) - $this->lastEnderPearlUse) >= 1){
-						//		$f = 1.5;
-						//		$entity = Entity::createEntity("EnderPearl", $this->getLevel(), $nbt, $this);
-						//		$entity->setMotion($entity->getMotion()->multiply($f));
-						//		$this->server->getPluginManager()->callEvent($ev = new ProjectileLaunchEvent($entity));
-						//		if($ev->isCancelled()){
-						//			$entity->kill();
-						//		}else{
-						//			$this->lastEnderPearlUse = $time;
-						//		}
-						//	}
-						//	break;
-					}
-
-					if($entity instanceof Projectile and $entity->isAlive()){
-						if($reduceCount and $this->isSurvival()){
-							$item->setCount($item->getCount() - 1);
-							$this->inventory->setItemInHand($item->getCount() > 0 ? $item : Item::get(Item::AIR));
-						}
-
-						$entity->spawnToAll();
-						$this->level->addSound(new LaunchSound($this), $this->getViewers());
-					}
-
-					$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, true);
-					$this->startAction = $this->server->getTick();
-				}
+				$this->useItem($packet->item, $packet->hotbarSlot, $packet->face, new Vector3($packet->x, $packet->y, $packet->z), new Vector3($packet->fx, $packet->fy, $packet->fz));
 				break;
 			case 'PLAYER_ACTION_PACKET':
 				$action = MultiversionEnums::getPlayerAction((string) $this->protocol, $packet->action);
@@ -2143,7 +1973,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						break;
 					case PlayerActionPacket::ACTION_JUMP:
 						$this->onJump();
-						break;
+						return true;
 					case PlayerActionPacket::ACTION_START_SPRINT:
 						$this->server->getPluginManager()->callEvent($ev = new PlayerToggleSprintEvent($this, true));
 						if($ev->isCancelled()){
@@ -2151,7 +1981,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						}else{
 							$this->setSprinting(true);
 						}
-						break;
+						return true;
 					case PlayerActionPacket::ACTION_STOP_SPRINT:
 						$this->server->getPluginManager()->callEvent($ev = new PlayerToggleSprintEvent($this, false));
 						if($ev->isCancelled()){
@@ -2159,7 +1989,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						}else{
 							$this->setSprinting(false);
 						}
-						break;
+						return true;
 					case PlayerActionPacket::ACTION_START_SNEAK:
 						$this->server->getPluginManager()->callEvent($ev = new PlayerToggleSneakEvent($this, true));
 						if($ev->isCancelled()){
@@ -2167,7 +1997,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						}else{
 							$this->setSneaking(true);
 						}
-						break;
+						return true;
 					case PlayerActionPacket::ACTION_STOP_SNEAK:
 						$this->server->getPluginManager()->callEvent($ev = new PlayerToggleSneakEvent($this, false));
 						if($ev->isCancelled()){
@@ -2175,7 +2005,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						}else{
 							$this->setSneaking(false);
 						}
-						break;
+						return true;
 					case PlayerActionPacket::ACTION_START_GLIDE:
 					case PlayerActionPacket::ACTION_STOP_GLIDE:
 						break; //TODO
@@ -2199,6 +2029,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 				$this->startAction = -1;
 				$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, false);
+
 				return true;
 			case 'REMOVE_BLOCK_PACKET':
 				//Timings::$timerRemoveBlockPacket->startTiming();
@@ -2732,7 +2563,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						switch ($packet->actionType) {
 							case InventoryTransactionPacket::ITEM_USE_ACTION_PLACE:
 							case InventoryTransactionPacket::ITEM_USE_ACTION_USE:
-								$this->useItem($packet->item, $packet->slot, $packet->face, $packet->position, $packet->clickPosition);
+								$this->useItem($packet->item, $packet->slot, $packet->face, new Vector3($packet->position["x"], $packet->position["y"], $packet->position["z"]), new Vector3($packet->clickPosition["x"], $packet->clickPosition["y"], $packet->clickPosition["z"]));
 								break;
 							case InventoryTransactionPacket::ITEM_USE_ACTION_DESTROY:
 								$this->breakBlock($packet->position);
@@ -4119,141 +3950,178 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		return ($dot1 - $dot) >= -$maxDiff;
 	}
 
-	protected function useItem($item, $slot, $face, $blockPosition, $clickPosition) {
-		switch ($face) {
-			//Use Block, place
+	protected function useItem(Item $item, int $slot, int $face, Vector3 $blockPosition, Vector3 $clickPosition) {
+		$itemInHand = $this->inventory->getItemInHand();
+
+		switch($face) {
+			// Use item, block place
 			case 0:
 			case 1:
 			case 2:
 			case 3:
 			case 4:
 			case 5:
-				$blockVector = new Vector3($blockPosition['x'], $blockPosition['y'], $blockPosition['z']);
 				$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, false);
 
-				$itemInHand = $this->inventory->getItemInHand();
-				if ($blockVector->distance($this) > 10 || ($this->isCreative() && $this->isAdventure())) {
+				if(!$this->canInteract($blockPosition->add(0.5, 0.5, 0.5), 13) or $this->isSpectator()) {
 
-				} else if ($this->isCreative() && !$this->isSpectator()) {
-					if ($this->level->useItemOn($blockVector, $itemInHand, $face, $clickPosition['x'], $clickPosition['y'], $clickPosition['z'], $this) === true) {
-						//Timings::$timerUseItemPacket->stopTiming();
-						return;
+				} elseif($this->isCreative()) {
+					if($this->level->useItemOn($blockPosition, $itemInHand, $face, $clickPosition->x, $clickPosition->y, $clickPosition->z, $this) === true) {
+						return true;
 					}
-				} else if (!$itemInHand->deepEquals($item)) {
-	//						$this->inventory->sendHeldItem($this);
+				} elseif(!$itemInHand->equals($item)) {
+					$this->inventory->sendHeldItem($this);
 				} else {
 					$oldItem = clone $itemInHand;
 					//TODO: Implement adventure mode checks
-					if ($this->level->useItemOn($blockVector, $itemInHand, $face, $clickPosition['x'], $clickPosition['y'], $clickPosition['z'], $this)) {
-						if (!$itemInHand->deepEquals($oldItem) || $itemInHand->getCount() !== $oldItem->getCount()) {
-							$this->inventory->setItemInHand($itemInHand, $this);
+					if($this->level->useItemOn($blockPosition, $itemInHand, $face, $clickPosition->x, $clickPosition->y, $clickPosition->z, $this)) {
+						if(!$itemInHand->equals($oldItem) or $itemInHand->getCount() !== $oldItem->getCount()) {
+							$this->inventory->setItemInHand($itemInHand);
 							$this->inventory->sendHeldItem($this->hasSpawned);
 						}
-						//Timings::$timerUseItemPacket->stopTiming();
-						return;
+						return true;
 					}
 				}
 
+				/* disable this for now
+				TODO: revert
 				$this->inventory->sendHeldItem($this);
 
 				if($blockVector->distanceSquared($this) > 10000){
-					//Timings::$timerUseItemPacket->stopTiming();
 					return;
 				}
+
 				$target = $this->level->getBlock($blockVector);
 				$block = $target->getSide($face);
 
-				$this->level->sendBlocks([$this], [$target, $block], UpdateBlockPacket::FLAG_ALL_PRIORITY);
-				//Timings::$timerUseItemPacket->stopTiming();
-				return;
+				$this->level->sendBlocks([$this], [$target, $block], UpdateBlockPacket::FLAG_ALL_PRIORITY);*/
+
+				return true;
 
 			case 0xff:
 			case -1:  // -1 for 0.16
-				if ($this->isSpectator()) {
+				if(!$this->isCreative() and !$item->equals($itemInHand)) {
 					$this->inventory->sendHeldItem($this);
-					if ($this->inventory->getHeldItemSlot() !== -1) {
-						$this->inventory->sendContents($this);
-					}
-					//Timings::$timerUseItemPacket->stopTiming();
-					return;
+					return true;
 				}
 
-				$itemInHand = $this->inventory->getItemInHand();
-				if (!$itemInHand->deepEquals($item)) {
+				$aimPos = new Vector3(
+					-sin($this->yaw / 180 * M_PI) * cos($this->pitch / 180 * M_PI),
+					-sin($this->pitch / 180 * M_PI),
+					cos($this->yaw / 180 * M_PI) * cos($this->pitch / 180 * M_PI)
+				);
+
+				$this->server->getPluginManager()->callEvent($ev = new PlayerInteractEvent($this, $item, $aimPos, $face, PlayerInteractEvent::RIGHT_CLICK_AIR));
+				if($ev->isCancelled()) {
 					$this->inventory->sendHeldItem($this);
-					//Timings::$timerUseItemPacket->stopTiming();
-					return;
+					return true;
 				}
 
-				if ($blockPosition['x'] != 0 || $blockPosition['y'] != 0 || $blockPosition['z'] != 0) {
-					$vectorLength = sqrt($blockPosition['x'] ** 2 + $blockPosition['y'] ** 2 + $blockPosition['z'] ** 2);
-					$aimPos = new Vector3($blockPosition['x'] / $vectorLength, $blockPosition['y'] / $vectorLength, $blockPosition['z'] / $vectorLength);
-				} else {
-					$aimPos = new Vector3(0, 0, 0);
-				}
+				$nbt = new Compound("", [
+					new Enum("Pos", [
+						new DoubleTag("", $this->x),
+						new DoubleTag("", $this->y + $this->getEyeHeight()),
+						new DoubleTag("", $this->z),
+					]),
+					new Enum("Motion", [
+						new DoubleTag("", $aimPos->x),
+						new DoubleTag("", $aimPos->y),
+						new DoubleTag("", $aimPos->z),
+					]),
+					new Enum("Rotation", [
+						new FloatTag("", $this->yaw),
+						new FloatTag("", $this->pitch),
+					]),
+				]);
 
-				$ev = new PlayerInteractEvent($this, $itemInHand, $aimPos, $face, PlayerInteractEvent::RIGHT_CLICK_AIR);
-				$this->server->getPluginManager()->callEvent($ev);
-				if ($ev->isCancelled()) {
-					$this->inventory->sendHeldItem($this);
-					if ($this->inventory->getHeldItemSlot() !== -1) {
-						$this->inventory->sendContents($this);
-					}
-					//Timings::$timerUseItemPacket->stopTiming();
-					return;
-				}
+				$entity = null;
+				$reduceCount = true;
+				$chunk = $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4);
 
-				if($itemInHand->getId() === Item::SNOWBALL || $itemInHand->getId() === Item::EGG){
-					$yawRad = $this->yaw / 180 * M_PI;
-					$pitchRad = $this->pitch / 180 * M_PI;
-					$nbt = new Compound("", [
-						new Enum("Pos", [
-							new DoubleTag(0, $this->x),
-							new DoubleTag(1, $this->y + $this->getEyeHeight()),
-							new DoubleTag(2, $this->z),
-						]),
-						new Enum("Motion", [
-							new DoubleTag(0, -sin($yawRad) * cos($pitchRad)),
-							new DoubleTag(1, -sin($pitchRad)),
-							new DoubleTag(2, cos($yawRad) * cos($pitchRad)),
-						]),
-						new Enum("Rotation", [
-							new FloatTag(0, $this->yaw),
-							new FloatTag(1, $this->pitch),
-						]),
-					]);
-
-					$f = 1.5;
-					switch ($itemInHand->getId()) {
-						case Item::SNOWBALL:
-							$projectile = Entity::createEntity("Snowball", $this->chunk, $nbt, $this);
-							break;
-						case Item::EGG:
-							$projectile = Entity::createEntity("Egg", $this->chunk, $nbt, $this);
-							break;
-					}
-					$projectile->setMotion($projectile->getMotion()->multiply($f));
-					if ($this->isSurvival()) {
-						$itemInHand->setCount($itemInHand->getCount() - 1);
-						$this->inventory->setItemInHand($itemInHand->getCount() > 0 ? $itemInHand : Item::get(Item::AIR));
-					}
-					if ($projectile instanceof Projectile) {
-						$this->server->getPluginManager()->callEvent($projectileEv = new ProjectileLaunchEvent($projectile));
-						if ($projectileEv->isCancelled()) {
-							$projectile->kill();
-						} else {
-							$projectile->spawnToAll();
-							$this->level->addSound(new LaunchSound($this), $this->getViewers());
+				switch($item->getId()) {
+					case Item::SNOWBALL:
+						$f = 1.5;
+						/** @var Snowball $entity */
+						$entity = Entity::createEntity("Snowball", $chunk, $nbt, $this);
+						$entity->setMotion($entity->getMotion()->multiply($f));
+						$this->server->getPluginManager()->callEvent($ev = new ProjectileLaunchEvent($entity));
+						if($ev->isCancelled()) {
+							$entity->kill();
 						}
-					} else {
-						$projectile->spawnToAll();
+						break;
+					case Item::EGG:
+						$f = 1.5;
+						/** @var Egg $entity */
+						$entity = Entity::createEntity("Egg", $chunk, $nbt, $this);
+						$entity->setMotion($entity->getMotion()->multiply($f));
+						$this->server->getPluginManager()->callEvent($ev = new ProjectileLaunchEvent($entity));
+						if($ev->isCancelled()) {
+							$entity->kill();
+						}
+						break;
+					case Item::SPLASH_POTION:
+						$f = 1.1;
+						$nbt["PotionId"] = new ShortTag("PotionId", $item->getDamage());
+						/** @var ThrownPotion $entity */
+						$entity = Entity::createEntity("ThrownPotion", $chunk, $nbt, $this);
+						$entity->setMotion($entity->getMotion()->multiply($f));
+						$this->server->getPluginManager()->callEvent($ev = new ProjectileLaunchEvent($entity));
+						if($ev->isCancelled()) {
+							$entity->kill();
+						}
+						break;
+					//case Item::FISHING_ROD:
+					//	$this->server->getPluginManager()->callEvent($ev = new PlayerUseFishingRodEvent($this, ($this->isFishing() ? PlayerUseFishingRodEvent::ACTION_STOP_FISHING : PlayerUseFishingRodEvent::ACTION_START_FISHING)));
+					//	if(!$ev->isCancelled()){
+					//		if(!$this->isFishing()){
+					//			$f = 0.6;
+					//			$entity = Entity::createEntity("FishingHook", $this->getLevel(), $nbt, $this);
+					//			$entity->setMotion($entity->getMotion()->multiply($f));
+					//		}
+					//	}
+					//	$this->setFishingHook($entity);
+					//	$reduceCount = false;
+					//	break;
+					//case Item::ENCHANTING_BOTTLE:
+					//	$f = 1.1;
+					//	$entity = Entity::createEntity("ThrownExpBottle", $this->getLevel(), $nbt, $this);
+					//	$entity->setMotion($entity->getMotion()->multiply($f));
+					//	$this->server->getPluginManager()->callEvent($ev = new ProjectileLaunchEvent($entity));
+					//	if($ev->isCancelled()){
+					//		$entity->kill();
+					//	}
+					//	break;
+					//case Item::ENDER_PEARL:
+					//	if(floor(($time = microtime(true)) - $this->lastEnderPearlUse) >= 1){
+					//		$f = 1.5;
+					//		$entity = Entity::createEntity("EnderPearl", $this->getLevel(), $nbt, $this);
+					//		$entity->setMotion($entity->getMotion()->multiply($f));
+					//		$this->server->getPluginManager()->callEvent($ev = new ProjectileLaunchEvent($entity));
+					//		if($ev->isCancelled()){
+					//			$entity->kill();
+					//		}else{
+					//			$this->lastEnderPearlUse = $time;
+					//		}
+					//	}
+					//	break;
+				}
+
+				if($entity instanceof Projectile and $entity->isAlive()) {
+					if($reduceCount and $this->isSurvival()) {
+						$item->setCount($item->getCount() - 1);
+						$this->inventory->setItemInHand($item->getCount() > 0 ? $item : Item::get(Item::AIR));
 					}
+					$entity->spawnToAll();
+					$this->level->addSound(new LaunchSound($this), $this->getViewers());
 				}
 
 				$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, true);
 				$this->startAction = $this->server->getTick();
-				return;
+
+				return true;
 		}
+
+		return true;
 	}
 
 	/**
