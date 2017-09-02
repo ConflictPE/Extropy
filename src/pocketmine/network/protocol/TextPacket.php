@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | "_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,45 +15,48 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\network\protocol;
 
 #include <rules/DataPacket.h>
 
-use pocketmine\network\protocol\Info;
+
 use pocketmine\network\multiversion\MultiversionEnums;
 
-class TextPacket extends PEPacket{
+class TextPacket extends PEPacket {
+
 	const NETWORK_ID = Info::TEXT_PACKET;
 	const PACKET_NAME = "TEXT_PACKET";
 
-	const TYPE_RAW = 'TYPE_RAW';
-	const TYPE_CHAT = 'TYPE_CHAT';
-	const TYPE_TRANSLATION = 'TYPE_TRANSLATION';
-	const TYPE_POPUP = 'TYPE_POPUP';
-	const TYPE_JUKEBOX_POPUP = 'TYPE_JUKEBOX_POPUP';
-	const TYPE_TIP = 'TYPE_TIP';
-	const TYPE_SYSTEM = 'TYPE_SYSTEM';
-	const TYPE_WHISPER = 'TYPE_WHISPER';
-	const TYPE_ANNOUNCEMENT = 'TYPE_ANNOUNCEMENT';
+	const TYPE_RAW = "TYPE_RAW";
+	const TYPE_CHAT = "TYPE_CHAT";
+	const TYPE_TRANSLATION = "TYPE_TRANSLATION";
+	const TYPE_POPUP = "TYPE_POPUP";
+	const TYPE_JUKEBOX_POPUP = "TYPE_JUKEBOX_POPUP";
+	const TYPE_TIP = "TYPE_TIP";
+	const TYPE_SYSTEM = "TYPE_SYSTEM";
+	const TYPE_WHISPER = "TYPE_WHISPER";
+	const TYPE_ANNOUNCEMENT = "TYPE_ANNOUNCEMENT";
 
 	public $type;
 	public $source;
 	public $message;
 	public $parameters = [];
-	public $isLocolize = false;
-	public $xuid = '';
+	public $isLocalize = false;
+	public $xuid = "";
 
-	public function decode($playerProtocol){
+	public function decode(int $playerProtocol) {
 		$this->type = $this->getByte();
 		if ($playerProtocol >= Info::PROTOCOL_120) {
-			$this->isLocolize = $this->getByte();
+			$this->isLocalize = $this->getByte();
 		}
-		$this->type = MultiversionEnums::getMessageType($playerProtocol, $this->type);
-		switch ($this->type) {
+		$this->type = MultiversionEnums::getMessageType((string) $playerProtocol, $this->type);
+		switch($this->type) {
 			case self::TYPE_CHAT:
 			case self::TYPE_WHISPER:
 			case self::TYPE_ANNOUNCEMENT:
@@ -69,24 +72,24 @@ class TextPacket extends PEPacket{
 			case self::TYPE_POPUP:
 				$this->message = $this->getString();
 				$paramCount = $this->getVarInt();
-				for ($i = 0; $i < $paramCount; $i++) {
+				for($i = 0; $i < $paramCount; $i++) {
 					$this->parameters[] = $this->getString();
 				}
 				break;
 		}
-		if ($playerProtocol >= Info::PROTOCOL_120) {
+		if($playerProtocol >= Info::PROTOCOL_120) {
 			$this->xuid = $this->getString();
 		}
 	}
 
-	public function encode($playerProtocol){
+	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$typeId = MultiversionEnums::getMessageTypeId($playerProtocol, $this->type);
+		$typeId = MultiversionEnums::getMessageTypeId((string) $playerProtocol, $this->type);
 		$this->putByte($typeId);
-		if ($playerProtocol >= Info::PROTOCOL_120) {
-			$this->putByte($this->isLocolize);
+		if($playerProtocol >= Info::PROTOCOL_120) {
+			$this->putByte($this->isLocalize);
 		}
-		switch ($this->type) {
+		switch($this->type) {
 			case self::TYPE_CHAT:
 			case self::TYPE_WHISPER:
 			case self::TYPE_ANNOUNCEMENT:
@@ -108,7 +111,7 @@ class TextPacket extends PEPacket{
 				}
 				break;
 		}
-		if ($playerProtocol >= Info::PROTOCOL_120) {
+		if($playerProtocol >= Info::PROTOCOL_120) {
 			$this->putString($this->xuid);
 		}
 	}

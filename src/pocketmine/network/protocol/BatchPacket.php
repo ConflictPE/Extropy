@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,27 +15,30 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\network\protocol;
 
 #include <rules/DataPacket.h>
 
 
-class BatchPacket extends PEPacket{
+class BatchPacket extends PEPacket {
+
 	const NETWORK_ID = Info::BATCH_PACKET;
 	const PACKET_NAME = "BATCH_PACKET";
 
 	public $payload;
 	public $is110 = false;
 
-	public function decode($playerProtocol) {
-		if ($this->is110) {
+	public function decode(int $playerProtocol) {
+		if($this->is110) {
 			$playerProtocol = Info::PROTOCOL_110;
 		}
-		switch ($playerProtocol) {
+		switch($playerProtocol) {
 			case Info::PROTOCOL_120:
 			case Info::PROTOCOL_110:
 				$this->payload = $this->get(true);
@@ -46,8 +49,8 @@ class BatchPacket extends PEPacket{
 		}
 	}
 
-	public function encode($playerProtocol) {
-		switch ($playerProtocol) {
+	public function encode(int $playerProtocol) {
+		switch($playerProtocol) {
 			case Info::PROTOCOL_120:
 			case Info::PROTOCOL_110:
 				$this->buffer = $this->payload;

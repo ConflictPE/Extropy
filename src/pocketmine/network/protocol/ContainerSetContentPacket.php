@@ -19,12 +19,15 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\network\protocol;
 
 #include <rules/DataPacket.h>
 
 
-class ContainerSetContentPacket extends PEPacket{
+class ContainerSetContentPacket extends PEPacket {
+
 	const NETWORK_ID = Info::CONTAINER_SET_CONTENT_PACKET;
 	const PACKET_NAME = "CONTAINER_SET_CONTENT_PACKET";
 
@@ -34,46 +37,48 @@ class ContainerSetContentPacket extends PEPacket{
 	const SPECIAL_CREATIVE = 0x79;
 
 	public $windowid;
+	public $eid = 0;
 	public $slots = [];
 	public $hotbar = [];
-	public $eid = 0;
 
-	public function clean(){
+	public function clean() {
 		$this->slots = [];
 		$this->hotbar = [];
 		return parent::clean();
 	}
 
-	public function decode($playerProtocol){
-		$this->windowid = $this->getByte();
-		$count = $this->getVarInt();
-		for($s = 0; $s < $count and !$this->feof(); ++$s){
+	public function decode(int $playerProtocol) {
+		$this->windowid = $this->getVarInt();
+
+		$count = $this->getEntityUniqueId();
+		for($s = 0; $s < $count and !$this->feof(); ++$s) {
 			$this->slots[$s] = $this->getSlot($playerProtocol);
 		}
-		if($this->windowid === self::SPECIAL_INVENTORY){
-			$count = $this->getVarInt();
-			for($s = 0; $s < $count and !$this->feof(); ++$s){
-				$this->hotbar[$s] = $this->getVarInt();
-			}
+
+		$hotbarCount = $this->getVarInt(); //MCPE always sends this, even when it's not a player inventory
+		for($s = 0; $s < $hotbarCount and !$this->feof(); ++$s) {
+			$this->hotbar[$s] = $this->getSignedVarInt();
 		}
 	}
 
-	public function encode($playerProtocol){
+	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putByte($this->windowid);
+		$this->putVarInt($this->windowid);
+
 		if($playerProtocol >= Info::PROTOCOL_110) {
-			$this->putVarInt($this->eid);
+			$this->putEntityUniqueId($this->eid);
 		}
+
 		$this->putVarInt(count($this->slots));
-		foreach($this->slots as $slot){
+		foreach($this->slots as $slot) {
 			$this->putSlot($slot, $playerProtocol);
 		}
-		if($this->windowid === self::SPECIAL_INVENTORY and count($this->hotbar) > 0){
+		if($this->windowid === self::SPECIAL_INVENTORY and count($this->hotbar) > 0) {
 			$this->putVarInt(count($this->hotbar));
-			foreach($this->hotbar as $slot){
+			foreach($this->hotbar as $slot) {
 				$this->putSignedVarInt($slot);
 			}
-		}else{
+		} else {
 			$this->putVarInt(0);
 		}
 	}

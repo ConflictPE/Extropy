@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,33 +15,37 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\network\protocol;
 
 #include <rules/DataPacket.h>
 
 
-class PlayStatusPacket extends PEPacket{
+class PlayStatusPacket extends PEPacket {
+
 	const NETWORK_ID = Info::PLAY_STATUS_PACKET;
 	const PACKET_NAME = "PLAY_STATUS_PACKET";
-	
+
 	const LOGIN_SUCCESS = 0;
 	const LOGIN_FAILED_CLIENT = 1;
 	const LOGIN_FAILED_SERVER = 2;
 	const PLAYER_SPAWN = 3;
-	const EDU_NO_ACCESS = 4;
-	const EDU_LEVEL_TYPE = 5;
-	
+	const LOGIN_FAILED_INVALID_TENANT = 4;
+	const LOGIN_FAILED_VANILLA_EDU = 5;
+	const LOGIN_FAILED_EDU_VANILLA = 6;
+
 	public $status;
 
-	public function decode($playerProtocol){
-
+	public function decode(int $playerProtocol) {
+		$this->status = $this->getInt();
 	}
 
-	public function encode($playerProtocol){
+	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
 		$this->putInt($this->status);
 	}

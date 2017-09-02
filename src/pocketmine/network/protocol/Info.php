@@ -25,7 +25,7 @@
 namespace pocketmine\network\protocol;
 
 
-interface Info{
+interface Info {
 
 	/**
 	 * Minecraft: PE protocol versions
@@ -143,14 +143,3 @@ interface Info{
 	const TRANSFER_PACKET = 0x53;
 
 }
-
-
-
-
-
-
-
-
-
-
-

@@ -220,12 +220,10 @@ class Explosion{
 		Server::broadcastPacket($this->level->getUsingChunk($source->x >> 4, $source->z >> 4), $pk);
 		$this->level->addParticle(new HugeExplodeParticle(new Vector3($this->source->x,  $this->source->y, $this->source->z)));
 		$pk1 = new LevelSoundEventPacket();
-		$pk1->eventId = 45;
+		$pk1->sound = 45;
 		$pk1->x = $this->source->x;
 		$pk1->y = $this->source->y;
 		$pk1->z = $this->source->z;
-		$pk1->blockId = -1;
-		$pk1->entityType = 1;
 		Server::broadcastPacket($this->level->getUsingChunk($source->x >> 4, $source->z >> 4), $pk1);
 
 		return true;

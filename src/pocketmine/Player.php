@@ -2023,7 +2023,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				}
 				break;
 			case 'PLAYER_ACTION_PACKET':
-				$action = MultiversionEnums::getPlayerAction($this->protocol, $packet->action);
+				$action = MultiversionEnums::getPlayerAction((string) $this->protocol, $packet->action);
 				if(!$this->spawned or (!$this->isAlive() and !in_array($action, [PlayerActionPacket::ACTION_RESPAWN, PlayerActionPacket::ACTION_DIMENSION_CHANGE]))){
 					break;
 				}
@@ -2054,7 +2054,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 							$breakTime = ceil($target->getBreakTime($this->inventory->getItemInHand()) * 20);
 							if($breakTime > 0) {
 								$pk = new LevelEventPacket();
-								$pk->evid = LevelEventPacket::EVENT_START_BLOCK_CRACKING;
+								$pk->evid = LevelEventPacket::EVENT_BLOCK_START_BREAK;
 								$pk->x = $pos->x;
 								$pk->y = $pos->y;
 								$pk->z = $pos->z;
@@ -2072,7 +2072,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						$this->lastBreak = PHP_INT_MAX;
 					case PlayerActionPacket::ACTION_STOP_BREAK:
 						$pk = new LevelEventPacket();
-						$pk->evid = LevelEventPacket::EVENT_STOP_BLOCK_CRACKING;
+						$pk->evid = LevelEventPacket::EVENT_BLOCK_STOP_BREAK;
 						$pk->x = $packet->x;
 						$pk->y = $packet->y;
 						$pk->z = $packet->z;
@@ -2176,7 +2176,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					case PlayerActionPacket::ACTION_CONTINUE_BREAK:
 						$target = $this->level->getBlock($pos);
 						$pk = new LevelEventPacket();
-						$pk->evid = LevelEventPacket::EVENT_PARTICLE_CRACK_BLOCK;
+						$pk->evid = LevelEventPacket::EVENT_PARTICLE_DESTROY;
 						$pk->x = $packet->x;
 						$pk->y = $packet->y;
 						$pk->z = $packet->z;
@@ -3943,17 +3943,17 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		}
 	}
 
-	public function sendNoteSound($noteId, $queue = false) {
-		if ($queue) {
+	public function sendNoteSound(int $noteId, $queue = false) {
+		if($queue) {
 			$this->noteSoundQueue[] = $noteId;
 			return;
 		}
 		$pk = new LevelSoundEventPacket();
-		$pk->eventId = LevelSoundEventPacket::SOUND_NOTE;
+		$pk->sound = LevelSoundEventPacket::SOUND_NOTE;
 		$pk->x = $this->x;
 		$pk->y = $this->y;
 		$pk->z = $this->z;
-		$pk->entityType = $noteId;
+		$pk->pitch = $noteId;
 		$this->directDataPacket($pk);
 	}
 
@@ -4439,19 +4439,20 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		}
 	}
 
-	 /**
-	 *
-	 * @param integer $soundId
+	/**
+	 * @param int $soundId
 	 * @param float[] $position
+	 * @param int $pitch
+	 * @param int $extraData
 	 */
-	public function sendSound($soundId, $position, $entityType = 1, $blockId = -1) {
+	public function sendSound(int $soundId, array $position, int $pitch = 1, $extraData = -1) {
 		$pk = new LevelSoundEventPacket();
-		$pk->eventId = $soundId;
-		$pk->x = $position['x'];
-		$pk->y = $position['y'];
-		$pk->z = $position['z'];
-		$pk->blockId = $blockId;
-		$pk->entityType = $entityType;
+		$pk->sound = $soundId;
+		$pk->x = $position["x"];
+		$pk->y = $position["y"];
+		$pk->z = $position["z"];
+		$pk->extraData = $extraData;
+		$pk->pitch = $pitch;
 		$this->dataPacket($pk);
 	}
 
@@ -4546,12 +4547,10 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						$recipients = $this->hasSpawned;
 						$recipients[$this->id] = $this;
 						$pk = new LevelSoundEventPacket();
-						$pk->eventId = 20;
+						$pk->sound = LevelSoundEventPacket::SOUND_BOW;
 						$pk->x = $this->x;
 						$pk->y = $this->y;
 						$pk->z = $this->z;
-						$pk->blockId = -1;
-						$pk->entityType = 1;
 						Server::broadcastPacket($recipients, $pk);
 					}
 				} else {

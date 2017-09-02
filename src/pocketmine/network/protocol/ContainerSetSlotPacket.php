@@ -19,24 +19,30 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\network\protocol;
 
 #include <rules/DataPacket.h>
 
+
 use pocketmine\item\Item;
 
-class ContainerSetSlotPacket extends PEPacket{
+class ContainerSetSlotPacket extends PEPacket {
+
 	const NETWORK_ID = Info::CONTAINER_SET_SLOT_PACKET;
 	const PACKET_NAME = "CONTAINER_SET_SLOT_PACKET";
 
 	public $windowid;
 	public $slot;
 	public $hotbarSlot = 0;
+
 	/** @var Item */
 	public $item;
+
 	public $selectSlot = 0;
 
-	public function decode($playerProtocol){
+	public function decode(int $playerProtocol) {
 		$this->windowid = $this->getByte();
 		$this->slot = $this->getSignedVarInt();
 		$this->hotbarSlot = $this->getSignedVarInt();
@@ -46,7 +52,7 @@ class ContainerSetSlotPacket extends PEPacket{
 		}
 	}
 
-	public function encode($playerProtocol){
+	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
 		$this->putByte($this->windowid);
 		$this->putSignedVarInt($this->slot);

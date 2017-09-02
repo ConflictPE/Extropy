@@ -19,12 +19,15 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\network\protocol;
 
 #include <rules/DataPacket.h>
 
 
-class MobEquipmentPacket extends PEPacket{
+class MobEquipmentPacket extends PEPacket {
+
 	const NETWORK_ID = Info::MOB_EQUIPMENT_PACKET;
 	const PACKET_NAME = "MOB_EQUIPMENT_PACKET";
 
@@ -36,20 +39,21 @@ class MobEquipmentPacket extends PEPacket{
 
 	const WINDOW_ID_PLAYER_OFFHAND = 0x77;
 
-	public function decode($playerProtocol){
-		$this->eid = $this->getVarInt();
+	public function decode(int $playerProtocol) {
+		$this->eid = $this->getEntityRuntimeId();
 		$this->item = $this->getSlot($playerProtocol);
 		$this->slot = $this->getByte();
 		$this->selectedSlot = $this->getByte();
 		$this->windowId = $this->getByte();
 	}
 
-	public function encode($playerProtocol){
+	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putVarInt($this->eid);
+		$this->putEntityRuntimeId($this->eid);
 		$this->putSlot($this->item, $playerProtocol);
 		$this->putByte($this->slot);
 		$this->putByte($this->selectedSlot);
 		$this->putByte($this->windowId);
 	}
+
 }

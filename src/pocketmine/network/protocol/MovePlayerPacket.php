@@ -19,12 +19,15 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\network\protocol;
 
 #include <rules/DataPacket.h>
 
 
-class MovePlayerPacket extends PEPacket{
+class MovePlayerPacket extends PEPacket {
+
 	const NETWORK_ID = Info::MOVE_PLAYER_PACKET;
 	const PACKET_NAME = "MOVE_PLAYER_PACKET";
 
@@ -32,7 +35,7 @@ class MovePlayerPacket extends PEPacket{
 	const MODE_RESET = 1;
 	const MODE_TELEPORT = 2;
 	const MODE_ROTATION = 3;
-	
+
 	const TELEPORTATION_CAUSE_UNKNOWN = 0;
 	const TELEPORTATION_CAUSE_PROJECTILE = 1;
 	const TELEPORTATION_CAUSE_CHORUS_FRUIT = 2;
@@ -50,17 +53,15 @@ class MovePlayerPacket extends PEPacket{
 	public $mode = self::MODE_NORMAL;
 	public $onGround;
 
-	public function clean(){
+	public function clean() {
 		$this->teleport = false;
 		return parent::clean();
 	}
 
-	public function decode($playerProtocol){
-		$this->eid = $this->getVarInt();
+	public function decode(int $playerProtocol) {
+		$this->eid = $this->getEntityRuntimeId();
 
-		$this->x = $this->getLFloat();
-		$this->y = $this->getLFloat();
-		$this->z = $this->getLFloat();
+		$this->getVector3f($this->x, $this->y, $this->z);
 
 		$this->pitch = $this->getLFloat();
 		$this->yaw = $this->getLFloat();
@@ -70,13 +71,11 @@ class MovePlayerPacket extends PEPacket{
 		$this->onGround = $this->getByte() > 0;
 	}
 
-	public function encode($playerProtocol){
+	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putVarInt($this->eid);
+		$this->putEntityRuntimeId($this->eid);
 
-		$this->putLFloat($this->x);
-		$this->putLFloat($this->y);
-		$this->putLFloat($this->z);
+		$this->putVector3f($this->x, $this->y, $this->z);
 
 		$this->putLFloat($this->pitch);
 		$this->putLFloat($this->yaw);
@@ -84,11 +83,11 @@ class MovePlayerPacket extends PEPacket{
 		$this->putLFloat($this->bodyYaw);
 		$this->putByte($this->mode);
 		$this->putByte($this->onGround > 0);
-		/** @todo do it right */
-		$this->putVarInt(0); // riding runtime ID
-		if (self::MODE_TELEPORT == $this->mode) {
-			$this->putInt(self::TELEPORTATION_CAUSE_UNKNOWN);
-			$this->putInt(1);
+
+		$this->putEntityRuntimeId(0); // riding runtime ID
+		if($this->mode === self::MODE_TELEPORT) {
+			$this->putLInt(self::TELEPORTATION_CAUSE_UNKNOWN);
+			$this->putLInt(0);
 		}
 	}
 

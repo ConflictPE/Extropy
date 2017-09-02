@@ -19,12 +19,15 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\network\protocol;
 
 #include <rules/DataPacket.h>
 
 
-class AddItemEntityPacket extends PEPacket{
+class AddItemEntityPacket extends PEPacket {
+
 	const NETWORK_ID = Info::ADD_ITEM_ENTITY_PACKET;
 	const PACKET_NAME = "ADD_ITEM_ENTITY_PACKET";
 
@@ -37,11 +40,11 @@ class AddItemEntityPacket extends PEPacket{
 	public $speedY;
 	public $speedZ;
 
-	public function decode($playerProtocol){
+	public function decode(int $playerProtocol) {
 
 	}
 
-	public function encode($playerProtocol){
+	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
 		$this->putEntityUniqueId($this->eid);
 		$this->putEntityRuntimeId($this->eid);

@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,16 +15,19 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\network\protocol;
 
 #include <rules/DataPacket.h>
 
 
-class MobEffectPacket extends PEPacket{
+class MobEffectPacket extends PEPacket {
+
 	const NETWORK_ID = Info::MOB_EFFECT_PACKET;
 	const PACKET_NAME = "MOB_EFFECT_PACKET";
 
@@ -39,17 +42,22 @@ class MobEffectPacket extends PEPacket{
 	public $particles = true;
 	public $duration;
 
-	public function decode($playerProtocol){
-
+	public function decode(int $playerProtocol) {
+		$this->eid = $this->getEntityRuntimeId();
+		$this->eventId = $this->getByte();
+		$this->effectId = $this->getSignedVarInt();
+		$this->amplifier = $this->getSignedVarInt();
+		$this->particles = $this->getBool();
+		$this->duration = $this->getSignedVarInt();
 	}
 
-	public function encode($playerProtocol){
+	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putVarInt($this->eid);
+		$this->putEntityRuntimeId($this->eid);
 		$this->putByte($this->eventId);
 		$this->putSignedVarInt($this->effectId);
 		$this->putSignedVarInt($this->amplifier);
-		$this->putByte($this->particles ? 1 : 0);
+		$this->putBool($this->particles);
 		$this->putSignedVarInt($this->duration);
 	}
 

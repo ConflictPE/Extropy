@@ -17,11 +17,14 @@
  * @link http://www.pocketmine.net/
  *
  *
- */
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\network\protocol;
 
 #include <rules/DataPacket.h>
+
 
 class TransferPacket extends PEPacket {
 
@@ -31,11 +34,11 @@ class TransferPacket extends PEPacket {
 	public $ip;
 	public $port = 19132;
 
-	public function decode($playerProtocol) {
-		
+	public function decode(int $playerProtocol) {
+
 	}
 
-	public function encode($playerProtocol) {
+	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
 		$this->putString($this->ip);
 		$this->putLShort($this->port);

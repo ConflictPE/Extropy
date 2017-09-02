@@ -17,7 +17,9 @@
  * @link http://www.pocketmine.net/
  *
  *
- */
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\network\protocol;
 
@@ -26,7 +28,6 @@ namespace pocketmine\network\protocol;
 
 use pocketmine\utils\UUID;
 use pocketmine\utils\Binary;
-use pocketmine\network\protocol\Info;
 
 class LoginPacket extends PEPacket {
 
@@ -36,22 +37,21 @@ class LoginPacket extends PEPacket {
 	public $username;
 	public $protocol1;
 	public $protocol2;
+	public $gameEdition;
 	public $clientId;
 	public $clientUUID;
 	public $serverAddress;
 	public $clientSecret;
 	public $slim = false;
 	public $skinName;
-	public $chainsDataLength;
 	public $chains;
-	public $playerDataLength;
 	public $playerData;
 	public $isValidProtocol = true;
-    public $inventoryType = -1;
-    public $osType = -1;
-    public $xuid = '';
-	public $languageCode = 'unknown';
-	public $clientVersion = 'unknown';
+	public $inventoryType = -1;
+	public $osType = -1;
+	public $xuid = "";
+	public $languageCode = "unknown";
+	public $clientVersion = "unknown";
 	public $originalProtocol;
 	public $skinGeometryName = "";
 	public $skinGeometryData = "";
@@ -63,22 +63,21 @@ class LoginPacket extends PEPacket {
 		return $res;
 	}
 
-	public function decode($playerProtocol) {
-		$acceptedProtocols = Info::ACCEPTED_PROTOCOLS;
-		$tmpData = Binary::readInt(substr($this->buffer, 1, 4));
-		if ($tmpData == 0) {
-			$this->getShort();
+	public function decode(int $playerProtocol) {
+		if(Binary::readInt(substr($this->buffer, 1, 4)) === 0) {
+			$this->getShort(); // ???
 		}
+
 		$this->protocol1 = $this->getInt();
-		if (!in_array($this->protocol1, $acceptedProtocols)) {
+		if(!in_array($this->protocol1, Info::ACCEPTED_PROTOCOLS)) {
 			$this->isValidProtocol = false;
 			return;
 		}
-		if ($this->protocol1 < Info::PROTOCOL_120) {
-			$this->getByte();
+		if($this->protocol1 < Info::PROTOCOL_120) {
+			$this->gameEdition = $this->getByte();
 		}
 		$data = $this->getString();
-		if ($this->protocol1 >= Info::PROTOCOL_110) {
+		if($this->protocol1 >= Info::PROTOCOL_110) {
 			if (ord($data{0}) != 120 || (($decodedData = @zlib_decode($data)) === false)) {
 				$body = $data;
 			} else {
@@ -87,73 +86,81 @@ class LoginPacket extends PEPacket {
 		} else {
 			$body = \zlib_decode($data);
 		}
-		$this->chainsDataLength = Binary::readLInt($this->getFromString($body, 4));
-		$this->chains = json_decode($this->getFromString($body, $this->chainsDataLength), true);
 
-		$this->playerDataLength = Binary::readLInt($this->getFromString($body, 4));
-		$this->playerData = $this->getFromString($body, $this->playerDataLength);
+		$this->chains = json_decode($this->getFromString($body, Binary::readLInt($this->getFromString($body, 4))), true);
 
-		$this->chains['data'] = array();
+		$this->playerData = $this->getFromString($body, Binary::readLInt($this->getFromString($body, 4)));
+
+		$this->chains["data"] = [];
 		$index = 0;
-		foreach ($this->chains['chain'] as $key => $jwt) {
+		foreach($this->chains["chain"] as $key => $jwt) {
 			$data = self::load($jwt);
-			if (isset($data['extraData'])) {
+			if(isset($data["extraData"])) {
 				$dataIndex = $index;
 			}
-			$this->chains['data'][$index] = $data;
+			$this->chains["data"][$index] = $data;
 			$index++;
 		}
-		if (!isset($dataIndex)) {
+
+		if(!isset($dataIndex)) {
 			$this->isValidProtocol = false;
 			return;
 		}
 
 		$this->playerData = self::load($this->playerData);
-		$this->username = $this->chains['data'][$dataIndex]['extraData']['displayName'];
-		$this->clientId = $this->chains['data'][$dataIndex]['extraData']['identity'];
-		$this->clientUUID = UUID::fromString($this->chains['data'][$dataIndex]['extraData']['identity']);
-		$this->identityPublicKey = $this->chains['data'][$dataIndex]['identityPublicKey'];
-        if (isset($this->chains['data'][$dataIndex]['extraData']['XUID'])) {
-            $this->xuid = $this->chains['data'][$dataIndex]['extraData']['XUID'];
-        }
+		$this->username = $this->chains["data"][$dataIndex]["extraData"]["displayName"];
+		$this->clientId = $this->chains["data"][$dataIndex]["extraData"]["identity"];
+		$this->clientUUID = UUID::fromString($this->chains["data"][$dataIndex]["extraData"]["identity"]);
+		$this->identityPublicKey = $this->chains["data"][$dataIndex]["identityPublicKey"];
+		if(isset($this->chains["data"][$dataIndex]["extraData"]["XUID"])) {
+			$this->xuid = $this->chains["data"][$dataIndex]["extraData"]["XUID"];
+		}
 
-		$this->serverAddress = $this->playerData['ServerAddress'];
-		$this->skinName = $this->playerData['SkinId'];
-		$this->skin = base64_decode($this->playerData['SkinData']);
-		if (isset($this->playerData['SkinGeometryName'])) {
-            $this->skinGeometryName = $this->playerData['SkinGeometryName'];
-        }
-		if (isset($this->playerData['SkinGeometry'])) {
-            $this->skinGeometryData = base64_decode($this->playerData['SkinGeometry']);
-        }
-		$this->clientSecret = $this->playerData['ClientRandomId'];
-        if (isset($this->playerData['DeviceOS'])) {
-            $this->osType = $this->playerData['DeviceOS'];
-        }
-        if (isset($this->playerData['UIProfile'])) {
-            $this->inventoryType = $this->playerData['UIProfile'];
-        }
-		if (isset($this->playerData['LanguageCode'])) {
-            $this->languageCode = $this->playerData['LanguageCode'];
-        }
-		if (isset($this->playerData['GameVersion'])) {
-            $this->clientVersion = $this->playerData['GameVersion'];
-        }
-		if (isset($this->playerData['CapeData'])) {
-            $this->capeData = base64_decode($this->playerData['CapeData']);
-        }
+		$this->serverAddress = $this->playerData["ServerAddress"];
+		$this->skinName = $this->playerData["SkinId"];
+		$this->skin = base64_decode($this->playerData["SkinData"]);
+
+		if(isset($this->playerData["SkinGeometryName"])) {
+			$this->skinGeometryName = $this->playerData["SkinGeometryName"];
+		}
+
+		if(isset($this->playerData["SkinGeometry"])) {
+			$this->skinGeometryData = base64_decode($this->playerData["SkinGeometry"]);
+		}
+
+		$this->clientSecret = $this->playerData["ClientRandomId"];
+		if(isset($this->playerData["DeviceOS"])) {
+			$this->osType = $this->playerData["DeviceOS"];
+		}
+
+		if(isset($this->playerData["UIProfile"])) {
+			$this->inventoryType = $this->playerData["UIProfile"];
+		}
+
+		if(isset($this->playerData["LanguageCode"])) {
+			$this->languageCode = $this->playerData["LanguageCode"];
+		}
+
+		if(isset($this->playerData["GameVersion"])) {
+			$this->clientVersion = $this->playerData["GameVersion"];
+		}
+
+		if(isset($this->playerData["CapeData"])) {
+			$this->capeData = base64_decode($this->playerData["CapeData"]);
+		}
+
 		$this->originalProtocol = $this->protocol1;
 		$this->protocol1 = self::convertProtocol($this->protocol1);
 	}
 
-	public function encode($playerProtocol) {
+	public function encode(int $playerProtocol) {
 
 	}
 
 	public static function load($jwsTokenString) {
-		$parts = explode('.', $jwsTokenString);
+		$parts = explode(".", $jwsTokenString);
 		if (isset($parts[1])) {
-			$payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), true);
+			$payload = json_decode(base64_decode(strtr($parts[1], "-_", "+/")), true);
 			return $payload;
 		}
 		return "";

@@ -19,16 +19,20 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\network\protocol;
 
 #include <rules/DataPacket.h>
+
 
 #ifndef COMPILE
 use pocketmine\utils\Binary;
 
 #endif
 
-class AddEntityPacket extends PEPacket{
+class AddEntityPacket extends PEPacket {
+
 	const NETWORK_ID = Info::ADD_ENTITY_PACKET;
 	const PACKET_NAME = "ADD_ENTITY_PACKET";
 
@@ -46,34 +50,31 @@ class AddEntityPacket extends PEPacket{
 	public $links = [];
 	public $attributes = [];
 
-	public function decode($playerProtocol){
-
+	public function decode(int $playerProtocol) {
 	}
 
-	public function encode($playerProtocol){
+	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putVarInt($this->eid);
-		$this->putVarInt($this->eid);
+		$this->putEntityUniqueId($this->eid); // TODO
+		$this->putEntityRuntimeId($this->eid);
 		$this->putVarInt($this->type);
-		$this->putLFloat($this->x);
-		$this->putLFloat($this->y);
-		$this->putLFloat($this->z);
-		$this->putLFloat($this->speedX);
-		$this->putLFloat($this->speedY);
-		$this->putLFloat($this->speedZ);
+		$this->putVector3f($this->x, $this->y, $this->z);
+		$this->putVector3f($this->speedX, $this->speedY, $this->speedZ);
 		$this->putLFloat($this->pitch);
 		$this->putLFloat($this->yaw);
+
 		$this->putVarInt(count($this->attributes));
-		foreach ($this->attributes as $attribute) {
+		foreach($this->attributes as $attribute) {
 			$this->putString($attribute['name']);
 			$this->putLFloat($attribute['min']);
 			$this->putLFloat($attribute['default']);
 			$this->putLFloat($attribute['max']);
 		}
-		$meta = Binary::writeMetadata($this->metadata, $playerProtocol);
-		$this->put($meta);
+
+		$this->put(Binary::writeMetadata($this->metadata, $playerProtocol));
+
 		$this->putVarInt(count($this->links));
-		foreach ($this->links as $link) {
+		foreach($this->links as $link) {
 			$this->putVarInt($link['from']);
 			$this->putVarInt($link['to']);
 			$this->putByte($link['type']);

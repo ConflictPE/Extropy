@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,16 +15,19 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\network\protocol;
 
 #include <rules/DataPacket.h>
 
 
-class ContainerOpenPacket extends PEPacket{
+class ContainerOpenPacket extends PEPacket {
+
 	const NETWORK_ID = Info::CONTAINER_OPEN_PACKET;
 	const PACKET_NAME = "CONTAINER_OPEN_PACKET";
 
@@ -36,21 +39,19 @@ class ContainerOpenPacket extends PEPacket{
 	public $y;
 	public $z;
 
-	public function decode($playerProtocol){
+	public function decode(int $playerProtocol) {
 
 	}
 
-	public function encode($playerProtocol){
+	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
 		$this->putByte($this->windowid);
 		$this->putByte($this->type);
-		if ($playerProtocol < Info::PROTOCOL_110) {
+		if($playerProtocol < Info::PROTOCOL_110) {
 			$this->putSignedVarInt($this->slots);
 		}
-		$this->putSignedVarInt($this->x);
-		$this->putVarInt($this->y);
-		$this->putSignedVarInt($this->z);
-		$this->putSignedVarInt(-1);
+		$this->putBlockPosition($this->x, $this->y, $this->z);
+		$this->putEntityUniqueId(-1);
 	}
 
 }
