@@ -87,6 +87,16 @@ class ThrownPotion extends Projectile {
 		parent::kill();
 	}
 
+	/**
+	 * Override default projectile behaviour so potions don't knockback players
+	 *
+	 * @param Entity $with
+	 * @param int $damage
+	 */
+	public function onEntityCollide(Entity $with, int $damage) {
+
+	}
+
 	public function spawnTo(Player $player) {
 		$pk = new AddEntityPacket();
 		$pk->type = ThrownPotion::NETWORK_ID;

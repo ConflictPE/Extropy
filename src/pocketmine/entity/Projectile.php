@@ -132,13 +132,8 @@ abstract class Projectile extends Entity{
 					//	$damage += mt_rand(0, (int)($damage / 2) + 1);
 					//}
 
-					if($this->shootingEntity === null) {
-						$ev = new EntityDamageByEntityEvent($this, $movingObjectPosition->entityHit, EntityDamageEvent::CAUSE_PROJECTILE, $damage);
-					} else {
-						$ev = new EntityDamageByChildEntityEvent($this->shootingEntity, $this, $movingObjectPosition->entityHit, EntityDamageEvent::CAUSE_PROJECTILE, $damage);
-					}
+					$this->onEntityCollide($movingObjectPosition->entityHit, $damage);
 
-					$movingObjectPosition->entityHit->attack($ev->getFinalDamage(), $ev);
 					//if($this instanceof Arrow and $this->getPotionId() != 0) {
 					//	foreach(Potion::getEffectsById($this->potionId - 1) as $effect) {
 					//		$movingObjectPosition->entityHit->addEffect($effect->setDuration($effect->getDuration() / 8));
@@ -193,4 +188,18 @@ abstract class Projectile extends Entity{
 
 		return $hasUpdate;
 	}
+
+	/**
+	 * @param Entity $with
+	 * @param int $damage
+	 */
+	public function onEntityCollide(Entity $with, int $damage) {
+		if($this->shootingEntity === null) {
+			$ev = new EntityDamageByEntityEvent($this, $with, EntityDamageEvent::CAUSE_PROJECTILE, $damage);
+		} else {
+			$ev = new EntityDamageByChildEntityEvent($this->shootingEntity, $this, $with, EntityDamageEvent::CAUSE_PROJECTILE, $damage);
+		}
+		$with->attack($ev->getFinalDamage(), $ev);
+	}
+
 }
