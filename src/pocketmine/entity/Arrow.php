@@ -1,4 +1,5 @@
 <?php
+
 /*
  *
  *  ____            _        _   __  __ _                  __  __ ____
@@ -17,14 +18,18 @@
  *
  *
 */
+
 namespace pocketmine\entity;
+
 use pocketmine\level\format\FullChunk;
 use pocketmine\level\particle\CriticalParticle;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\network\Network;
 use pocketmine\network\protocol\AddEntityPacket;
 use pocketmine\Player;
+
 class Arrow extends Projectile{
+
 	const NETWORK_ID = 80;
 	public $width = 0.5;
 	public $length = 0.5;
@@ -33,15 +38,17 @@ class Arrow extends Projectile{
 	protected $drag = 0.01;
 	protected $damage = 2;
 	protected $isCritical;
+
 	public function __construct(FullChunk $chunk, Compound $nbt, Entity $shootingEntity = null, $critical = false){
 		$this->isCritical = (bool) $critical;
 		parent::__construct($chunk, $nbt, $shootingEntity);
 	}
+
 	public function onUpdate($currentTick){
 		if($this->closed){
 			return false;
 		}
-		//$this->timings->startTiming();
+
 		$hasUpdate = parent::onUpdate($currentTick);
 		if(!$this->hadCollision and $this->isCritical){
 			$this->level->addParticle(new CriticalParticle($this->add(
@@ -58,9 +65,23 @@ class Arrow extends Projectile{
 			$this->kill();
 			$hasUpdate = true;
 		}
-		//$this->timings->stopTiming();
 		return $hasUpdate;
 	}
+
+	/**
+	 * Add extra damage to fully drawn bow shots
+	 *
+	 * @param Entity $with
+	 * @param int $damage
+	 */
+	public function onEntityCollide(Entity $with, int $damage) {
+		if($this->isCritical) {
+			$damage += mt_rand(0, (int) ($damage / 2) + 1);
+		}
+
+		parent::onEntityCollide($with, $damage);
+	}
+
 	public function spawnTo(Player $player){
 		$pk = new AddEntityPacket();
 		$pk->type = Arrow::NETWORK_ID;
