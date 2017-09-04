@@ -156,7 +156,7 @@ class Level implements ChunkManager, Metadatable{
 	protected $usedChunks = [];
 
 	/** @var FullChunk[]|Chunk[] */
-	protected $unloadQueue;
+	protected $unloadQueue = [];
 
 	protected $time;
 	public $stopTime;
