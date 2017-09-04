@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
@@ -72,10 +72,9 @@ namespace pocketmine {
 	use pocketmine\utils\Utils;
 	use pocketmine\wizard\Installer;
 
-	const VERSION = '1.5.1-hybrid';
-	const API_VERSION = "1.12.0";
+	const VERSION = '1.6.0-hybrid';
 	const CODENAME = "刀 (Katana)";
-	const MINECRAFT_VERSION = "v1.x";
+	const MINECRAFT_VERSION = "v1.1.0 - v1.2.0";
 	const MINECRAFT_VERSION_NETWORK = "1.2";
 
 	/*
@@ -125,7 +124,7 @@ namespace pocketmine {
 	ini_set("display_startup_errors", 1);
 	ini_set("default_charset", "utf-8");
 	ini_set("error_log", "logs/" . date('Y.m.d') . "_php_error.log");
-	
+
 	ini_set("memory_limit", -1);
 	define("pocketmine\\START_TIME", microtime(true));
 
