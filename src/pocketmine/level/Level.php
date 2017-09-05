@@ -184,7 +184,6 @@ class Level implements ChunkManager, Metadatable{
 	private $blockMetadata;
 
 	private $useSections;
-	private $blockOrder;
 
 	/** @var Position */
 	private $temporalPosition;
@@ -311,7 +310,6 @@ class Level implements ChunkManager, Metadatable{
 		}
 		$this->server->getLogger()->info("Preparing level \"" . $this->provider->getName() . "\"");
 
-		$this->blockOrder = $provider::getProviderOrder();
 		$this->useSections = $provider::usesChunkSection();
 
 		$this->folderName = $name;
@@ -2038,7 +2036,7 @@ class Level implements ChunkManager, Metadatable{
 		$this->server->getPluginManager()->callEvent(new SpawnChangeEvent($this, $previousSpawn));
 	}
 
-	public function requestChunk($x, $z, Player $player, $order = LevelProvider::ORDER_ZXY){
+	public function requestChunk($x, $z, Player $player){
 		$index = self::chunkHash($x, $z);
 		if(!isset($this->chunkSendQueue[$index])){
 			$this->chunkSendQueue[$index] = [];
