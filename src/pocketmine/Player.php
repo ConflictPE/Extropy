@@ -46,7 +46,11 @@ use pocketmine\event\player\PlayerBedEnterEvent;
 use pocketmine\event\player\PlayerBedLeaveEvent;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerCommandPostprocessEvent;
+<<<<<<< HEAD
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
+=======
+use pocketmine\event\player\PlayerCreationEvent;
+>>>>>>> 40f65fd... [split screen] now may login, world not displaying yet
 use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerGameModeChangeEvent;
@@ -154,6 +158,7 @@ use pocketmine\utils\TextFormat;
 use pocketmine\network\protocol\v120\PlayerSkinPacket;
 use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\RemoveEntityPacket;
+use pocketmine\network\protocol\v120\SubClientLoginPacket;
 
 /**
  * Main class that handles networking, recovery, and packet sending to the server part
@@ -344,7 +349,19 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	/** @var CustomUI[] */
 	protected $activeModalWindows = [];
+<<<<<<< HEAD
 
+=======
+	
+	protected $isTeleporting = false;
+	/** @var Player[] */
+	protected $subClients = [];
+	/** @var integer */
+	protected $subClientId = 0;
+	/** @var Player */
+	protected $parent = null;
+	
+>>>>>>> 40f65fd... [split screen] now may login, world not displaying yet
 	public function getLeaveMessage(){
 		return "";
 	}
@@ -946,10 +963,21 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	 */
 	public function dataPacket(DataPacket $packet, $needACK = false){
 		if($this->connected === false){
+			var_dump('not connected');
 			return false;
 		}
+<<<<<<< HEAD
 
 		if($this->getPlayerProtocol() >= ProtocolInfo::PROTOCOL_120) {
+=======
+		
+		if ($this->subClientId !== 0 && $this->parent != null) {
+			$packet->senderSubClientID = $this->subClientId;
+			return $this->parent->dataPacket($packet, $needACK);
+		}
+		
+		if ($this->getPlayerProtocol() >= ProtocolInfo::PROTOCOL_120) {
+>>>>>>> 40f65fd... [split screen] now may login, world not displaying yet
 			$disallowedPackets = Protocol120::getDisallowedPackets();
 			if (in_array(get_class($packet), $disallowedPackets)) {
 				return;
@@ -1712,8 +1740,19 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		if(!$this->isOnline() && !in_array($packet->pname(), $beforeLoginAvailablePackets)) {
 			return;
 		}
+<<<<<<< HEAD
 
 
+=======
+		
+		if ($packet->targetSubClientID > 0 && isset($this->subClients[$packet->targetSubClientID])) {
+			$this->subClients[$packet->targetSubClientID]->handleDataPacket($packet);
+			return;
+		}
+		
+		var_dump($packet->senderSubClientID, $packet->targetSubClientID);
+		
+>>>>>>> 40f65fd... [split screen] now may login, world not displaying yet
 		switch($packet->pname()){
             case 'SET_PLAYER_GAMETYPE_PACKET':
                 file_put_contents("./logs/possible_hacks.log", date('m/d/Y h:i:s a', time()) . " SET_PLAYER_GAMETYPE_PACKET " . $this->username . PHP_EOL, FILE_APPEND | LOCK_EX);
@@ -1751,6 +1790,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$this->randomClientId = $packet->clientId;
 				$this->loginData = ["clientId" => $packet->clientId, "loginData" => null];
 				$this->uuid = $packet->clientUUID;
+				$this->subClientId = $packet->targetSubClientID;
 				if (is_null($this->uuid)) {
 					$this->close("", "Sorry, your client is broken.");
 					//Timings::$timerLoginPacket->stopTiming();
@@ -2876,7 +2916,12 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$this->continueLoginProcess();
 				break;
 			case 'SUB_CLIENT_LOGIN_PACKET':
-				$this->kick("COOP play is not allowed");
+				$subPlayer = new static($this->interface, null, $this->ip, $this->port);
+				if ($subPlayer->subAuth($packet, $this)) {
+					$this->subClients[$packet->targetSubClientID] = $subPlayer;
+					$this->server->addOnlinePlayer($subPlayer);
+				}
+				//$this->kick("COOP play is not allowed");
 				break;
 
 			default:
@@ -4809,5 +4854,64 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$this->server->batchPackets($oldViewers, [$pk, $pk2, $pk3, $pk4]);
 		}
 	}
+<<<<<<< HEAD
 
+=======
+	
+	public function getSubClientId() {
+		return $this->subClientId;
+	}
+	
+	/**
+	 * @minprotocol 120
+	 * 
+	 * @param SubClientLoginPacket $packet
+	 * @param Player $parent
+	 * @return type
+	 */
+	public function subAuth($packet, $parent) {
+		$this->username = TextFormat::clean($packet->username);
+		$this->xblName = $this->username;
+		$this->displayName = $this->username;
+		$this->setNameTag($this->username);
+		$this->iusername = strtolower($this->username);
+		
+		$this->randomClientId = $packet->clientId;
+		$this->loginData = ["clientId" => $packet->clientId, "loginData" => null];
+		$this->uuid = $packet->clientUUID;
+		if (is_null($this->uuid)) {
+			// написать закрытие
+			//$this->close("", "Sorry, your client is broken.");
+			return false;
+		}
+		
+		$this->parent = $parent;
+		$this->xuid = $packet->xuid;
+		$this->rawUUID = $this->uuid->toBinary();
+		$this->clientSecret = $packet->clientSecret;
+		$this->protocol = $parent->getPlayerProtocol();
+		$this->setSkin($packet->skin, $packet->skinName, $packet->skinGeometryName, $packet->skinGeometryData, $packet->capeData);
+		$this->subClientId = $packet->targetSubClientID;
+		
+		// some statistics information
+		$this->deviceType = $parent->getDeviceOS();
+		$this->inventoryType = $parent->getInventoryType();
+		$this->languageCode = $parent->languageCode;
+		$this->serverAddress = $parent->serverAddress;
+		$this->clientVersion = $parent->clientVersion;
+		$this->originalProtocol = $parent->originalProtocol;
+
+		$this->identityPublicKey = $packet->identityPublicKey;
+		$this->processLogin();
+		
+		$pk = new PlayStatusPacket();
+		$pk->status = PlayStatusPacket::LOGIN_SUCCESS;
+		$this->dataPacket($pk);
+		
+		$this->completeLogin();
+		
+		return true;
+	}
+	
+>>>>>>> 40f65fd... [split screen] now may login, world not displaying yet
 }
