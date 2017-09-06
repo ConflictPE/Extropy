@@ -956,7 +956,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	 */
 	public function dataPacket(DataPacket $packet, $needACK = false){
 		if($this->connected === false){
-			var_dump('not connected');
 			return false;
 		}
 
@@ -4836,8 +4835,19 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		}
 	}
 
+	/**
+	 * @return integer
+	 */
 	public function getSubClientId() {
 		return $this->subClientId;
+	}
+
+	/**
+	 *
+	 * @return Player|null
+	 */
+	public function getParent() {
+		return $this->parent;
 	}
 
 	/**

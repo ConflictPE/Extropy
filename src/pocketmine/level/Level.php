@@ -2562,27 +2562,44 @@ class Level implements ChunkManager, Metadatable{
 
 	public function addEntityMotion($viewers, $entityId, $x, $y, $z){
 		$motion = [$entityId, $x, $y, $z];
-		foreach ($viewers as $p) {
-			if(!isset($this->motionToSend[$p->getIdentifier()])){
-				$this->motionToSend[$p->getIdentifier()] = array(
-					'data' => array(),
-					'playerProtocol' => $p->getPlayerProtocol(),
-				);
+		/** @var Player $p */
+		foreach($viewers as $p) {
+			$subClientId = $p->getSubClientId();
+			if($subClientId > 0 && ($parent = $p->getParent()) !== null) {
+				$playerIdentifier = $parent->getIdentifier();
+			} else {
+				$playerIdentifier = $p->getIdentifier();
 			}
+
+			if(!isset($this->motionToSend[$playerIdentifier])){
+				$this->motionToSend[$playerIdentifier] = [
+					'data' => [],
+					'playerProtocol' => $p->getPlayerProtocol()
+				];
+			}
+			$motion[4] = $subClientId;
 			$this->motionToSend[$p->getIdentifier()]['data'][] = $motion;
 		}
 	}
 
 	public function addEntityMovement($viewers, $entityId, $x, $y, $z, $yaw, $pitch, $headYaw = null, $isPlayer = false){
 		$move = [$entityId, $x, $y, $z, $yaw, $headYaw === null ? $yaw : $headYaw, $pitch, $isPlayer];
-		foreach ($viewers as $p) {
-			if(!isset($this->moveToSend[$p->getIdentifier()])){
-				$this->moveToSend[$p->getIdentifier()] = array(
-					'data' => array(),
-					'playerProtocol' => $p->getPlayerProtocol(),
-				);
+		/** @var Player $p */
+		foreach($viewers as $p) {
+			$subClientId = $p->getSubClientId();
+			if($subClientId > 0 && ($parent = $p->getParent()) !== null) {
+				$playerIdentifier = $parent->getIdentifier();
+			} else {
+				$playerIdentifier = $p->getIdentifier();
 			}
-			$this->moveToSend[$p->getIdentifier()]['data'][] = $move;
+			if(!isset($this->moveToSend[$playerIdentifier])) {
+				$this->moveToSend[$playerIdentifier] = [
+					'data' => [],
+					'playerProtocol' => $p->getPlayerProtocol()
+				];
+			}
+			$move[8] = $subClientId;
+			$this->moveToSend[$playerIdentifier]['data'][] = $move;
 		}
 	}
 
@@ -2604,9 +2621,6 @@ class Level implements ChunkManager, Metadatable{
 		}
 		return true;
 	}
-
-
-
 
 	public function populateChunk(int $x, int $z, bool $force = false){
 		if(isset($this->chunkPopulationQueue[$index = Level::chunkHash($x, $z)]) or (count($this->chunkPopulationQueue) >= $this->chunkPopulationQueueSize and !$force)){
