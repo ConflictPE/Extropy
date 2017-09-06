@@ -22,6 +22,7 @@
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\CommandSender;
+use pocketmine\command\ConsoleCommandSender;
 use pocketmine\network\protocol\Info;
 use pocketmine\plugin\Plugin;
 use pocketmine\utils\TextFormat;
@@ -42,65 +43,56 @@ class VersionCommand extends VanillaCommand{
 		if(!$this->testPermission($sender)){
 			return true;
 		}
-		$version = $sender->getServer()->getConfigString("game-version", "");
-		$output = "";
-		if (!empty($version)) {
-			$output .= $version . ". ";
-		}
-		$output .= "This server is running " . $sender->getServer()->getName() . " " . $sender->getServer()->getPocketMineVersion();
 
-		$sender->sendMessage($output);
-//		if(count($args) === 0){
-//			$output = "This server is running " . $sender->getServer()->getName() . " version " . $sender->getServer()->getPocketMineVersion() . " 「" . $sender->getServer()->getCodename() . "」 (Implementing API version " . $sender->getServer()->getApiVersion() . " for Minecraft: PE " . $sender->getServer()->getVersion() . " protocol version " . Info::CURRENT_PROTOCOL . ")";
-//			if(\pocketmine\GIT_COMMIT !== str_repeat("00", 20)){
-//				$output .= " [git " . \pocketmine\GIT_COMMIT . "]";
-//			}
-//			$sender->sendMessage($output);
-//		}else{
-//			$pluginName = implode(" ", $args);
-//			$exactPlugin = $sender->getServer()->getPluginManager()->getPlugin($pluginName);
-//
-//			if($exactPlugin instanceof Plugin){
-//				$this->describeToSender($exactPlugin, $sender);
-//
-//				return true;
-//			}
-//
-//			$found = false;
-//			$pluginName = strtolower($pluginName);
-//			foreach($sender->getServer()->getPluginManager()->getPlugins() as $plugin){
-//				if(stripos($plugin->getName(), $pluginName) !== false){
-//					$this->describeToSender($plugin, $sender);
-//					$found = true;
-//				}
-//			}
-//
-//			if(!$found){
-//				$sender->sendMessage("This server is not running any plugin by that name.\nUse /plugins to get a list of plugins.");
-//			}
-//		}
+		if(count($args) === 0){
+			$output = TextFormat::YELLOW . "This server is running " . TextFormat::GREEN . $sender->getServer()->getName() . TextFormat::YELLOW . " version " . TextFormat::DARK_GREEN . $sender->getServer()->getPocketMineVersion() . TextFormat::GRAY . " 「" . TextFormat::AQUA . $sender->getServer()->getCodename() . TextFormat::GRAY ."」 " . TextFormat::YELLOW . "for Minecraft: PE " . TextFormat::GOLD . $sender->getServer()->getVersion();
+			if(\pocketmine\GIT_COMMIT !== str_repeat("00", 20)){
+				$output .= TextFormat::GRAY . " [git " . \pocketmine\GIT_COMMIT . "]";
+			}
+			$sender->sendMessage($output);
+		}else{
+			$pluginName = implode(" ", $args);
+			$exactPlugin = $sender->getServer()->getPluginManager()->getPlugin($pluginName);
+
+			if($exactPlugin instanceof Plugin){
+				$this->describeToSender($exactPlugin, $sender);
+				return true;
+			}
+
+			$found = false;
+			$pluginName = strtolower($pluginName);
+			foreach($sender->getServer()->getPluginManager()->getPlugins() as $plugin){
+				if(stripos($plugin->getName(), $pluginName) !== false){
+					$this->describeToSender($plugin, $sender);
+					$found = true;
+				}
+			}
+
+			if(!$found){
+				$sender->sendMessage(TextFormat::RED . "This server is not running any plugin by that name.\nUse /plugins to get a list of plugins.");
+			}
+		}
 
 		return true;
 	}
 
 	private function describeToSender(Plugin $plugin, CommandSender $sender){
 		$desc = $plugin->getDescription();
-		$sender->sendMessage(TextFormat::DARK_GREEN . $desc->getName() . TextFormat::WHITE . " version " . TextFormat::DARK_GREEN . $desc->getVersion());
+		$lineBreak = $sender instanceof ConsoleCommandSender ? PHP_EOL : "\n";
+		$message = TextFormat::GREEN . $desc->getName() . TextFormat::YELLOW . " version " . TextFormat::DARK_GREEN . $desc->getVersion() . TextFormat::RESET . $lineBreak;
 
 		if($desc->getDescription() != null){
-			$sender->sendMessage($desc->getDescription());
+			$message .= $desc->getDescription() . TextFormat::RESET . "\n";
 		}
 
 		if($desc->getWebsite() != null){
-			$sender->sendMessage("Website: " . $desc->getWebsite());
+			$message .= TextFormat::YELLOW . "Website" . TextFormat::GRAY . ": " . TextFormat::LIGHT_PURPLE . $desc->getWebsite() . TextFormat::RESET . $lineBreak;
 		}
 
 		if(count($authors = $desc->getAuthors()) > 0){
-			if(count($authors) === 1){
-				$sender->sendMessage("Author: " . implode(", ", $authors));
-			}else{
-				$sender->sendMessage("Authors: " . implode(", ", $authors));
-			}
+			$message .= TextFormat::YELLOW . "Author" . (count($authors) > 1 ? "s" : "") . TextFormat::GRAY . ": " . TextFormat::AQUA . implode(TextFormat::DARK_AQUA . ", " . TextFormat::AQUA, $authors) . TextFormat::RESET;
 		}
+
+		$sender->sendMessage($message);
 	}
 }

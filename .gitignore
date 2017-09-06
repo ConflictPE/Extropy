@@ -1,2 +1,29 @@
-.idea
-nbproject/
+players/*
+worlds/*
+plugins/*
+bin/*
+timings/*
+*.log
+*.txt
+*.phar
+server.properties
+/pocketmine.yml
+/pocketmine-soft.yml
+memoryDump_*/*
+
+# Common IDEs
+.idea/
+nbproject/*
+
+# Windows image file caches
+Thumbs.db
+
+# Mac icon file cache
+Icon
+
+# Folder config file
+Desktop.ini
+
+# Mac crap
+.DS_Store
+/nbproject/private/

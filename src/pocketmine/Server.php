@@ -154,7 +154,7 @@ class Server{
 
 	/** @var Server */
 	private static $instance = null;
-	
+
 	private static $serverId =  0;
 
 	/** @var BanList */
@@ -359,13 +359,6 @@ class Server{
 	 */
 	public function getVersion(){
 		return \pocketmine\MINECRAFT_VERSION;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getApiVersion(){
-		return \pocketmine\API_VERSION;
 	}
 
 	/**
@@ -1449,7 +1442,7 @@ class Server{
 	public static function getInstance(){
 		return self::$instance;
 	}
-	
+
 	public static function getServerId(){
 		return self::$serverId;
 	}
@@ -1605,7 +1598,7 @@ class Server{
 
 		$this->addInterface($this->mainInterface = new RakLibInterface($this));
 
-		$this->logger->info("This server is running " . $this->getName() . " version " . ($version->isDev() ? TextFormat::YELLOW : "") . $version->get(true) . TextFormat::WHITE . " \"" . $this->getCodename() . "\" (API " . $this->getApiVersion() . ")");
+		$this->logger->info("This server is running " . $this->getName() . " version " . ($version->isDev() ? TextFormat::YELLOW : "") . $version->get(true) . TextFormat::WHITE . " \"" . $this->getCodename() . "\"");
 		$this->logger->info($this->getName() . " is distributed under the LGPL License");
 
 		PluginManager::$pluginParentTimer = new TimingsHandler("** Plugins");
