@@ -34,7 +34,7 @@ use pocketmine\tile\Spawnable;
 use pocketmine\utils\ChunkException;
 
 class McRegion extends BaseLevelProvider{
-	
+
 	const REGION_FILE_EXTENSION = "mcr";
 
 	/** @var RegionLoader[] */
@@ -50,7 +50,7 @@ class McRegion extends BaseLevelProvider{
 	public static function usesChunkSection(){
 		return false;
 	}
-	
+
 	public static function isValid($path) {
 		$isValid = (file_exists($path . "/level.dat") and is_dir($path . "/region/"));
 		if($isValid){
@@ -103,12 +103,12 @@ class McRegion extends BaseLevelProvider{
 		file_put_contents($path . "level.dat", $buffer);
 	}
 
-	public static function getRegionIndex($chunkX, $chunkZ, &$x, &$z){
+	public static function getRegionIndex($chunkX, $chunkZ, &$x, &$z) {
 		$x = $chunkX >> 5;
 		$z = $chunkZ >> 5;
 	}
 
-	public function requestChunkTask($x, $z){
+	public function requestChunkTask($x, $z, $protocols, $subClientsId) {
 		$chunk = $this->getChunk($x, $z, false);
 		if(!($chunk instanceof Chunk)){
 			throw new ChunkException("Invalid Chunk sent");
@@ -126,6 +126,8 @@ class McRegion extends BaseLevelProvider{
 		$data = [];
 		$data['chunkX'] = $x;
 		$data['chunkZ'] = $z;
+		$data['protocols'] = $protocols;
+		$data['subClientsId'] = $subClientsId;
 		$data['tiles'] = $tiles;
 		$data['blocks'] = $chunk->getBlockIdArray();
 		$data['data'] = $chunk->getBlockDataArray();
