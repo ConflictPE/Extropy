@@ -963,7 +963,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	 */
 	public function dataPacket(DataPacket $packet, $needACK = false){
 		if($this->connected === false){
-			var_dump('not connected');
+//			var_dump('not connected');
 			return false;
 		}
 <<<<<<< HEAD
@@ -1750,7 +1750,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			return;
 		}
 		
-		var_dump($packet->senderSubClientID, $packet->targetSubClientID);
+//		var_dump($packet->senderSubClientID, $packet->targetSubClientID);
 		
 >>>>>>> 40f65fd... [split screen] now may login, world not displaying yet
 		switch($packet->pname()){
