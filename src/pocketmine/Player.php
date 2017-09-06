@@ -959,7 +959,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			return false;
 		}
 
-		if($this->subClientId !== 0 && $this->parent != null) {
+		if($this->subClientId > 0 && $this->parent != null) {
 			$packet->senderSubClientID = $this->subClientId;
 			return $this->parent->dataPacket($packet, $needACK);
 		}
@@ -967,7 +967,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		if($this->getPlayerProtocol() >= ProtocolInfo::PROTOCOL_120) {
 			$disallowedPackets = Protocol120::getDisallowedPackets();
 			if (in_array(get_class($packet), $disallowedPackets)) {
-				return;
+				$packet->senderSubClientID = 0;
+				return true;
 			}
 		}
 
@@ -977,6 +978,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		}
 
 		$this->interface->putPacket($this, $packet, $needACK, false);
+		$packet->senderSubClientID = 0;
 		return true;
 	}
 
