@@ -2897,13 +2897,17 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				break;
 			case 'SUB_CLIENT_LOGIN_PACKET':
 				$subPlayer = new static($this->interface, null, $this->ip, $this->port);
-				if ($subPlayer->subAuth($packet, $this)) {
+				if($subPlayer->subAuth($packet, $this)) {
 					$this->subClients[$packet->targetSubClientID] = $subPlayer;
 					$this->server->addOnlinePlayer($subPlayer);
 				}
 				//$this->kick("COOP play is not allowed");
 				break;
-
+			case 'DISCONNECT_PACKET':
+				if ($this->subClientId > 0) {
+					$this->close('', 'client disconnect');
+				}
+				break;
 			default:
 				break;
 		}
@@ -2978,6 +2982,13 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	 * @param string $reason  Reason showed in console
 	 */
 	public function close($message = "", $reason = "generic reason"){
+		if ($this->parent !== null) {
+			$this->parent->removeSubClient($this->subClientId);
+		} else {
+			foreach ($this->subClients as $subClient) {
+				$subClient->close($message, $reason);
+			}
+		}
         Win10InvLogic::removeData($this);
         foreach($this->tasks as $task){
 			$task->cancel();
@@ -4848,6 +4859,16 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	 */
 	public function getParent() {
 		return $this->parent;
+	}
+
+	/**
+	 *
+	 * @param integer $subClientId
+	 */
+	public function removeSubClient($subClientId) {
+		if (isset($this->subClients[$subClientId])) {
+			unset($this->subClients[$subClientId]);
+		}
 	}
 
 	/**
