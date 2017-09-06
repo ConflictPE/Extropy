@@ -105,7 +105,7 @@ class LevelEventPacket extends PEPacket {
 	public $x = 0;
 	public $y = 0;
 	public $z = 0;
-	public $data;
+	public $data = 0;
 
 	public function decode(int $playerProtocol) {
 		$this->evid = $this->getSignedVarInt();

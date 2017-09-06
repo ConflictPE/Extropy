@@ -64,7 +64,7 @@ class PlayerActionPacket extends PEPacket {
 		$this->eid = $this->getEntityRuntimeId();
 		$this->action = $this->getSignedVarInt();
 		$this->getBlockPosition($this->x, $this->y, $this->z);
-		$this->face = $this->getVarInt();
+		$this->face = $this->getSignedVarInt();
 	}
 
 	public function encode(int $playerProtocol) {
@@ -72,7 +72,7 @@ class PlayerActionPacket extends PEPacket {
 		$this->putEntityRuntimeId($this->eid);
 		$this->putSignedVarInt($this->action);
 		$this->putBlockPosition($this->x, $this->y, $this->z);
-		$this->putVarInt($this->face);
+		$this->putSignedVarInt($this->face);
 	}
 
 }
