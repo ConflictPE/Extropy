@@ -2901,7 +2901,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$subPlayer = new static($this->interface, null, $this->ip, $this->port);
 				if($subPlayer->subAuth($packet, $this)) {
 					$this->subClients[$packet->targetSubClientID] = $subPlayer;
-					$this->server->addOnlinePlayer($subPlayer);
 				}
 				//$this->kick("COOP play is not allowed");
 				break;
@@ -4878,7 +4877,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	 *
 	 * @param SubClientLoginPacket $packet
 	 * @param Player $parent
-	 * @return type
+	 * @return bool
 	 */
 	public function subAuth($packet, $parent) {
 		$this->username = TextFormat::clean($packet->username);
@@ -4891,8 +4890,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->loginData = ["clientId" => $packet->clientId, "loginData" => null];
 		$this->uuid = $packet->clientUUID;
 		if (is_null($this->uuid)) {
-			// написать закрытие
-			//$this->close("", "Sorry, your client is broken.");
+			$this->close("", "Sorry, your client is broken.");
 			return false;
 		}
 
@@ -4913,15 +4911,15 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->originalProtocol = $parent->originalProtocol;
 
 		$this->identityPublicKey = $packet->identityPublicKey;
-		$this->processLogin();
 
 		$pk = new PlayStatusPacket();
 		$pk->status = PlayStatusPacket::LOGIN_SUCCESS;
 		$this->dataPacket($pk);
 
+		$this->loggedIn = true;
 		$this->completeLogin();
 
-		return true;
+		return $this->loggedIn;
 	}
 
 }
