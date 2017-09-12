@@ -34,6 +34,7 @@ class MapInfoRequestPacket extends PEPacket {
 	public $mapId;
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->mapId = $this->getEntityUniqueId();
 	}
 

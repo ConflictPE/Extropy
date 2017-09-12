@@ -43,6 +43,7 @@ class MobEffectPacket extends PEPacket {
 	public $duration;
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->eid = $this->getEntityRuntimeId();
 		$this->eventId = $this->getByte();
 		$this->effectId = $this->getSignedVarInt();

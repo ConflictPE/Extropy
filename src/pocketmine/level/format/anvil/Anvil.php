@@ -35,6 +35,12 @@ use pocketmine\level\format\generic\EmptyChunkSection;
 
 class Anvil extends McRegion {
 
+	const REGION_FILE_EXTENSION = "mca";
+
+	protected $chunkClass = Chunk::class;
+	protected $regionLoaderClass = RegionLoader::class;
+	protected static $chunkSectionClass = ChunkSection::class;
+
 	/** @var RegionLoader[] */
 	protected $regions = [];
 
@@ -45,33 +51,13 @@ class Anvil extends McRegion {
 		return "anvil";
 	}
 
-	public static function getProviderOrder() {
-		return self::ORDER_YZX;
-	}
-
 	public static function usesChunkSection() {
 		return true;
 	}
 
-	public static function isValid($path) {
-		$isValid = (file_exists($path . "/level.dat") and is_dir($path . "/region/"));
-
-		if ($isValid) {
-			$files = glob($path . "/region/*.mc*");
-			foreach ($files as $f) {
-				if (strpos($f, ".mcr") !== false) { //McRegion
-					$isValid = false;
-					break;
-				}
-			}
-		}
-
-		return $isValid;
-	}
-
-	public function requestChunkTask($x, $z) {
+	public function requestChunkTask($x, $z, $protocols, $subClientsId) {
 		$chunk = $this->getChunk($x, $z, false);
-		if(!($chunk instanceof Chunk)){
+		if(!($chunk instanceof $this->chunkClass)){
 			throw new ChunkException("Invalid Chunk sent");
 		}
 
@@ -87,6 +73,8 @@ class Anvil extends McRegion {
 		$data = [];
 		$data['chunkX'] = $x;
 		$data['chunkZ'] = $z;
+		$data['protocols'] = $protocols;
+		$data['subClientsId'] = $subClientsId;
 		$data['tiles'] = $tiles;
 		$data['isAnvil'] = true;
 		$data['chunk'] = $this->getChunkData($chunk);
@@ -95,7 +83,7 @@ class Anvil extends McRegion {
 		return null;
 	}
 
-	private function getChunkData($chunk) {
+	protected function getChunkData($chunk) {
 		$data = [
 			'sections' => [],
 			'heightMap' => pack("v*", ...$chunk->getHeightMapArray()),
@@ -115,7 +103,7 @@ class Anvil extends McRegion {
 			$sections[$section->getY()] = $chunkData;
 		}
 		$sortedSections = [];
-		for ($y = 0; $y < Chunk::SECTION_COUNT; ++$y) {
+		for ($y = 0; $y < $this->chunkClass::SECTION_COUNT; ++$y) {
 			if (count($sections) == 0) {
 				break;
 			}
@@ -141,7 +129,7 @@ class Anvil extends McRegion {
 	}
 
 	public function setChunk($chunkX, $chunkZ, FullChunk $chunk) {
-		if (!($chunk instanceof Chunk)) {
+		if (!($chunk instanceof $this->chunkClass)) {
 			throw new ChunkException("Invalid Chunk class");
 		}
 
@@ -156,21 +144,21 @@ class Anvil extends McRegion {
 	}
 
 	public function getEmptyChunk($chunkX, $chunkZ){
-		return Chunk::getEmptyChunk($chunkX, $chunkZ, $this);
+		return $this->chunkClass::getEmptyChunk($chunkX, $chunkZ, $this);
 	}
 
 	public static function createChunkSection($Y) {
-		return new ChunkSection(new Compound("", [
-			new ByteTag("Y", $Y),
-			new ByteArray("Blocks", str_repeat("\x00", 4096)),
-			new ByteArray("Data", str_repeat("\x00", 2048)),
-			new ByteArray("SkyLight", str_repeat("\xff", 2048)),
-			new ByteArray("BlockLight", str_repeat("\x00", 2048))
+		return new static::$chunkSectionClass(new Compound(null, [
+			"Y" => new ByteTag("Y", $Y),
+			"Blocks" => new ByteArray("Blocks", str_repeat("\x00", 4096)),
+			"Data" => new ByteArray("Data", str_repeat("\x00", 2048)),
+			"SkyLight" => new ByteArray("SkyLight", str_repeat("\xff", 2048)),
+			"BlockLight" => new ByteArray("BlockLight", str_repeat("\x00", 2048))
 		]));
 	}
 
 	public function isChunkGenerated($chunkX, $chunkZ) {
-		if (($region = $this->getRegion($chunkX >> 5, $chunkZ >> 5)) instanceof RegionLoader) {
+		if (($region = $this->getRegion($chunkX >> 5, $chunkZ >> 5)) instanceof $this->regionLoaderClass) {
 			return $region->chunkExists($chunkX - $region->getX() * 32, $chunkZ - $region->getZ() * 32) and $this->getChunk($chunkX - $region->getX() * 32, $chunkZ - $region->getZ() * 32, true)->isGenerated();
 		}
 
@@ -182,7 +170,7 @@ class Anvil extends McRegion {
 			return true;
 		}
 
-		$this->regions[$index] = new RegionLoader($this, $x, $z);
+		$this->regions[$index] = new $this->regionLoaderClass($this, $x, $z);
 
 		return true;
 	}

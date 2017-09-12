@@ -37,6 +37,7 @@ class TileEntityDataPacket extends PEPacket {
 	public $namedtag;
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->getBlockPosition($this->x, $this->y, $this->z);
 		$this->namedtag = $this->getRemaining();
 	}

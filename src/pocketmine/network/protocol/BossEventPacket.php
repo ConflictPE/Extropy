@@ -70,6 +70,7 @@ class BossEventPacket extends PEPacket {
 	public $overlay;
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->eid = $this->getEntityUniqueId();
 		$this->eventType = $this->getVarInt();
 		switch($this->eventType) {

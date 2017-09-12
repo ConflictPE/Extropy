@@ -48,6 +48,7 @@ class ModalFormResponsePacket extends PEPacket {
 	 * @param integer $playerProtocol
 	 */
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->formId = $this->getVarInt();
 		$this->data = $this->getString();
 	}

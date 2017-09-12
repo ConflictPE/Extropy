@@ -39,6 +39,7 @@ class InteractPacket extends PEPacket {
 	public $target;
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->action = $this->getByte();
 		$this->target = $this->getVarInt();
 	}

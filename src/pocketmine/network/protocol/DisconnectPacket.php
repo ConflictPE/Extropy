@@ -48,8 +48,11 @@ class DisconnectPacket extends PEPacket {
 	}
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->hideDisconnectReason = $this->getBool();
-		$this->message = $this->getString();
+		if(!$this->hideDisconnectReason) {
+			$this->message = $this->getString();
+		}
 	}
 
 	public function encode(int $playerProtocol) {

@@ -58,6 +58,7 @@ class SubClientLoginPacket extends PEPacket {
 	}
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$body = $this->getString();
 		$this->chainsDataLength = Binary::readLInt($this->getFromString($body, 4));
 		$this->chains = json_decode($this->getFromString($body, $this->chainsDataLength), true);

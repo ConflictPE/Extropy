@@ -34,6 +34,7 @@ class SetHealthPacket extends PEPacket {
 	public $value;
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->value = $this->getSignedVarInt();
 	}
 

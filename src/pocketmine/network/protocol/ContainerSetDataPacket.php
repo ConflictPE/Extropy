@@ -36,6 +36,7 @@ class ContainerSetDataPacket extends PEPacket {
 	public $value;
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->windowid = $this->getByte();
 		$this->property = $this->getSignedVarInt();
 		$this->value = $this->getSignedVarInt();

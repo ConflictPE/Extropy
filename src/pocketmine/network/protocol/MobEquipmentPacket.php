@@ -40,6 +40,7 @@ class MobEquipmentPacket extends PEPacket {
 	const WINDOW_ID_PLAYER_OFFHAND = 0x77;
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->eid = $this->getEntityRuntimeId();
 		$this->item = $this->getSlot($playerProtocol);
 		$this->slot = $this->getByte();

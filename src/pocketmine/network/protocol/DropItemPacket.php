@@ -38,6 +38,7 @@ class DropItemPacket extends PEPacket {
 	public $item;
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->type = $this->getByte();
 		$this->item = $this->getSlot($playerProtocol);
 	}

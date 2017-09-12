@@ -59,6 +59,7 @@ class MovePlayerPacket extends PEPacket {
 	}
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->eid = $this->getEntityRuntimeId();
 
 		$this->getVector3f($this->x, $this->y, $this->z);

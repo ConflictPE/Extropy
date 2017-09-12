@@ -44,6 +44,7 @@ class AnimatePacket extends PEPacket {
 	public $float = 0.0; // TODO (boat rowing time?)
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->action = $this->getVarInt();
 		$this->eid = $this->getEntityRuntimeId();
 		if($this->action === self::ACTION_ROW_LEFT or $this->action === self::ACTION_ROW_LEFT) {

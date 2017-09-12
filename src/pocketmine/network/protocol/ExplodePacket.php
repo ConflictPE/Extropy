@@ -47,6 +47,7 @@ class ExplodePacket extends PEPacket {
 	}
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->getVector3f($this->x, $this->y, $this->z);
 		$this->radius = (float) ($this->getVarInt() / 32);
 		$count = $this->getVarInt();

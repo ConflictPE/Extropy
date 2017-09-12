@@ -46,6 +46,7 @@ class UseItemPacket extends PEPacket {
 	public $interactBlockId;
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->getBlockPosition($this->x, $this->y, $this->z);
 		$this->interactBlockId =  $this->getVarInt();
 		$this->face = $this->getSignedVarInt();

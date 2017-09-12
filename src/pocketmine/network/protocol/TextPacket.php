@@ -51,6 +51,7 @@ class TextPacket extends PEPacket {
 	public $xuid = "";
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->type = $this->getByte();
 		if ($playerProtocol >= Info::PROTOCOL_120) {
 			$this->isLocalize = $this->getByte();

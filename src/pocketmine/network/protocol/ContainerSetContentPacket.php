@@ -48,6 +48,7 @@ class ContainerSetContentPacket extends PEPacket {
 	}
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->windowid = $this->getVarInt();
 
 		$count = $this->getEntityUniqueId();

@@ -36,6 +36,7 @@ class RespawnPacket extends PEPacket {
 	public $z;
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->getVector3f($this->x, $this->y, $this->z);
 	}
 

@@ -56,6 +56,7 @@ class EntityEventPacket extends PEPacket {
 	public $data = 0;
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->eid = $this->getEntityRuntimeId();
 		$this->event = $this->getByte();
 		$this->theThing = $this->getSignedVarInt();

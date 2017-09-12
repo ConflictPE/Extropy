@@ -45,6 +45,7 @@ class SetTitlePacket extends PEPacket {
 	public $fadeOutTime = 0;
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->type = $this->getSignedVarInt();
 		$this->text = $this->getString();
 		$this->fadeInTime = $this->getSignedVarInt();

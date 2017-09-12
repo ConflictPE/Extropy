@@ -34,6 +34,7 @@ class HurtArmorPacket extends PEPacket {
 	public $health;
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->health = $this->getSignedVarInt();
 	}
 

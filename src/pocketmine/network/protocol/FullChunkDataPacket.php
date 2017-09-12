@@ -36,6 +36,7 @@ class FullChunkDataPacket extends PEPacket {
 	public $data;
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->chunkX = $this->getSignedVarInt();
 		$this->chunkZ = $this->getSignedVarInt();
 		$this->data = $this->getString();

@@ -34,6 +34,7 @@ class SetDifficultyPacket extends PEPacket {
 	public $difficulty;
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->difficulty = $this->getVarInt();
 	}
 

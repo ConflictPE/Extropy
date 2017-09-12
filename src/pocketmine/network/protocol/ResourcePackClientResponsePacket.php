@@ -40,6 +40,7 @@ class ResourcePackClientResponsePacket extends PEPacket {
 	public $packIds = [];
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->status = $this->getByte();
 		$entryCount = $this->getLShort();
 		while($entryCount-- > 0) {

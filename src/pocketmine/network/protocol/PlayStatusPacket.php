@@ -42,6 +42,7 @@ class PlayStatusPacket extends PEPacket {
 	public $status;
 
 	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
 		$this->status = $this->getInt();
 	}
 
