@@ -3458,11 +3458,13 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 		$this->server->getLogger()->info(TextFormat::AQUA . $this->username . TextFormat::WHITE . "/" . TextFormat::AQUA . $this->ip . " connected");
 
-		$slots = [];
-		foreach(Item::getCreativeItems() as $item){
-			$slots[] = clone $item;
+		if($this->isCreative()) {
+			$slots = [];
+			foreach(Item::getCreativeItems() as $item) {
+				$slots[] = clone $item;
+			}
+			Multiversion::sendContainer($this, Protocol120::CONTAINER_ID_CREATIVE, $slots);
 		}
-		Multiversion::sendContainer($this, Protocol120::CONTAINER_ID_CREATIVE, $slots);
 
 		$this->server->sendRecipeList($this);
 
