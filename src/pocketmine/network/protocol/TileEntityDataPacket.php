@@ -34,16 +34,9 @@ class TileEntityDataPacket extends PEPacket{
 	public $namedtag;
 
 	public function decode($playerProtocol){
-<<<<<<< HEAD
+		$this->getHeader($playerProtocol);
 		$this->getBlockPosition($this->x, $this->y, $this->z);
 		$this->namedtag = $this->getRemaining();
-=======
-		$this->getHeader($playerProtocol);
-		$this->x = $this->getSignedVarInt();
-		$this->y = $this->getVarInt();
-		$this->z = $this->getSignedVarInt();
-		$this->namedtag = $this->get(true);
->>>>>>> 40f65fd... [split screen] now may login, world not displaying yet
 	}
 
 	public function encode($playerProtocol){
