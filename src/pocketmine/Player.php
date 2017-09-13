@@ -87,7 +87,6 @@ use pocketmine\item\Elytra;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\Item;
 use pocketmine\item\Tool;
-use pocketmine\level\format\LevelProvider;
 use pocketmine\level\Level;
 use pocketmine\level\Location;
 use pocketmine\level\Position;
@@ -153,6 +152,9 @@ use pocketmine\network\protocol\v120\ShowModalFormPacket;
 use pocketmine\network\SourceInterface;
 use pocketmine\permission\PermissibleBase;
 use pocketmine\permission\PermissionAttachment;
+use pocketmine\player\MessageQueue;
+use pocketmine\player\PopupQueue;
+use pocketmine\player\TipQueue;
 use pocketmine\plugin\Plugin;
 use pocketmine\scheduler\CallbackTask;
 use pocketmine\tile\Sign;
@@ -316,22 +318,29 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	private $elytraIsActivated = false;
 
-    /** @IMPORTANT don't change the scope */
-    private $inventoryType = self::INVENTORY_CLASSIC;
+	/** @IMPORTANT don't change the scope */
+	private $inventoryType = self::INVENTORY_CLASSIC;
 	private $languageCode = false;
 
-    /** @IMPORTANT don't change the scope */
-    private $deviceType = self::OS_DEDICATED;
+	/** @IMPORTANT don't change the scope */
+	private $deviceType = self::OS_DEDICATED;
 
-	private $messageQueue = [];
+	/** @var MessageQueue */
+	private $messageQueue = null;
+
+	/** @var PopupQueue */
+	private $popupQueue = null;
+
+	/** @var TipQueue */
+	private $tipQueue = null;
 
 	private $noteSoundQueue = [];
 
-    private $xuid = '';
+	private $xuid = '';
 
 	private $ping = 0;
 
-    protected $xblName = '';
+	protected $xblName = '';
 
 	protected $viewRadius = 4;
 
@@ -635,6 +644,10 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->creationTime = microtime(true);
 
 		$this->inventory = new PlayerInventory($this); // hack for not null getInventory
+
+		$this->messageQueue = new MessageQueue($this);
+		$this->popupQueue = new PopupQueue($this);
+		$this->tipQueue = new TipQueue($this);
 	}
 
 	public function sendCommandData() {
@@ -1597,15 +1610,10 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$this->foodTick++;
 			}
 			$this->checkChunks();
-		}
 
-		if(count($this->messageQueue) > 0) {
-			$message = implode(TextFormat::RESET . "\n", $this->messageQueue);
-			$pk = new TextPacket();
-			$pk->type = TextPacket::TYPE_RAW;
-			$pk->message = $message;
-			$this->dataPacket($pk);
-			$this->messageQueue = [];
+			$this->messageQueue->doTick();
+			$this->popupQueue->doTick();
+			$this->tipQueue->doTick();
 		}
 
 		if(count($this->noteSoundQueue) > 0) {
@@ -2680,17 +2688,64 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	/**
-	 * Sends a direct chat message to a player
+	 * Schedules a chat message to be sent to a player
 	 *
-	 * @param string|TextContainer $message
+	 * @param string $message
 	 */
 	public function sendMessage($message){
-		$mes = explode("\n", $message);
-		foreach($mes as $m){
-			if($m !== ""){
-				$this->messageQueue[] = $m;
-			}
-		}
+		$this->messageQueue->addItem($message);
+	}
+
+	/**
+	 * @param string $message    Message to be displayed in popup
+	 * @param int $duration      Ticks to display popup for (default of 4 ticks)
+	 */
+	public function sendPopup(string $message, int $duration = PopupQueue::BASE_POPUP_DURATION){
+		$this->popupQueue->addItem($message, $duration);
+	}
+
+	/**
+	 * @param string $message    Message to be displayed in popup
+	 * @param int $duration      Ticks to display tip for (default of 8 ticks)
+	 */
+	public function sendTip(string $message, int $duration = TipQueue::BASE_TIP_DURATION){
+		$this->tipQueue->addItem($message, $duration);
+	}
+
+	/**
+	 * Sends a message directly to the player, skipping the queue
+	 *
+	 * @param string $message
+	 */
+	public function sendDirectMessage(string $message) {
+		$pk = new TextPacket();
+		$pk->type = TextPacket::TYPE_RAW;
+		$pk->message = $message;
+		$this->dataPacket($pk);
+	}
+
+	/**
+	 * Sends a popup directly to the player, skipping the queue
+	 *
+	 * @param string $message
+	 */
+	public function sendDirectPopup(string $message) {
+		$pk = new TextPacket();
+		$pk->type = TextPacket::TYPE_POPUP;
+		$pk->message = $message;
+		$this->dataPacket($pk);
+	}
+
+	/**
+	 * Sends a tip directly to the player, skipping the queue
+	 *
+	 * @param string $message
+	 */
+	public function sendDirectTip(string $message) {
+		$pk = new TextPacket();
+		$pk->type = TextPacket::TYPE_TIP;
+		$pk->message = $message;
+		$this->dataPacket($pk);
 	}
 
 	public function sendChatMessage($senderName, $message) {
@@ -2708,20 +2763,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	public function sendTranslation($message, array $parameters = []){
 		$pk = new TextPacket();
 		$pk->type = TextPacket::TYPE_RAW;
-		$pk->message = $message;
-		$this->dataPacket($pk);
-	}
-
-	public function sendPopup($message){
-		$pk = new TextPacket();
-		$pk->type = TextPacket::TYPE_POPUP;
-		$pk->message = $message;
-		$this->dataPacket($pk);
-	}
-
-	public function sendTip($message){
-		$pk = new TextPacket();
-		$pk->type = TextPacket::TYPE_TIP;
 		$pk->message = $message;
 		$this->dataPacket($pk);
 	}
