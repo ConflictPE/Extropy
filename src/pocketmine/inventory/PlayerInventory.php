@@ -231,10 +231,12 @@ class PlayerInventory extends BaseInventory{
 			return;
 		}
 
-		parent::onSlotChange($index, $before, $sendPacket);
-
-		if ($index >= $this->getSize() && $sendPacket === true) {
+		if($index >= $this->getSize() and $sendPacket) { // if slot is armor
+			$this->sendArmorSlot($index, $this->getHolder());
 			$this->sendArmorSlot($index, $this->getHolder()->getViewers());
+		} else {
+			// Do not send armor by accident here
+			parent::onSlotChange($index, $before, $sendPacket);
 		}
 	}
 
