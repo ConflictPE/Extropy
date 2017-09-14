@@ -1618,6 +1618,7 @@ class Server{
 		Biome::init();
 		TextWrapper::init();
 		MetadataConvertor::init();
+		Effect::init();
 		$this->craftingManager = new CraftingManager();
 
 		$this->pluginManager = new PluginManager($this, $this->commandMap);
@@ -2093,12 +2094,9 @@ class Server{
 			$this->getScheduler()->scheduleRepeatingTask(new CallbackTask("pcntl_signal_dispatch"), 5);
 		}
 
-
 		$this->getScheduler()->scheduleRepeatingTask(new CallbackTask([$this, "checkTicks"]), 20 * 5);
 
 		$this->logger->info("Default game type: " . self::getGamemodeString($this->getGamemode()));
-
-		Effect::init();
 
 		$this->logger->info("Done (" . round(microtime(true) - \pocketmine\START_TIME, 3) . 's)! For help, type "help" or "?"');
 
