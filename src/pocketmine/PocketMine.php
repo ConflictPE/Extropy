@@ -319,8 +319,8 @@ namespace pocketmine {
 			case "linux":
 			default:
 				exec("kill -9 " . ((int) $pid) . " > /dev/null 2>&1");
-				}
 		}
+	}
 
 	/**
 	 * @param object $value
@@ -459,13 +459,16 @@ namespace pocketmine {
 
 	$logger->info("Stopping other threads");
 
-	foreach(ThreadManager::getInstance()->getAll() as $id => $thread){
-		$logger->debug("Stopping " . (new \ReflectionClass($thread))->getShortName() . " thread");
-		$thread->quit();
-	}
-
 	$killer = new ServerKiller(8);
 	$killer->start();
+	usleep(10000); //Fixes ServerKiller not being able to start on single-core machines
+
+	if(ThreadManager::getInstance()->stopAll() > 0){
+		if(\pocketmine\DEBUG > 1) {
+			echo "Some threads could not be stopped, performing a force-kill" . PHP_EOL . PHP_EOL;
+		}
+		kill(getmypid());
+	}
 
 	$logger->shutdown();
 	$logger->join();

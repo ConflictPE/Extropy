@@ -2005,7 +2005,6 @@ class Server{
 	 */
 	public function shutdown(){
 		$this->isRunning = false;
-		\gc_collect_cycles();
 	}
 
 	public function forceShutdown(){
@@ -2016,18 +2015,15 @@ class Server{
 		try{
 			$this->hasStopped = true;
 
-			foreach($this->players as $player){
-				$player->close(TextFormat::YELLOW . $player->getName() . " has left the game", $this->getProperty("settings.shutdown-message", "Server closed"));
-			}
-
-			foreach($this->network->getInterfaces() as $interface){
-				$interface->shutdown();
-				$this->network->unregisterInterface($interface);
-			}
-
 			$this->shutdown();
+
 			if($this->rcon instanceof RCON){
 				$this->rcon->stop();
+			}
+
+			if($this->pluginManager instanceof PluginManager) {
+				$this->getLogger()->debug("Disabling all plugins");
+				$this->pluginManager->disablePlugins();
 			}
 
 			if($this->getProperty("settings.upnp-forwarding", false) === true){
@@ -2035,22 +2031,39 @@ class Server{
 				UPnP::RemovePortForward($this->getPort());
 			}
 
-			$this->pluginManager->disablePlugins();
+			foreach($this->players as $player){
+				$player->close(TextFormat::YELLOW . $player->getName() . " has left the game", $this->getProperty("settings.shutdown-message", "Server closed"));
+			}
 
+			$this->getLogger()->debug("Unloading all levels");
 			foreach($this->getLevels() as $level){
 				$this->unloadLevel($level, true, true);
 			}
 
+			$this->getLogger()->debug("Removing event handlers");
 			HandlerList::unregisterAll();
 
-			$this->scheduler->cancelAllTasks();
-			$this->scheduler->mainThreadHeartbeat(PHP_INT_MAX);
+			if($this->scheduler instanceof ServerScheduler) {
+				$this->getLogger()->debug("Stopping all tasks");
+				$this->scheduler->cancelAllTasks();
+				$this->scheduler->mainThreadHeartbeat(PHP_INT_MAX);
+			}
 
+			$this->getLogger()->debug("Saving properties");
 			$this->properties->save();
 
-			$this->console->shutdown();
+			$this->getLogger()->debug("Closing console");
 			$this->console->notify();
+			$this->console->shutdown();
+
+			foreach($this->network->getInterfaces() as $interface){
+				$interface->shutdown();
+				$this->network->unregisterInterface($interface);
+			}
+
+			gc_collect_cycles();
 		}catch(\Exception $e){
+			$this->logger->logException($e);
 			$this->logger->emergency("Crashed while crashing, killing process");
 			@kill(getmypid());
 		}

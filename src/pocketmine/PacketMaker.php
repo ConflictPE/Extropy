@@ -17,9 +17,9 @@ class PacketMaker extends Worker {
 
 	protected $classLoader;
 	protected $shutdown;
-	
+
 	protected $externalQueue;
-	protected $internalQueue;	
+	protected $internalQueue;
 
 	public function __construct(\ClassLoader $loader = null) {
 		$this->externalQueue = new \Threaded;
@@ -28,8 +28,8 @@ class PacketMaker extends Worker {
 		$this->classLoader = $loader;
 		$this->start(PTHREADS_INHERIT_CONSTANTS);
 	}
-	
-	
+
+
 	public function registerClassLoader(){
 		if(!interface_exists("ClassLoader", false)){
 			require(\pocketmine\PATH . "src/spl/ClassLoader.php");
@@ -40,7 +40,7 @@ class PacketMaker extends Worker {
 			$this->classLoader->register(true);
 		}
 	}
-	
+
 	public function run() {
 		$this->registerClassLoader();
 		gc_enable();
@@ -66,7 +66,7 @@ class PacketMaker extends Worker {
 	}
 
 	protected function tickProcessor() {
-		while (!$this->shutdown) {			
+		while (!$this->shutdown) {
 			$start = microtime(true);
 			$this->tick();
 			$time = microtime(true) - $start;
@@ -76,13 +76,13 @@ class PacketMaker extends Worker {
 		}
 	}
 
-	protected function tick() {				
+	protected function tick() {
 		while(count($this->internalQueue) > 0){
 			$data = unserialize($this->readMainToThreadPacket());
 			$this->checkPacket($data);
 		}
 	}
-	
+
 	protected function checkPacket($data) {
 		if (isset($data['moveData'])) {
 			foreach ($data['moveData'] as $identifier => $moveData) {
@@ -103,7 +103,7 @@ class PacketMaker extends Worker {
 					}
 					$pk->senderSubClientID = $singleMoveData[8];
 					$pk->encode($moveData['playerProtocol']);
-					$moveStr .= Binary::writeVarInt(strlen($pk->buffer)) . $pk->buffer;					
+					$moveStr .= Binary::writeVarInt(strlen($pk->buffer)) . $pk->buffer;
 				}
 				$buffer = zlib_encode($moveStr, ZLIB_ENCODING_DEFLATE, 7);
 				$pkBatch = new BatchPacket();
@@ -111,7 +111,7 @@ class PacketMaker extends Worker {
 				$pkBatch->encode($moveData['playerProtocol']);
 				$pkBatch->isEncoded = true;
 				$this->externalQueue[] = $this->makeBuffer($identifier, $pkBatch, false, false);
-			}	
+			}
 			foreach ($data['motionData'] as $identifier => $motionData) {
 				$motionStr = "";
 				foreach ($motionData['data'] as $singleMotionData) {
@@ -119,7 +119,7 @@ class PacketMaker extends Worker {
 					$pk->entities = [$singleMotionData];
 					$pk->senderSubClientID = $singleMotionData[4];
 					$pk->encode($motionData['playerProtocol']);
-					$motionStr .= Binary::writeVarInt(strlen($pk->buffer)) . $pk->buffer;		
+					$motionStr .= Binary::writeVarInt(strlen($pk->buffer)) . $pk->buffer;
 				}
 				$buffer = zlib_encode($motionStr, ZLIB_ENCODING_DEFLATE, 7);
 				$pkBatch = new BatchPacket();
@@ -130,7 +130,7 @@ class PacketMaker extends Worker {
 			}
 		} elseif($data['isBatch']) {
 			$packetsStr = [];
-			foreach($data['packets'] as $protocol => $packetData){		
+			foreach($data['packets'] as $protocol => $packetData){
 				foreach ($packetData as $p) {
 					if (!isset($packetsStr[$protocol])) {
 						$packetsStr[$protocol] = "";
@@ -138,7 +138,7 @@ class PacketMaker extends Worker {
 					$packetsStr[$protocol] .= Binary::writeVarInt(strlen($p)) . $p;
 				}
 			}
-			
+
 			$packs = [];
 			foreach ($packetsStr as $protocol => $str) {
 				$buffer = zlib_encode($str, ZLIB_ENCODING_DEFLATE, $data['networkCompressionLevel']);
@@ -148,31 +148,30 @@ class PacketMaker extends Worker {
 				$pk->isEncoded = true;
 				$packs[$protocol] = $pk;
 			}
-			
+
 			foreach($data['targets'] as $target){
 				if (isset($packs[$target[1]])) {
 					$this->externalQueue[] = $this->makeBuffer($target[0], $packs[$target[1]], false, false);
 				}
 			}
 		}
-		
+
 	}
 
 
-	protected function makeBuffer($identifier, $fullPacket, $needACK, $identifierACK) {		
+	protected function makeBuffer($identifier, $fullPacket, $needACK, $identifierACK) {
 		$data = array(
 			'identifier' => $identifier,
 			'buffer' => $fullPacket->buffer
 		);
 		return serialize($data);
 	}
-	
-	public function shutdown(){		
+
+	public function shutdown(){
 		$this->shutdown = true;
-		var_dump("Packet thread shutdown!");
 	}
-	
-	
+
+
 	public function errorHandler($errno, $errstr, $errfile, $errline, $context, $trace = null){
 		$errorConversion = [
 			E_ERROR => "E_ERROR",
@@ -196,18 +195,18 @@ class PacketMaker extends Worker {
 			$errstr = substr($errstr, 0, $pos);
 		}
 
-		//var_dump("An $errno error happened: \"$errstr\" in \"$errfile\" at line $errline");	
+		//var_dump("An $errno error happened: \"$errstr\" in \"$errfile\" at line $errline");
 		@file_put_contents('logs/' .date('Y.m.d') . '_debug.log', "An $errno error happened: \"$errstr\" in \"$errfile\" at line $errline\n", FILE_APPEND | LOCK_EX);
 
 		foreach(($trace = $this->getTrace($trace === null ? 3 : 0, $trace)) as $i => $line){
-			//var_dump($line);			
+			//var_dump($line);
 			@file_put_contents('logs/' .date('Y.m.d') . '_debug.log', $line."\n", FILE_APPEND | LOCK_EX);
 		}
 
 		return true;
 	}
-	
-	
+
+
 	public function getTrace($start = 1, $trace = null){
 		if($trace === null){
 			if(function_exists("xdebug_get_function_stack")){
@@ -237,7 +236,7 @@ class PacketMaker extends Worker {
 
 		return $messages;
 	}
-	
+
 	public function shutdownHandler(){
 		if($this->shutdown !== true){
 			var_dump("Packet thread crashed!");

@@ -21,6 +21,8 @@
 
 namespace pocketmine;
 
+use pocketmine\utils\MainLogger;
+
 class ThreadManager extends \Volatile{
 
 	/** @var ThreadManager */
@@ -66,4 +68,21 @@ class ThreadManager extends \Volatile{
 
 		return $array;
 	}
+
+	public function stopAll() : int{
+		$logger = MainLogger::getLogger();
+		$erroredThreads = 0;
+		foreach($this->getAll() as $thread){
+			$logger->debug("Stopping " . $thread->getThreadName() . " thread");
+			try{
+				$thread->quit();
+				$logger->debug($thread->getThreadName() . " thread stopped successfully.");
+			}catch(\Exception $e){
+				++$erroredThreads;
+				$logger->debug("Could not stop " . $thread->getThreadName() . " thread: " . $e->getMessage());
+			}
+		}
+		return $erroredThreads;
+	}
+
 }
