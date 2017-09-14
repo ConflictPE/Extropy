@@ -1734,7 +1734,7 @@ class Item{
 	 */
 	public function setCustomName(string $name){
 		if($name === ""){
-			$this->clearCustomName();
+			return $this->clearCustomName();
 		}
 
 		if(!$this->hasCompoundTag()){
