@@ -132,6 +132,16 @@ class Enchantment{
 	public static function getEnchantmentByName($name){
 		if(defined(Enchantment::class . "::TYPE_" . strtoupper($name))){
 			return self::getEnchantment(constant(Enchantment::class . "::TYPE_" . strtoupper($name)));
+		} elseif(defined(Enchantment::class . "::TYPE_ARMOR_" . strtoupper($name))) {
+			return self::getEnchantment(constant(Enchantment::class . "::TYPE_ARMOR_" . strtoupper($name)));
+		} elseif(defined(Enchantment::class . "::TYPE_WATER_" . strtoupper($name))) {
+			return self::getEnchantment(constant(Enchantment::class . "::TYPE_WATER_" . strtoupper($name)));
+		} elseif(defined(Enchantment::class . "::TYPE_WEAPON_" . strtoupper($name))) {
+			return self::getEnchantment(constant(Enchantment::class . "::TYPE_WEAPON_" . strtoupper($name)));
+		} elseif(defined(Enchantment::class . "::TYPE_MINING_" . strtoupper($name))) {
+			return self::getEnchantment(constant(Enchantment::class . "::TYPE_MINING_" . strtoupper($name)));
+		} elseif(defined(Enchantment::class . "::TYPE_FISHING_" . strtoupper($name))) {
+			return self::getEnchantment(constant(Enchantment::class . "::TYPE_FISHING_" . strtoupper($name)));
 		}
 		return null;
 	}
