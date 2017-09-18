@@ -45,6 +45,7 @@ class StartGamePacket extends PEPacket {
 	public $yaw = 0;
 	public $pitch = 0;
 	public $currentTick = 0;
+	public $dayCycleStopTime = 6000;
 
 	public function decode(int $playerProtocol) {
 
@@ -73,7 +74,7 @@ class StartGamePacket extends PEPacket {
 		$this->putBlockPosition($this->spawnX, $this->spawnY, $this->spawnZ);
 
 		$this->putBool(true); // disable achievements?
-		$this->putSignedVarInt(6000); // DayCycleStopTime (-1 = not stopped, any other value = stopped at that time)
+		$this->putSignedVarInt($this->dayCycleStopTime); // DayCycleStopTime (-1 = not stopped, any other value = stopped at that time)
 		$this->putBool(false); // edu mode?
 		$this->putLFloat(0); // rain level
 		$this->putLFloat(0); // lightning level

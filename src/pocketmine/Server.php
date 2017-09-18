@@ -300,6 +300,12 @@ class Server{
 
 	private $unloadLevelQueue = [];
 
+	/** @var bool */
+	private $doTimeCycle = true;
+
+	/** @var int */
+	private $timeCycleStop = 6000;
+
 	public function addSpawnedEntity($entity) {
 		if ($entity instanceof Player) {
 			return;
@@ -325,6 +331,22 @@ class Server{
 
 	public function getMonsterLimit() {
 		return $this->monsterLimit;
+	}
+
+	public function getDoTimeTimeCycle() : bool {
+		return $this->doTimeCycle;
+	}
+
+	public function setDoTimeCycle(bool $value = true) {
+		$this->doTimeCycle = $value;
+	}
+
+	public function getTimeCycleStopTime() : int {
+		return $this->timeCycleStop;
+	}
+
+	public function setTimeCycleStopTime(int $value = 6000) {
+		$this->timeCycleStop = $value;
 	}
 
 	/**

@@ -3478,6 +3478,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$pk->gamemode = $this->gamemode & 0x01;
 		$pk->eid = $this->id;
 		$pk->currentTick = $this->server->getTick();
+		$pk->dayCycleStopTime = $this->server->getDoTimeTimeCycle() ? -1 : $this->server->getTimeCycleStopTime();
 		$this->dataPacket($pk);
 
 		$pk = new SetTimePacket();
