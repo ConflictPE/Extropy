@@ -553,7 +553,7 @@ class Level implements ChunkManager, Metadatable{
 
 		$this->checkTime();
 
-		if(($currentTick % 200) === 0 && $this->server->getConfigBoolean("time-update", true)){
+		if(($currentTick % 200) === 0 and !$this->stopTime){
 			$this->sendTime();
 		}
 
@@ -2416,26 +2416,37 @@ class Level implements ChunkManager, Metadatable{
 	 * Sets the current time on the level
 	 *
 	 * @param int $time
+	 * @param bool $send
 	 */
-	public function setTime($time){
+	public function setTime($time, bool $send = true){
 		$this->time = (int) $time;
-		$this->sendTime();
+		if($send) {
+			$this->sendTime();
+		}
 	}
 
 	/**
 	 * Stops the time for the level, will not save the lock state to disk
+	 *
+	 * @param bool $send
 	 */
-	public function stopTime(){
+	public function stopTime(bool $send = true){
 		$this->stopTime = true;
-		$this->sendTime();
+		if($send) {
+			$this->sendTime();
+		}
 	}
 
 	/**
 	 * Start the time again, if it was stopped
+	 *
+	 * @param bool $send
 	 */
-	public function startTime(){
+	public function startTime(bool $send = true){
 		$this->stopTime = false;
-		$this->sendTime();
+		if($send) {
+			$this->sendTime();
+		}
 	}
 
 	/**

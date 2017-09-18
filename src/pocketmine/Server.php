@@ -1103,6 +1103,10 @@ class Server{
 
 		try{
 			$level = new Level($this, $name, $path, $provider);
+			if(!$this->doTimeCycle) {
+				$level->stopTime(false);
+				$level->setTime($this->timeCycleStop, false);
+			}
 		}catch(\Exception $e){
 
 			$this->logger->error("Could not load level \"" . $name . "\": " . $e->getMessage());
@@ -1546,12 +1550,16 @@ class Server{
 			"auto-save" => true,
 			"auto-generate" => false,
 			"save-player-data" => false,
-			"time-update" => true
+			"time-update" => true,
+			"time-lock" => 6000
 		]);
 
 		ServerScheduler::$WORKERS = 4;
 
 		$this->scheduler = new ServerScheduler();
+
+		$this->doTimeCycle = $this->getConfigBoolean("time-update");
+		$this->timeCycleStop = $this->getConfigInt("time-lock");
 
 		if($this->getConfigBoolean("enable-rcon", false) === true){
 			$this->rcon = new RCON($this, $this->getConfigString("rcon.password", ""), $this->getConfigInt("rcon.port", $this->getPort()), ($ip = $this->getIp()) != "" ? $ip : "0.0.0.0", $this->getConfigInt("rcon.threads", 1), $this->getConfigInt("rcon.clients-per-thread", 50));
