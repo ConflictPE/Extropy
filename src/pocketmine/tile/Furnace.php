@@ -39,6 +39,7 @@ use pocketmine\network\Network;
 use pocketmine\network\protocol\ContainerSetDataPacket;
 
 class Furnace extends Tile implements InventoryHolder, Container, Nameable{
+
 	/** @var FurnaceInventory */
 	protected $inventory;
 
@@ -268,7 +269,7 @@ class Furnace extends Tile implements InventoryHolder, Container, Nameable{
 				$pk = new ContainerSetDataPacket();
 				$pk->windowid = $windowId;
 				$pk->property = 0; //Smelting
-				$pk->value = floor($this->namedtag["CookTime"]);
+				$pk->value = (int) floor($this->namedtag["CookTime"]);
 				$player->dataPacket($pk);
 
 				$pk = new ContainerSetDataPacket();
