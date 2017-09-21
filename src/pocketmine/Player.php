@@ -1629,6 +1629,12 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			return;
 		}
 
+		$slot = $this->inventory->getItemInHand();
+
+		if($slot->canBeConsumed() and $slot->canBeConsumedBy($this)){
+			$slot->onConsume($this);
+		}
+
 		$items = [ //TODO: move this to item classes
 			Item::APPLE => 4,
 			Item::MUSHROOM_STEW => 6,
@@ -1661,7 +1667,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			Item::CHORUS_FRUIT => 2,
 		];
 
-		$slot = $this->inventory->getItemInHand();
 		$slotId = $slot->getId();
 		if(isset($items[$slotId])) {
 			if($this->getFood() < 20 or $slot->getId() === Item::GOLDEN_APPLE or $slot->getId() === Item::ENCHANTED_GOLDEN_APPLE) {
@@ -2107,12 +2112,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 				switch($packet->event){
 					case EntityEventPacket::USE_ITEM: //Eating
-						$slot = $this->inventory->getItemInHand();
-						if($slot->canBeConsumed() and $slot->canBeConsumedBy($this)){
-							$slot->onConsume($this);
-						} else {
-							$this->eatFoodInHand();
-						}
+						$this->eatFoodInHand();
 						break;
 					case EntityEventPacket::ENCHANT:
 						if ($this->currentWindow instanceof EnchantInventory) {
@@ -2603,9 +2603,12 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						}
 						break;
 					case InventoryTransactionPacket::TRANSACTION_TYPE_ITEM_RELEASE:
-						switch ($packet->actionType) {
+						switch($packet->actionType) {
 							case InventoryTransactionPacket::ITEM_RELEASE_ACTION_RELEASE:
 								$this->releaseUseItem();
+								break;
+							case InventoryTransactionPacket::ITEM_RELEASE_ACTION_USE:
+								$this->eatFoodInHand();
 								break;
 						}
 						break;

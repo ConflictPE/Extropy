@@ -48,8 +48,8 @@ class InventoryTransactionPacket extends PEPacket {
 	const INV_SOURCE_TYPE_CREATIVE = 3;
 	const INV_SOURCE_TYPE_CRAFT = 99999;
 
-	const ITEM_RELEASE_ACTION_RELEASE = 0;
-	const ITEM_RELEASE_ACTION_USE = 1;
+	const ITEM_RELEASE_ACTION_RELEASE = 0; // bow shoot
+	const ITEM_RELEASE_ACTION_USE = 1; // eat food, drink potion
 
 	const ITEM_USE_ACTION_PLACE = 0;
 	const ITEM_USE_ACTION_USE = 1;
