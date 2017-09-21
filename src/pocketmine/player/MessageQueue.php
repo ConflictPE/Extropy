@@ -76,8 +76,14 @@ class MessageQueue {
 	public function doTick() {
 		if($this->hasItemsInQueue()) {
 			$message = "";
+			$addedFirst = false;
 			while($this->hasItemsInQueue()) {
-				$message .= TextFormat::RESET . "\n" . $this->getNextMessage();
+				if($addedFirst) {
+					$message .= TextFormat::RESET . "\n" . $this->getNextMessage();
+				} else {
+					$message .= $this->getNextMessage();
+					$addedFirst = true;
+				}
 			}
 			$this->owner->sendDirectMessage(rtrim($message, "\n"));
 		}
