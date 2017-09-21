@@ -155,13 +155,14 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 			$this->uuid = UUID::fromData($this->getId(), $this->getSkinData(), $this->getNameTag());
 		}
 
-		if(isset($this->namedtag->Inventory) and $this->namedtag->Inventory instanceof Enum){
-			foreach($this->namedtag->Inventory as $item){
+		if(isset($this->namedtag->Inventory) and $this->namedtag->Inventory instanceof Enum) {
+			foreach($this->namedtag->Inventory as $i => $item) {
 				if($item["Slot"] >= 0 and $item["Slot"] < 9){ //Hotbar
-					$this->inventory->setHotbarSlotIndex($item["Slot"], isset($item["TrueSlot"]) ? $item["TrueSlot"] : -1);
-				}elseif($item["Slot"] >= 100 and $item["Slot"] < 104){ //Armor
+					//Old hotbar saving stuff, remove it (useless now)
+					unset($this->namedtag->Inventory->{$i});
+				} elseif($item["Slot"] >= 100 and $item["Slot"] < 104) { //Armor
 					$this->inventory->setItem($this->inventory->getSize() + $item["Slot"] - 100, ItemItem::nbtDeserialize($item));
-				}else{
+				} else {
 					$this->inventory->setItem($item["Slot"] - 9, ItemItem::nbtDeserialize($item));
 				}
 			}
@@ -190,41 +191,19 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 		$this->namedtag->Inventory = new Enum("Inventory", []);
 		$this->namedtag->Inventory->setTagType(NBT::TAG_Compound);
 		if($this->inventory !== null){
-			for($slot = 0; $slot < 9; ++$slot){
-				$hotbarSlot = $this->inventory->getHotbarSlotIndex($slot);
-				if($hotbarSlot !== -1){
-					$item = $this->inventory->getItem($hotbarSlot);
-					if($item->getId() !== 0 and $item->getCount() > 0){
-						$tag = $item->nbtSerialize($slot);
-						$tag->TrueSlot = new ByteTag("TrueSlot", $hotbarSlot);
-						$this->namedtag->Inventory[$slot] = $tag;
-
-						continue;
-					}
-				}
-
-				$this->namedtag->Inventory[$slot] = new Compound("", [
-					new ByteTag("Count", 0),
-					new ShortTag("Damage", 0),
-					new ByteTag("Slot", $slot),
-					new ByteTag("TrueSlot", -1),
-					new ShortTag("id", 0)
-				]);
-			}
-
 			//Normal inventory
 			$slotCount = $this->inventory->getSize() + $this->inventory->getHotbarSize();
-			for($slot = $this->inventory->getHotbarSize(); $slot < $slotCount; ++$slot){
+			for($slot = $this->inventory->getHotbarSize(); $slot < $slotCount; ++$slot) {
 				$item = $this->inventory->getItem($slot - 9);
-				if($item->getId() !== ItemItem::AIR){
+				if($item->getId() !== ItemItem::AIR) {
 					$this->namedtag->Inventory[$slot] = $item->nbtSerialize($slot);
 				}
 			}
 
 			//Armor
-			for($slot = 100; $slot < 104; ++$slot){
+			for($slot = 100; $slot < 104; ++$slot) {
 				$item = $this->inventory->getItem($this->inventory->getSize() + $slot - 100);
-				if($item instanceof ItemItem and $item->getId() !== ItemItem::AIR){
+				if($item instanceof ItemItem and $item->getId() !== ItemItem::AIR) {
 					$this->namedtag->Inventory[$slot] = $item->nbtSerialize($slot);
 				}
 			}

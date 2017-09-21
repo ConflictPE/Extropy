@@ -43,11 +43,10 @@ abstract class Multiversion {
 	 * @return PlayerInventory
 	 */
 	public static function getPlayerInventory(Player $player) {
-		switch($player->protocol) {
-			case ProtocolInfo::PROTOCOL_120:
-				return new PlayerInventory120($player);
-			default:
-				return new PlayerInventory($player);
+		if($player->getPlayerProtocol() >= ProtocolInfo::PROTOCOL_120) {
+			return new PlayerInventory120($player);
+		} else {
+			return new PlayerInventory($player);
 		}
 	}
 

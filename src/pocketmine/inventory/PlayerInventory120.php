@@ -48,11 +48,11 @@ class PlayerInventory120 extends PlayerInventory {
 			return parent::setItem($index, $item, $sendPacket);
 		}
 		// protocol 120 logic
-		switch ($index) {
+		switch($index) {
 			case self::CURSOR_INDEX:
 				$this->cursor = clone $item;
 				if ($sendPacket) {
-					$this->sendCursor();
+					$this->sendCursor($this->getHolder());
 				}
 				break;
 			case self::CRAFT_INDEX_0:
@@ -86,8 +86,8 @@ class PlayerInventory120 extends PlayerInventory {
 	}
 
 	public function getItem($index) {
-		if ($index < 0) {
-			switch ($index) {
+		if($index < 0) {
+			switch($index) {
 				case self::CURSOR_INDEX:
 					return $this->cursor == null ? clone $this->air : clone $this->cursor;
 				case self::CRAFT_INDEX_0:
@@ -104,9 +104,9 @@ class PlayerInventory120 extends PlayerInventory {
 				case self::CRAFT_RESULT_INDEX:
 					return $this->craftResult == null ? clone $this->air : clone $this->craftResult;
 			}
-		} else {
-			return parent::getItem($index);
 		}
+
+		return parent::getItem($index);
 	}
 
 	public function setHotbarSlotIndex($index, $slot) {
@@ -118,40 +118,66 @@ class PlayerInventory120 extends PlayerInventory {
 		$this->setItem($slot, $tmp);
 	}
 
+	/**
+	 * @param int $index
+	 * @param Player|Player[] $target
+	 */
 	public function sendSlot($index, $target) {
+		if($target instanceof Player){
+			$target = [$target];
+		}
+
 		$pk = new InventorySlotPacket();
 		$pk->containerId = Protocol120::CONTAINER_ID_INVENTORY;
 		$pk->slot = $index;
 		$pk->item = $this->getItem($index);
-		$this->holder->dataPacket($pk);
+
+		foreach($target as $player) {
+			$player->dataPacket($pk);
+		}
 	}
 
+	/**
+	 * @param Player|Player[] $target
+	 */
 	public function sendContents($target) {
-		$pk = new InventoryContentPacket();
-		$pk->inventoryID = Protocol120::CONTAINER_ID_INVENTORY;
-		$pk->items = [];
+		if($target instanceof Player){
+			$target = [$target];
+		}
 
-		$mainPartSize = $this->getSize();
-		for ($i = 0; $i < $mainPartSize; $i++) { //Do not send armor by error here
+		$pk = new InventoryContentPacket();
+		$pk->inventoryId = Protocol120::CONTAINER_ID_INVENTORY;
+
+		for($i = 0; $i < $this->getSize(); $i++) { //Do not send armor by error here
 			$pk->items[$i] = $this->getItem($i);
 		}
 
-		$this->holder->dataPacket($pk);
-		$this->sendCursor();
+		foreach($target as $player) {
+			$player->dataPacket($pk);
+		}
 	}
 
-	public function sendCursor() {
+	/**
+	 * @param Player|Player[] $target
+	 */
+	public function sendCursor($target) {
+		if($target instanceof Player){
+			$target = [$target];
+		}
+
 		$pk = new InventorySlotPacket();
 		$pk->containerId = Protocol120::CONTAINER_ID_CURSOR_SELECTED;
 		$pk->slot = 0;
 		$pk->item = $this->cursor;
-		$this->holder->dataPacket($pk);
+
+		foreach($target as $player) {
+			$player->dataPacket($pk);
+		}
 	}
 
 	/**
-	 *
 	 * @param integer $index
-	 * @param Player[] $target
+	 * @param Player|Player[] $target
 	 */
 	public function sendArmorSlot($index, $target){
 		if ($target instanceof Player) {
@@ -168,7 +194,7 @@ class PlayerInventory120 extends PlayerInventory {
 			$pk->slots = $armor;
 
 			foreach($target as $player){
-				if ($player === $this->holder) {
+				if($player === $this->holder) {
 					/** @var Player $player */
 					$pk2 = new InventorySlotPacket();
 					$pk2->containerId = Protocol120::CONTAINER_ID_ARMOR;
@@ -182,6 +208,9 @@ class PlayerInventory120 extends PlayerInventory {
 		}
 	}
 
+	/**
+	 * @param Player|Player[] $target
+	 */
 	public function sendArmorContents($target) {
 		if($target instanceof Player) {
 			$target = [$target];
@@ -209,15 +238,19 @@ class PlayerInventory120 extends PlayerInventory {
 	 *
 	 * @param Player[] $target
 	 */
-	private function sendOffHandContents($targets) {
+	private function sendOffHandContents($target) {
+		if($target instanceof Player) {
+			$target = [$target];
+		}
+
 		$offHandIndex = $this->getSize() + 4;
 		$pk = new InventorySlotPacket();
 		$pk->containerId = Protocol120::CONTAINER_ID_OFFHAND;
 		$pk->slot = 0;
 		$pk->item = $this->getItem($offHandIndex);
-		$target[] = $this->holder;
-		foreach ($targets as $target) {
-			$target->dataPacket($pk);
+
+		foreach($target as $player) {
+			$player->dataPacket($pk);
 		}
 	}
 
