@@ -2696,7 +2696,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	 * @param string $message
 	 */
 	public function sendMessage($message){
-		$this->messageQueue->addItem($message);
+		$this->messageQueue->addItem((string) $message);
 	}
 
 	/**
