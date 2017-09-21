@@ -51,7 +51,7 @@ class ContainerSetContentPacket extends PEPacket {
 		$this->getHeader($playerProtocol);
 		$this->windowid = $this->getVarInt();
 
-		$count = $this->getEntityUniqueId();
+		$count = $this->getVarInt();
 		for($s = 0; $s < $count and !$this->feof(); ++$s) {
 			$this->slots[$s] = $this->getSlot($playerProtocol);
 		}
@@ -64,10 +64,10 @@ class ContainerSetContentPacket extends PEPacket {
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putVarInt($this->windowid);
+		$this->putByte($this->windowid);
 
 		if($playerProtocol >= Info::PROTOCOL_110) {
-			$this->putEntityUniqueId($this->eid);
+			$this->putVarInt($this->eid);
 		}
 
 		$this->putVarInt(count($this->slots));

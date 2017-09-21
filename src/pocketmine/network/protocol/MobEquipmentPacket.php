@@ -41,7 +41,7 @@ class MobEquipmentPacket extends PEPacket {
 
 	public function decode(int $playerProtocol) {
 		$this->getHeader($playerProtocol);
-		$this->eid = $this->getEntityRuntimeId();
+		$this->eid = $this->getVarInt();
 		$this->item = $this->getSlot($playerProtocol);
 		$this->slot = $this->getByte();
 		$this->selectedSlot = $this->getByte();
@@ -50,7 +50,7 @@ class MobEquipmentPacket extends PEPacket {
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putEntityRuntimeId($this->eid);
+		$this->putVarInt($this->eid);
 		$this->putSlot($this->item, $playerProtocol);
 		$this->putByte($this->slot);
 		$this->putByte($this->selectedSlot);

@@ -55,7 +55,7 @@ class AnimatePacket extends PEPacket {
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
 		$this->putVarInt($this->action);
-		$this->putEntityRuntimeId($this->eid);
+		$this->putVarInt($this->eid);
 		if($this->action === self::ACTION_ROW_LEFT or $this->action === self::ACTION_ROW_LEFT) {
 			$this->putLFloat($this->float);
 		}

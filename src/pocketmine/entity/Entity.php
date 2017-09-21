@@ -317,8 +317,7 @@ abstract class Entity extends Location implements Metadatable{
 				$this->namedtag["Pos"][2]
 			),
 			$this->namedtag["Rotation"][0],
-			$this->namedtag["Rotation"][1],
-			true
+			$this->namedtag["Rotation"][1]
 		);
 
 		if(isset($this->namedtag->Motion)){

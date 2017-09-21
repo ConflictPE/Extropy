@@ -88,7 +88,7 @@ class TextPacket extends PEPacket {
 		$typeId = MultiversionEnums::getMessageTypeId((string) $playerProtocol, $this->type);
 		$this->putByte($typeId);
 		if($playerProtocol >= Info::PROTOCOL_120) {
-			$this->putByte($this->isLocalize);
+			$this->putBool($this->isLocalize);
 		}
 		switch($this->type) {
 			case self::TYPE_CHAT:

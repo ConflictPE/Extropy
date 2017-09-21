@@ -38,13 +38,13 @@ class MobEffectPacket extends PEPacket {
 	public $eid;
 	public $eventId;
 	public $effectId;
-	public $amplifier;
+	public $amplifier = 0;
 	public $particles = true;
-	public $duration;
+	public $duration = 0;
 
 	public function decode(int $playerProtocol) {
 		$this->getHeader($playerProtocol);
-		$this->eid = $this->getEntityRuntimeId();
+		$this->eid = $this->getVarInt();
 		$this->eventId = $this->getByte();
 		$this->effectId = $this->getSignedVarInt();
 		$this->amplifier = $this->getSignedVarInt();
@@ -54,7 +54,7 @@ class MobEffectPacket extends PEPacket {
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putEntityRuntimeId($this->eid);
+		$this->putVarInt($this->eid);
 		$this->putByte($this->eventId);
 		$this->putSignedVarInt($this->effectId);
 		$this->putSignedVarInt($this->amplifier);

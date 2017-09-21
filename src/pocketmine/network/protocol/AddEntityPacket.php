@@ -41,11 +41,11 @@ class AddEntityPacket extends PEPacket {
 	public $x;
 	public $y;
 	public $z;
-	public $speedX;
-	public $speedY;
-	public $speedZ;
-	public $yaw;
-	public $pitch;
+	public $speedX = 0.0;
+	public $speedY = 0.0;
+	public $speedZ= 0.0;
+	public $yaw = 0.0;
+	public $pitch = 0.0;
 	public $metadata = [];
 	public $links = [];
 	public $attributes = [];
@@ -55,8 +55,8 @@ class AddEntityPacket extends PEPacket {
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putEntityUniqueId($this->eid); // TODO
-		$this->putEntityRuntimeId($this->eid);
+		$this->putVarInt($this->eid); // TODO: correct eid and runtimeId's
+		$this->putVarInt($this->eid);
 		$this->putVarInt($this->type);
 		$this->putVector3f($this->x, $this->y, $this->z);
 		$this->putVector3f($this->speedX, $this->speedY, $this->speedZ);

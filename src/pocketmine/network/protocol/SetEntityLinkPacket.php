@@ -45,9 +45,10 @@ class SetEntityLinkPacket extends PEPacket {
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putEntityUniqueId($this->from);
-		$this->putEntityUniqueId($this->to);
+		$this->putVarInt($this->from);
+		$this->putVarInt($this->to);
 		$this->putByte($this->type);
+		$this->putByte(0);
 	}
 
 }

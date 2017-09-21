@@ -40,8 +40,8 @@ class TakeItemEntityPacket extends PEPacket {
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putEntityRuntimeId($this->target);
-		$this->putEntityRuntimeId($this->eid);
+		$this->putVarInt($this->target);
+		$this->putVarInt($this->eid);
 	}
 
 }

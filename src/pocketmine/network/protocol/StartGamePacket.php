@@ -53,8 +53,8 @@ class StartGamePacket extends PEPacket {
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putEntityUniqueId($this->eid);
-		$this->putEntityRuntimeId($this->eid);
+		$this->putVarInt($this->eid);
+		$this->putVarInt($this->eid);
 
 		if($playerProtocol >= Info::PROTOCOL_110) {
  			$this->putSignedVarInt($this->gamemode);

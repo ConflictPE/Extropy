@@ -38,7 +38,7 @@ class AddPlayerPacket extends PEPacket {
 	const PACKET_NAME = "ADD_PLAYER_PACKET";
 
 	public $uuid;
-	public $username;
+	public $username = "";
 	public $eid;
 	public $x;
 	public $y;
@@ -65,14 +65,14 @@ class AddPlayerPacket extends PEPacket {
 		$this->reset($playerProtocol);
 		$this->putUUID($this->uuid);
 		$this->putString($this->username);
-		$this->putEntityUniqueId($this->eid); // TODO
-		$this->putEntityRuntimeId($this->eid);
+		$this->putVarInt($this->eid); // TODO: correct eid and runtimeId's
+		$this->putVarInt($this->eid);
 		$this->putVector3f($this->x, $this->y, $this->z);
 		$this->putVector3f($this->speedX, $this->speedY, $this->speedZ);
 		$this->putLFloat($this->pitch);
 		$this->putLFloat($this->yaw);
-		$this->putLFloat($this->yaw);//TODO headrot
-		$this->item instanceof Item ? $this->putSlot($this->item, $playerProtocol) : $this->putSignedVarInt(0);
+		$this->putLFloat($this->yaw);// TODO: Correct head rotation
+		$this->putSignedVarInt(0); // TODO: Fix held item
 
 		$this->put(Binary::writeMetadata($this->metadata, $playerProtocol));
 

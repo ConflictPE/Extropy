@@ -43,9 +43,7 @@ class TileEventPacket extends PEPacket {
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putSignedVarInt($this->x);
-		$this->putVarInt($this->y);
-		$this->putSignedVarInt($this->z);
+		$this->putBlockPosition($this->x, $this->y, $this->z);
 		$this->putSignedVarInt($this->case1);
 		$this->putSignedVarInt($this->case2);
 	}

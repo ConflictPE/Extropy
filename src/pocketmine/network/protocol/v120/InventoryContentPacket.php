@@ -26,6 +26,7 @@ namespace pocketmine\network\protocol\v120;
 #include <rules/DataPacket.h>
 
 
+use pocketmine\inventory\InventoryType;
 use pocketmine\network\protocol\Info120;
 use pocketmine\network\protocol\PEPacket;
 
@@ -34,7 +35,7 @@ class InventoryContentPacket extends PEPacket {
 	const NETWORK_ID = Info120::INVENTORY_CONTENT_PACKET;
 	const PACKET_NAME = "INVENTORY_CONTENT_PACKET";
 
-	public $inventoryId;
+	public $inventoryId = InventoryType::PLAYER;
 	public $items = [];
 
 	public function decode(int $playerProtocol) {

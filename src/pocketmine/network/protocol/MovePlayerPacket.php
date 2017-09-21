@@ -51,7 +51,7 @@ class MovePlayerPacket extends PEPacket {
 	public $bodyYaw;
 	public $pitch;
 	public $mode = self::MODE_NORMAL;
-	public $onGround;
+	public $onGround = true;
 
 	public function clean() {
 		$this->teleport = false;
@@ -60,7 +60,7 @@ class MovePlayerPacket extends PEPacket {
 
 	public function decode(int $playerProtocol) {
 		$this->getHeader($playerProtocol);
-		$this->eid = $this->getEntityRuntimeId();
+		$this->eid = $this->getVarInt();
 
 		$this->getVector3f($this->x, $this->y, $this->z);
 
@@ -69,12 +69,12 @@ class MovePlayerPacket extends PEPacket {
 
 		$this->bodyYaw = $this->getLFloat();
 		$this->mode = $this->getByte();
-		$this->onGround = $this->getByte() > 0;
+		$this->onGround = $this->getBool();
 	}
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putEntityRuntimeId($this->eid);
+		$this->putVarInt($this->eid);
 
 		$this->putVector3f($this->x, $this->y, $this->z);
 
@@ -83,12 +83,12 @@ class MovePlayerPacket extends PEPacket {
 
 		$this->putLFloat($this->bodyYaw);
 		$this->putByte($this->mode);
-		$this->putByte($this->onGround > 0);
+		$this->putBool($this->onGround);
 
-		$this->putEntityRuntimeId(0); // riding runtime ID
+		$this->putVarInt(0); // riding runtime ID
 		if($this->mode === self::MODE_TELEPORT) {
-			$this->putLInt(self::TELEPORTATION_CAUSE_UNKNOWN);
-			$this->putLInt(0);
+			$this->putInt(self::TELEPORTATION_CAUSE_UNKNOWN);
+			$this->putInt(0);
 		}
 	}
 

@@ -61,7 +61,7 @@ class ExplodePacket extends PEPacket {
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
 		$this->putVector3f($this->x, $this->y, $this->z);
-		$this->putSignedVarInt((int) ($this->radius * 32));
+		$this->putVarInt((int) ($this->radius * 32));
 		$this->putVarInt(count($this->records));
 		if(count($this->records) > 0) {
 			foreach($this->records as $record) {

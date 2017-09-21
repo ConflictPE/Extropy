@@ -38,6 +38,7 @@ class MapItemDataPacket extends PEPacket {
 	public $height;
 	public $data;
 	public $pointners = [];
+	public $entityIds = [];
 
 	public function decode(int $playerProtocol) {
 
@@ -45,11 +46,11 @@ class MapItemDataPacket extends PEPacket {
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
+		$this->putSignedVarInt($this->mapId);
+		$this->putVarInt($this->flags);
 		if($playerProtocol >= Info::PROTOCOL_120) {
 			$this->putByte(0); // dimension
 		}
-		$this->putSignedVarInt($this->mapId);
-		$this->putVarInt($this->flags);
 		switch($this->flags) {
 			case 2:
 				$this->putByte($this->scale);
@@ -57,13 +58,23 @@ class MapItemDataPacket extends PEPacket {
 				$this->putSignedVarInt($this->height);
 				$this->putSignedVarInt(0);
 				$this->putSignedVarInt(0);
-				if ($playerProtocol >= Info::PROTOCOL_120) {
+				if($playerProtocol >= Info::PROTOCOL_120) {
 					$this->putVarInt($this->width * $this->height);
 				}
 				$this->put($this->data);
 				break;
 			case 4:
 				$this->putByte($this->scale);
+				if($playerProtocol >= Info::PROTOCOL_120) {
+					if(!empty($this->entityIds)) {
+						$this->putVarInt(count($this->entityIds));
+						foreach($this->entityIds as $entityId) {
+							$this->putSignedVarInt($entityId);
+						}
+					} else {
+						$this->put("\x01\xfd\xff\xff\xff\x1f"); // hack for 1.2, crash if send 0 as entity count
+					}
+				}
 				$this->putVarInt(count($this->pointners));
 				foreach($this->pointners as $pointner) {
 					if($playerProtocol >= Info::PROTOCOL_120) {

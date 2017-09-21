@@ -119,7 +119,7 @@ class AvailableCommandsPacket extends PEPacket {
 					} else {
 						$commandsStream->putLInt(self::ARG_FLAG_VALID | self::getFlag($paramData["type"]));
 					}
-					$commandsStream->putByte(isset($paramData["optional"]) && $paramData["optional"]);
+					$commandsStream->putBool(isset($paramData["optional"]) && $paramData["optional"]);
 				}
 			}
 		}

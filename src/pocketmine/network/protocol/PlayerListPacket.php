@@ -56,7 +56,7 @@ class PlayerListPacket extends PEPacket {
 			switch($this->type) {
 				case self::TYPE_ADD:
 					$this->putUUID($d[0]);
-					$this->putEntityUniqueId($d[1]); // Player ID
+					$this->putVarInt($d[1]); // Player ID
 					$this->putString($d[2]); // Player Name
 					if($playerProtocol >= Info::PROTOCOL_120) {
 						$this->putString($d[3]); // Skin ID

@@ -274,7 +274,7 @@ class NBT{
 	}
 
 	public function getSignedByte() : int{
-		return Binary::readSignedByte($this->get(1));
+		return Binary::readByte($this->get(1), true);
 	}
 
 	public function putByte($v){

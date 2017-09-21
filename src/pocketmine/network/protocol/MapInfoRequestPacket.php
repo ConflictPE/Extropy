@@ -35,11 +35,11 @@ class MapInfoRequestPacket extends PEPacket {
 
 	public function decode(int $playerProtocol) {
 		$this->getHeader($playerProtocol);
-		$this->mapId = $this->getEntityUniqueId();
+		$this->mapId = $this->getSignedVarInt();
 	}
 
 	public function encode(int $playerProtocol) {
-		$this->putEntityUniqueId($this->mapId);
+		$this->putSignedVarInt($this->mapId);
 	}
 
 }

@@ -44,8 +44,8 @@ class AddPaintingPacket extends PEPacket {
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putEntityUniqueId($this->eid); // TODO
-		$this->putEntityRuntimeId($this->eid);
+		$this->putVarInt($this->eid); // TODO: correct eid and runtimeId's
+		$this->putVarInt($this->eid);
 		$this->putBlockPosition($this->x, $this->y, $this->z);
 		$this->putSignedVarInt($this->direction);
 		$this->putString($this->title);

@@ -47,14 +47,14 @@ class MoveEntityPacket extends PEPacket {
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
 		foreach($this->entities as $d){
-			$this->putEntityRuntimeId($d[0]); //eid
+			$this->putVarInt($d[0]); //eid
 			$this->putVector3f($d[1], $d[2], $d[3]);
-			$this->putByte($d[6] * 0.71111); //pitch
-			$this->putByte($d[5] * 0.71111); //headYaw
-			$this->putByte($d[4] * 0.71111); //yaw
+			$this->putByteRotation($d[6] * 0.71111); //pitch
+			$this->putByteRotation($d[5] * 0.71111); //headYaw
+			$this->putByteRotation($d[4] * 0.71111); //yaw
 			/** @todo do it right */
-			$this->putByte(true); // on ground
-			$this->putByte(false); // has teleported
+			$this->putBool(true); // on ground
+			$this->putBool(false); // has teleported
 		}
 	}
 
