@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace pocketmine\network\multiversion;
 
 use pocketmine\network\protocol\PlayerActionPacket;
+use pocketmine\network\protocol\TextPacket;
 
 abstract class MultiversionEnums {
 
@@ -50,7 +51,7 @@ abstract class MultiversionEnums {
 			17 => PlayerActionPacket::ACTION_BUILD_DENIED,
 			18 => PlayerActionPacket::ACTION_CONTINUE_BREAK,
 		],
-		"120" => [
+		120 => [
 			-1 => "UNKNOWN",
 			0 => PlayerActionPacket::ACTION_START_BREAK,
 			1 => PlayerActionPacket::ACTION_ABORT_BREAK,
@@ -77,29 +78,29 @@ abstract class MultiversionEnums {
 
 	private static $textPacketType = [
 		"default" => [
-			0 => "TYPE_RAW",
-			1 => "TYPE_CHAT",
-			2 => "TYPE_TRANSLATION",
-			3 => "TYPE_POPUP",
-			4 => "TYPE_TIP",
-			5 => "TYPE_SYSTEM",
-			6 => "TYPE_WHISPER",
-			7 => "TYPE_ANNOUNCEMENT",
+			0 => TextPacket::TYPE_RAW,
+			1 => TextPacket::TYPE_CHAT,
+			2 => TextPacket::TYPE_TRANSLATION,
+			3 => TextPacket::TYPE_POPUP,
+			4 => TextPacket::TYPE_TIP,
+			5 => TextPacket::TYPE_SYSTEM,
+			6 => TextPacket::TYPE_WHISPER,
+			7 => TextPacket::TYPE_ANNOUNCEMENT,
 		],
-		"120" => [
-			0 => "TYPE_RAW",
-			1 => "TYPE_CHAT",
-			2 => "TYPE_TRANSLATION",
-			3 => "TYPE_POPUP",
-			4 => "JUKEBOX_POPUP",
-			5 => "TYPE_TIP",
-			6 => "TYPE_SYSTEM",
-			7 => "TYPE_WHISPER",
-			8 => "TYPE_ANNOUNCEMENT",
+		120 => [
+			0 => TextPacket::TYPE_RAW,
+			1 => TextPacket::TYPE_CHAT,
+			2 => TextPacket::TYPE_TRANSLATION,
+			3 => TextPacket::TYPE_POPUP,
+			4 => TextPacket::TYPE_JUKEBOX_POPUP,
+			5 => TextPacket::TYPE_TIP,
+			6 => TextPacket::TYPE_SYSTEM,
+			7 => TextPacket::TYPE_WHISPER,
+			8 => TextPacket::TYPE_ANNOUNCEMENT,
 		],
 	];
 
-	public static function getPlayerAction(string $playerProtocol, int $actionId) {
+	public static function getPlayerAction(int $playerProtocol, int $actionId) {
 		if(!isset(self::$playerActionType[$playerProtocol])) {
 			$playerProtocol = "default";
 		}
@@ -109,19 +110,19 @@ abstract class MultiversionEnums {
 		return self::$playerActionType[$playerProtocol][$actionId];
 	}
 
-	public static function getPlayerActionId(string $playerProtocol, string $actionName) {
+	public static function getPlayerActionId(int $playerProtocol, string $actionName) {
 		if(!isset(self::$playerActionType[$playerProtocol])) {
 			$playerProtocol = "default";
 		}
 		foreach(self::$playerActionType[$playerProtocol] as $key => $value) {
-			if ($value == $actionName) {
+			if($actionName === $value) {
 				return $key;
 			}
 		}
 		return -1;
 	}
 
-	public static function getMessageType(string $playerProtocol, int $typeId) {
+	public static function getMessageType(int $playerProtocol, int $typeId) {
 		if(!isset(self::$textPacketType[$playerProtocol])) {
 			$playerProtocol = "default";
 		}
@@ -131,12 +132,12 @@ abstract class MultiversionEnums {
 		return self::$textPacketType[$playerProtocol][$typeId];
 	}
 
-	public static function getMessageTypeId(string $playerProtocol, string $typeName) {
+	public static function getMessageTypeId(int $playerProtocol, string $typeName) {
 		if(!isset(self::$textPacketType[$playerProtocol])) {
 			$playerProtocol = "default";
 		}
 		foreach(self::$textPacketType[$playerProtocol] as $key => $value) {
-			if ($value == $typeName) {
+			if($typeName === $value) {
 				return $key;
 			}
 		}

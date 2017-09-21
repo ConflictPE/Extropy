@@ -1893,15 +1893,14 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$this->useItem($packet->item, $packet->hotbarSlot, $packet->face, new Vector3($packet->x, $packet->y, $packet->z), new Vector3($packet->fx, $packet->fy, $packet->fz));
 				break;
 			case 'PLAYER_ACTION_PACKET':
-				$action = MultiversionEnums::getPlayerAction((string) $this->protocol, $packet->action);
-				if(!$this->spawned or (!$this->isAlive() and !in_array($action, [PlayerActionPacket::ACTION_RESPAWN, PlayerActionPacket::ACTION_DIMENSION_CHANGE]))){
+				if(!$this->spawned or (!$this->isAlive() and !in_array($packet->action, [PlayerActionPacket::ACTION_RESPAWN, PlayerActionPacket::ACTION_DIMENSION_CHANGE]))){
 					break;
 				}
 
 				$packet->eid = $this->id;
 				$pos = new Vector3($packet->x, $packet->y, $packet->z);
 
-				switch($action) {
+				switch($packet->action) {
 					case PlayerActionPacket::ACTION_START_BREAK:
 						if($this->lastBreak !== PHP_INT_MAX or $pos->distanceSquared($this) > 10000) {
 							break;

@@ -26,6 +26,8 @@ namespace pocketmine\network\protocol;
 #include <rules/DataPacket.h>
 
 
+use pocketmine\network\multiversion\MultiversionEnums;
+
 class PlayerActionPacket extends PEPacket {
 
 	const NETWORK_ID = Info::PLAYER_ACTION_PACKET;
@@ -63,7 +65,7 @@ class PlayerActionPacket extends PEPacket {
 	public function decode(int $playerProtocol) {
 		$this->getHeader($playerProtocol);
 		$this->eid = $this->getVarInt();
-		$this->action = $this->getSignedVarInt();
+		$this->action = MultiversionEnums::getPlayerAction($playerProtocol, $this->getSignedVarInt());
 		$this->getBlockPosition($this->x, $this->y, $this->z);
 		$this->face = $this->getVarInt();
 	}
@@ -71,7 +73,7 @@ class PlayerActionPacket extends PEPacket {
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
 		$this->putVarInt($this->eid);
-		$this->putSignedVarInt($this->action);
+		$this->putSignedVarInt(MultiversionEnums::getPlayerActionId($playerProtocol, $this->action));
 		$this->putBlockPosition($this->x, $this->y, $this->z);
 		$this->putVarInt($this->face);
 	}

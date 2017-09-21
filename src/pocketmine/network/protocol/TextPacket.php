@@ -56,7 +56,7 @@ class TextPacket extends PEPacket {
 		if ($playerProtocol >= Info::PROTOCOL_120) {
 			$this->isLocalize = $this->getByte();
 		}
-		$this->type = MultiversionEnums::getMessageType((string) $playerProtocol, $this->type);
+		$this->type = MultiversionEnums::getMessageType($playerProtocol, $this->type);
 		switch($this->type) {
 			case self::TYPE_CHAT:
 			case self::TYPE_WHISPER:
@@ -85,7 +85,7 @@ class TextPacket extends PEPacket {
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$typeId = MultiversionEnums::getMessageTypeId((string) $playerProtocol, $this->type);
+		$typeId = MultiversionEnums::getMessageTypeId($playerProtocol, $this->type);
 		$this->putByte($typeId);
 		if($playerProtocol >= Info::PROTOCOL_120) {
 			$this->putBool($this->isLocalize);
