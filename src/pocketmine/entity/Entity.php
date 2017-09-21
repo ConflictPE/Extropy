@@ -781,19 +781,12 @@ abstract class Entity extends Location implements Metadatable{
 	 *
 	 */
 	public function attack($damage, EntityDamageEvent $source) {
-		$cause = $source->getCause();
-		if ($this->hasEffect(Effect::FIRE_RESISTANCE) && (
-				$cause === EntityDamageEvent::CAUSE_FIRE ||
-				$cause === EntityDamageEvent::CAUSE_FIRE_TICK ||
-				$cause === EntityDamageEvent::CAUSE_LAVA)) {
-
-			$source->setCancelled();
-		}
-
 		$this->server->getPluginManager()->callEvent($source);
 		if($source->isCancelled()){
 			return;
 		}
+
+		$source->applyEnchantmentEffects();
 
 		if($source instanceof EntityDamageByEntityEvent) {
 			$damager = $source->getDamager();
@@ -810,7 +803,6 @@ abstract class Entity extends Location implements Metadatable{
 		}
 
 		$this->setLastDamageCause($source);
-		$source->applyEnchantmentEffects();
 		$this->setHealth($this->getHealth() - $source->getFinalDamage());
 	}
 
@@ -845,15 +837,16 @@ abstract class Entity extends Location implements Metadatable{
 	 */
 	public function setHealth($amount) {
 		$amount = (int) round($amount);
-		if ($amount === $this->health) {
+		if($amount === $this->health) {
 			return;
 		}
-		if ($amount <= 0) {
+
+		if($amount <= 0) {
 			$this->health = 0;
-			if ($this->dead !== true) {
+			if(!$this->dead) {
 				$this->kill();
 			}
-		} else if ($amount <= $this->getMaxHealth() || $amount < $this->health) {
+		} elseif($amount <= $this->getMaxHealth() or $amount < $this->health) {
 			$this->health = (int) $amount;
 		} else {
 			$this->health = $this->getMaxHealth();
@@ -975,12 +968,12 @@ abstract class Entity extends Location implements Metadatable{
 		}
 
 
-		foreach ($this->effects as $effect) {
-			if ($effect->canTick()) {
+		foreach($this->effects as $effect) {
+			if($effect->canTick()) {
 				$effect->applyEffect($this);
 			}
 			$newDuration = $effect->getDuration() - $tickDiff;
-			if ($newDuration <= 0) {
+			if($newDuration <= 0) {
 				$this->removeEffect($effect->getId());
 			} else {
 				$effect->setDuration($newDuration);
@@ -989,32 +982,32 @@ abstract class Entity extends Location implements Metadatable{
 
 		$hasUpdate = false;
 		$block = $this->isCollideWithLiquid();
-		if ($block !== false) {
+		if($block !== false) {
 			$block->onEntityCollide($this);
 		}
 		$block = $this->isCollideWithTransparent();
-		if ($block !== false) {
+		if($block !== false) {
 			$block->onEntityCollide($this);
 		}
 
-		if ($this->y < 0 && $this->dead !== true) {
-			$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_VOID, 20);
+		if($this->y < 0 and $this->isAlive()) {
+			$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_VOID, 10);
 			$this->attack($ev->getFinalDamage(), $ev);
 			$hasUpdate = true;
 		}
 
-		if ($this->fireTicks > 0) {
-			if ($this->fireProof) {
+		if($this->fireTicks > 0) {
+			if($this->fireProof) {
 				$this->fireTicks -= 4 * $tickDiff;
 			} else {
-				if (!$this->hasEffect(Effect::FIRE_RESISTANCE) && ($this->fireTicks % 20) === 0 || $tickDiff > 20) {
+				if(!$this->hasEffect(Effect::FIRE_RESISTANCE) && ($this->fireTicks % 20) === 0 || $tickDiff > 20) {
 					$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_FIRE_TICK, $this->fireDamage);
 					$this->attack($ev->getFinalDamage(), $ev);
 				}
 				$this->fireTicks -= $tickDiff;
 			}
 
-			if ($this->fireTicks <= 0) {
+			if($this->fireTicks <= 0) {
 				$this->extinguish();
 			} else {
 				$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ONFIRE, true);
@@ -1022,7 +1015,7 @@ abstract class Entity extends Location implements Metadatable{
 			}
 		}
 
-		if ($this->noDamageTicks > 0) {
+		if($this->noDamageTicks > 0) {
 			$this->noDamageTicks -= $tickDiff;
 			if ($this->noDamageTicks < 0) {
 				$this->noDamageTicks = 0;

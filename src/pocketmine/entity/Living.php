@@ -102,6 +102,19 @@ abstract class Living extends Entity implements Damageable{
 			}
 		}
 
+		$cause = $source->getCause();
+		if($this->hasEffect(Effect::FIRE_RESISTANCE) && (
+				$cause === EntityDamageEvent::CAUSE_FIRE ||
+				$cause === EntityDamageEvent::CAUSE_FIRE_TICK ||
+				$cause === EntityDamageEvent::CAUSE_LAVA)) {
+
+			$source->setCancelled();
+		}
+
+		if($this->hasEffect(Effect::DAMAGE_RESISTANCE)){
+			$source->setDamage(-($source->getFinalDamage() * 0.20 * ($this->getEffect(Effect::DAMAGE_RESISTANCE)->getAmplifier() + 1)), EntityDamageEvent::MODIFIER_RESISTANCE);
+		}
+
 		parent::attack($damage, $source);
 
 		if($source->isCancelled()){
@@ -156,7 +169,13 @@ abstract class Living extends Entity implements Damageable{
 		if($this->dead){
 			return;
 		}
+
 		parent::kill();
+
+		$this->callDeathEvent();
+	}
+
+	protected function callDeathEvent(){
 		$this->server->getPluginManager()->callEvent($ev = new EntityDeathEvent($this, $this->getDrops()));
 		foreach($ev->getDrops() as $item){
 			$this->getLevel()->dropItem($this, $item);

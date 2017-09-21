@@ -2899,25 +2899,42 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	public function kill(){
-		if(!$this->spawned or !$this->isAlive()){
+		if(!$this->spawned) {
 			return;
 		}
 
-		$cause = $this->getLastDamageCause();
-		$ev = null;
-		if($cause instanceof EntityDamageEvent){
-			$ev = $cause;
-			$cause = $ev->getCause();
-		}
+		parent::kill();
 
-		switch($cause){
+		$this->freeChunks();
+
+		if($this->server->isHardcore()) {
+			$this->setBanned(true);
+		} else {
+			echo($this->getName());
+			$pk = new RespawnPacket();
+			$pos = $this->getSpawn();
+			$pk->x = $pos->x;
+			$pk->y = $pos->y + $this->eyeHeight;
+			$pk->z = $pos->z;
+			$this->dataPacket($pk);
+
+			$this->setMayMove(false);
+		}
+	}
+
+	protected function callDeathEvent() {
+		$message = $this->getName() . " died";
+
+		$cause = $this->getLastDamageCause();
+
+		switch($cause === null ? EntityDamageEvent::CAUSE_CUSTOM : $cause->getCause()) {
 			case EntityDamageEvent::CAUSE_ENTITY_ATTACK:
-				if($ev instanceof EntityDamageByEntityEvent){
-					$e = $ev->getDamager();
-					if($e instanceof Player){
+				if($cause instanceof EntityDamageByEntityEvent) {
+					$e = $cause->getDamager();
+					if($e instanceof Player) {
 						$message = $this->getName() . " was killed by " . $e->getName();
 						break;
-					}elseif($e instanceof Living){
+					} elseif($e instanceof Living) {
 						$message = $this->getName() . " was slain by " . $e->getName();
 						break;
 					}
@@ -2925,9 +2942,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$message = $this->getName() . " was killed";
 				break;
 			case EntityDamageEvent::CAUSE_PROJECTILE:
-				if($ev instanceof EntityDamageByEntityEvent){
-					$e = $ev->getDamager();
-					if($e instanceof Living){
+				if($cause instanceof EntityDamageByEntityEvent) {
+					$e = $cause->getDamager();
+					if($e instanceof Living) {
 						$message = $this->getName() . " was shot by " . $e->getName();
 						break;
 					}
@@ -2941,8 +2958,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$message = $this->getName() . " fell out of the world";
 				break;
 			case EntityDamageEvent::CAUSE_FALL:
-				if($ev instanceof EntityDamageEvent){
-					if($ev->getFinalDamage() > 2){
+				if($cause instanceof EntityDamageEvent) {
+					if($cause->getFinalDamage() > 2){
 						$message = $this->getName() . " fell from a high place";
 						break;
 					}
@@ -2987,15 +3004,10 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				break;
 
 			default:
-				$message = $this->getName() . " died";
 				break;
 		}
 
-		Entity::kill();
-
 		$this->server->getPluginManager()->callEvent($ev = new PlayerDeathEvent($this, $this->getDrops(), $message));
-
-		$this->freeChunks();
 
 		if(!$ev->getKeepInventory()){
 			foreach($ev->getDrops() as $item){
@@ -3004,23 +3016,12 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 			if($this->inventory !== null){
 				$this->inventory->clearAll();
+				$this->inventory->setHeldItemIndex(0);
 			}
 		}
 
 		if($ev->getDeathMessage() != ""){
 			$this->server->broadcast($ev->getDeathMessage(), Server::BROADCAST_CHANNEL_USERS);
-		}
-
-		if($this->server->isHardcore()){
-			$this->setBanned(true);
-		}else{
-			$pk = new RespawnPacket();
-			$pos = $this->getSpawn();
-			$pk->x = $pos->x;
-			$pk->y = $pos->y;
-			$pk->z = $pos->z;
-			$this->dataPacket($pk);
-			$this->setMayMove(false);
 		}
 	}
 
@@ -3127,7 +3128,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	public function attack($damage, EntityDamageEvent $source){
-		if($this->dead === true){
+		if($this->dead){
 			return;
 		}
 
