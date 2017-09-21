@@ -280,6 +280,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	protected $startAirTicks = 5;
 
 	protected $autoJump = true;
+	protected $lastJumpTime = 0;
 
 	private $checkMovement;
 	protected $allowFlight = false;
@@ -2910,7 +2911,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		if($this->server->isHardcore()) {
 			$this->setBanned(true);
 		} else {
-			echo($this->getName());
 			$pk = new RespawnPacket();
 			$pos = $this->getSpawn();
 			$pk->x = $pos->x;
@@ -3909,15 +3909,15 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		}
 
 		$target = $this->level->getEntity($targetId);
-		if ($target instanceof Player and !($this->server->getConfigBoolean("pvp", true) or ($target->getGamemode() & 0x01) > 0)) {
+		if(!($target instanceof Entity) or $this->isSpectator() or $target->dead) {
 			return;
 		}
 
-		if (!($target instanceof Entity) or $this->isSpectator() or $target->dead === true) {
+		if($target instanceof Player and !($this->server->getConfigBoolean("pvp", true) or ($target->getGamemode() & 0x01) > 0)) {
 			return;
 		}
 
-		if ($target instanceof DroppedItem || $target instanceof Arrow) {
+		if($target instanceof DroppedItem or $target instanceof Arrow or $target instanceof Snowball or $target instanceof Egg) {
 			$this->kick("Attempting to attack an invalid entity");
 			$this->server->getLogger()->warning("Player " . $this->getName() . " tried to attack an invalid entity");
 			return;
@@ -3951,9 +3951,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			EntityDamageEvent::MODIFIER_BASE => isset($damageTable[$item->getId()]) ? $damageTable[$item->getId()] : 1,
 		];
 
-		/*if($this->distanceSquared($target) > 48) {
-			return;
-		} else*/if ($target instanceof Player) {
+		if($target instanceof Player) {
 			$armorValues = [
 				Item::LEATHER_CAP => 1,
 				Item::LEATHER_TUNIC => 3,
@@ -3976,9 +3974,10 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				Item::DIAMOND_LEGGINGS => 6,
 				Item::DIAMOND_BOOTS => 3,
 			];
+
 			$points = 0;
 			foreach($target->getInventory()->getArmorContents() as $index => $i) {
-				if (isset($armorValues[$i->getId()])) {
+				if(isset($armorValues[$i->getId()])) {
 					$points += $armorValues[$i->getId()];
 				}
 			}
@@ -3994,20 +3993,25 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				break;
 			}
 		}
-		$ev = new EntityDamageByEntityEvent($this, $target, EntityDamageEvent::CAUSE_ENTITY_ATTACK, $damage);
-		$target->attack($ev->getFinalDamage(), $ev);
 
-		if ($ev->isCancelled()) {
-			if ($item->isTool() && $this->isSurvival()) {
+		$target->attack(($ev = new EntityDamageByEntityEvent($this, $target, EntityDamageEvent::CAUSE_ENTITY_ATTACK, $damage))->getFinalDamage(), $ev);
+		if($ev->isCancelled()) {
+			if($item->isTool() and $this->isSurvival()) {
 				$this->inventory->sendContents($this);
 			}
 			return;
 		}
 
-		if ($item->isTool() && $this->isSurvival()) {
-			if ($item->useOn($target) && $item->getDamage() >= $item->getMaxDurability()) {
+		if($target instanceof Living and $this->isSprinting() and microtime(true) - $this->lastJumpTime < 1.5) {
+			$target->setMotion($target->getMotion()->add(0, 0.1, 0));
+			$this->motionX *= 0.6;
+			$this->motionZ *= 0.6;
+		}
+
+		if($item->isTool() and $this->isSurvival()) {
+			if($item->useOn($target) and $item->getDamage() >= $item->getMaxDurability()) {
 				$this->inventory->setItemInHand(Item::get(Item::AIR, 0, 1), $this);
-			} elseif ($this->inventory->getItemInHand()->getId() == $item->getId()) {
+			} elseif($this->inventory->getItemInHand()->getId() == $item->getId()) {
 				$this->inventory->setItemInHand($item, $this);
 			}
 		}
@@ -4430,7 +4434,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	protected function onJump() {
-
+		$this->lastJumpTime = microtime(true);
  	}
 
 	 protected function releaseUseItem() {
