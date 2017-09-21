@@ -1842,7 +1842,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						Win10InvLogic::packetHandler($packet, $this);
 						return true;
 					} else {
-						$slot = PlayerInventory::OFFHAND_ARMOR_SLOT_ID;
+						$slot = PlayerInventory::OFFHAND_CONTAINER_ID;
 						$currentArmor = $this->inventory->getArmorItem($slot);
 						$slot += $this->inventory->getSize();
 						$transaction = new BaseTransaction($this->inventory, $slot, $currentArmor, $packet->item);

@@ -26,7 +26,6 @@ use pocketmine\event\entity\EntityArmorChangeEvent;
 use pocketmine\event\entity\EntityInventoryChangeEvent;
 use pocketmine\event\player\PlayerItemHeldEvent;
 use pocketmine\item\Item;
-use pocketmine\network\Network;
 use pocketmine\network\protocol\ContainerSetContentPacket;
 use pocketmine\network\protocol\ContainerSetSlotPacket;
 use pocketmine\network\protocol\MobArmorEquipmentPacket;
@@ -37,7 +36,7 @@ use pocketmine\network\protocol\Info;
 
 class PlayerInventory extends BaseInventory{
 
-	const OFFHAND_ARMOR_SLOT_ID = 4;
+	const OFFHAND_CONTAINER_ID = 4;
 
 	protected $itemInHandIndex = 0;
 	/** @var int[] */
@@ -406,7 +405,7 @@ class PlayerInventory extends BaseInventory{
 	private function sendOffHandContents($target) {
 		$pk = new MobEquipmentPacket();
 		$pk->eid = $this->getHolder()->getId();
-		$pk->item = $this->getItem($this->getSize() + self::OFFHAND_ARMOR_SLOT_ID);
+		$pk->item = $this->getItem($this->getSize() + self::OFFHAND_CONTAINER_ID);
 		$pk->slot = $this->getHeldItemSlot();
 		$pk->selectedSlot = $this->getHeldItemIndex();
 		$pk->windowId = MobEquipmentPacket::WINDOW_ID_PLAYER_OFFHAND;
@@ -416,7 +415,7 @@ class PlayerInventory extends BaseInventory{
 					$pk2 = new ContainerSetSlotPacket();
 					$pk2->windowid = ContainerSetContentPacket::SPECIAL_OFFHAND;
 					$pk2->slot = 0;
-					$pk2->item = $this->getItem($this->getSize() + self::OFFHAND_ARMOR_SLOT_ID);
+					$pk2->item = $this->getItem($this->getSize() + self::OFFHAND_CONTAINER_ID);
 					$player->dataPacket($pk2);
 				} else {
 					$player->dataPacket($pk);
@@ -456,7 +455,7 @@ class PlayerInventory extends BaseInventory{
 			}
 		}
 
-		if ($index - $this->getSize() == self::OFFHAND_ARMOR_SLOT_ID) {
+		if ($index - $this->getSize() == self::OFFHAND_CONTAINER_ID) {
 			$this->sendOffHandContents($target);
 			return;
 		}
@@ -529,7 +528,7 @@ class PlayerInventory extends BaseInventory{
 	}
 
 	public function removeItemWithCheckOffHand($searchItem) {
-		$offhandSlotId = $this->getSize() + self::OFFHAND_ARMOR_SLOT_ID;
+		$offhandSlotId = $this->getSize() + self::OFFHAND_CONTAINER_ID;
 		$item = $this->getItem($offhandSlotId);
 		if ($item->getId() !== Item::AIR && $item->getCount() > 0) {
 			if ($searchItem->equals($item, $searchItem->getDamage() === null ? false : true, $searchItem->getCompoundTag() === null ? false : true)) {

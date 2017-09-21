@@ -158,7 +158,7 @@ class PlayerInventory120 extends PlayerInventory {
 			$target = [$target];
 		}
 
-		if ($index - $this->getSize() == self::OFFHAND_ARMOR_SLOT_ID) {
+		if ($index - $this->getSize() == self::OFFHAND_CONTAINER_ID) {
 			$this->sendOffHandContents($target);
 		} else {
 			$armor = $this->getArmorContents();
@@ -170,8 +170,8 @@ class PlayerInventory120 extends PlayerInventory {
 			foreach($target as $player){
 				if ($player === $this->holder) {
 					/** @var Player $player */
-					$pk2 = new ContainerSetSlotPacket();
-					$pk2->windowid = ContainerSetContentPacket::SPECIAL_ARMOR;
+					$pk2 = new InventorySlotPacket();
+					$pk2->containerId = Protocol120::CONTAINER_ID_ARMOR;
 					$pk2->slot = $index - $this->getSize();
 					$pk2->item = $this->getItem($index);
 					$player->dataPacket($pk2);
@@ -183,7 +183,7 @@ class PlayerInventory120 extends PlayerInventory {
 	}
 
 	public function sendArmorContents($target) {
-		if ($target instanceof Player) {
+		if($target instanceof Player) {
 			$target = [$target];
 		}
 
@@ -193,10 +193,10 @@ class PlayerInventory120 extends PlayerInventory {
 		$pk->eid = $this->holder->getId();
 		$pk->slots = $armor;
 
-		foreach ($target as $player) {
-			if ($player === $this->holder) {
+		foreach($target as $player) {
+			if($player === $this->holder) {
 				$pk2 = new InventoryContentPacket();
-				$pk2->inventoryID = Protocol120::CONTAINER_ID_ARMOR;
+				$pk->inventoryId = Protocol120::CONTAINER_ID_ARMOR;
 				$pk2->items = $armor;
 				$player->dataPacket($pk2);
 			} else {

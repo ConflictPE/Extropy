@@ -35,7 +35,7 @@ abstract class Protocol120 {
 	const CONTAINER_ID_ARMOR = 120;
 	const CONTAINER_ID_CREATIVE = 121;
 	const CONTAINER_ID_SELECTION_SLOTS = 122;
-	const CONTAINER_ID_FIXEDINVENTORY = 123;
+	const CONTAINER_ID_FIXED_INVENTORY = 123;
 	const CONTAINER_ID_CURSOR_SELECTED = 124;
 
 	private static $disallowedPackets = [
