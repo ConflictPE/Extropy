@@ -36,4 +36,8 @@ abstract class Math{
 		$i = (int) ($n + 1);
 		return $n >= $i ? $i : $i - 1;
 	}
+
+	public static function random() : float {
+		return mt_rand() / (mt_getrandmax() + 1);
+	}
 }

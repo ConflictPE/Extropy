@@ -29,6 +29,7 @@ use pocketmine\event\entity\EntityDeathEvent;
 use pocketmine\event\entity\EntityRegainHealthEvent;
 use pocketmine\event\Timings;
 use pocketmine\item\Item as ItemItem;
+use pocketmine\math\Math;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\ShortTag;
 use pocketmine\network\Network;
@@ -128,8 +129,12 @@ abstract class Living extends Entity implements Damageable{
 				$this->setOnFire(2 * $this->server->getDifficulty());
 			}
 
-			$deltaX = $this->x - $e->x;
-			$deltaZ = $this->z - $e->z;
+			$deltaX = $e->x - $this->x;
+			$deltaZ = $e->z - $this->z;
+
+			for(; $deltaX * $deltaX + $deltaZ * $deltaZ < 0.0001; $deltaZ = (Math::random() - Math::random()) * 0.01) {
+				$deltaX = (Math::random() - Math::random()) * 0.01;
+			}
 			$this->knockBack($e, $damage, $deltaX, $deltaZ, $source->getKnockBack());
 		}
 
@@ -147,19 +152,17 @@ abstract class Living extends Entity implements Damageable{
 			return;
 		}
 
-		$f = 1.2 / $f;
-
 		$motion = new Vector3($this->motionX, $this->motionY, $this->motionZ);
 
 		$motion->x /= 2;
 		$motion->y /= 2;
 		$motion->z /= 2;
-		$motion->x += $x * $f * $base;
+		$motion->x -= $x / $f * $base;
 		$motion->y += $base;
-		$motion->z += $z * $f * $base;
+		$motion->z -= $z / $f * $base;
 
-		if($motion->y > $base){
-			$motion->y = $base;
+		if($motion->y > 0.4){
+			$motion->y = 0.4;
 		}
 
 		$this->setMotion($motion);
