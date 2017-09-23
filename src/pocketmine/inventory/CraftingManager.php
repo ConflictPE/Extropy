@@ -25,7 +25,7 @@ namespace pocketmine\inventory;
 use pocketmine\block\Planks;
 use pocketmine\block\Quartz;
 use pocketmine\block\Sandstone;
-use pocketmine\block\Slab;
+use pocketmine\block\StoneSlab;
 use pocketmine\block\Fence;
 use pocketmine\block\Stone;
 use pocketmine\block\StoneBricks;
@@ -467,13 +467,13 @@ class CraftingManager{
 			$RESULT_ITEMID = 0;         $RESULT_META = 1;           $INGREDIENT_ITEMID = 2;     $INGREDIENT_META = 3; $RECIPE_SHAPE = 4;$RESULT_AMOUNT = 5;
 		$recipes = [
 			//RESULT_ITEM_ID            RESULT_META                 INGREDIENT_ITEMID           INGREDIENT_META     RECIPE_SHAPE        RESULT_AMOUNT
-			[Item::SLAB,                Slab::STONE,                Item::STONE,                Stone::NORMAL,      "slab",             6],
-			[Item::SLAB,                Slab::COBBLESTONE,          Item::STONE,				0,                  "slab",             6],
-			[Item::SLAB,                Slab::SANDSTONE,            Item::SANDSTONE,            0,                  "slab",             6],
-			[Item::SLAB,                Slab::BRICK,                Item::BRICK,                0,                  "slab",             6],
-			[Item::SLAB,                Slab::STONE_BRICK,          Item::STONE_BRICK,          StoneBricks::NORMAL,"slab",             6],
-			[Item::SLAB,                Slab::NETHER_BRICK,         Item::NETHER_BRICK_BLOCK,   0,                  "slab",             6],
-			[Item::SLAB,                Slab::QUARTZ,               Item::QUARTZ_BLOCK,         0,                  "slab",             6],
+			[Item::SLAB,                StoneSlab::STONE,                Item::STONE,                Stone::NORMAL,      "slab",             6],
+			[Item::SLAB,                StoneSlab::COBBLESTONE,          Item::STONE,				0,                  "slab",             6],
+			[Item::SLAB,                StoneSlab::SANDSTONE,            Item::SANDSTONE,            0,                  "slab",             6],
+			[Item::SLAB,                StoneSlab::BRICK,                Item::BRICK,                0,                  "slab",             6],
+			[Item::SLAB,                StoneSlab::STONE_BRICK,          Item::STONE_BRICK,          StoneBricks::NORMAL,"slab",             6],
+			[Item::SLAB,                StoneSlab::NETHER_BRICK,         Item::NETHER_BRICK_BLOCK,   0,                  "slab",             6],
+			[Item::SLAB,                StoneSlab::QUARTZ,               Item::QUARTZ_BLOCK,         0,                  "slab",             6],
 			[Item::COBBLESTONE_STAIRS,  0,                          Item::STONE,				0,                  "stairs",           4],
 			[Item::SANDSTONE_STAIRS,    0,                          Item::SANDSTONE,            0,                  "stairs",           4],
 			[Item::STONE_BRICK_STAIRS,  0,                          Item::STONE_BRICK,          StoneBricks::NORMAL,"stairs",           4],
@@ -493,9 +493,9 @@ class CraftingManager{
 			[Item::STONE,               Stone::POLISHED_DIORITE,    Item::STONE,                Stone::DIORITE,     "blockrecipe1",     4],
 			[Item::STONE,               Stone::POLISHED_ANDESITE,   Item::STONE,                Stone::ANDESITE,    "blockrecipe1",     4],
 			[Item::QUARTZ_BLOCK,        Quartz::QUARTZ_NORMAL,      Item::QUARTZ,               Stone::ANDESITE,    "blockrecipe1",     4],
-			[Item::QUARTZ_BLOCK,        Quartz::QUARTZ_CHISELED,    Item::SLAB,                 Slab::QUARTZ,       "blockrecipe2X1",   1],
-			[Item::SANDSTONE,           SandStone::CHISELED,        Item::SLAB,                 Slab::SANDSTONE,    "blockrecipe2X1",   1],
-			[Item::STONE_BRICK,         StoneBricks::CHISELED,      Item::SLAB,                 Slab::STONE_BRICK,  "blockrecipe2X1",   1],
+			[Item::QUARTZ_BLOCK,        Quartz::QUARTZ_CHISELED,    Item::SLAB,                 StoneSlab::QUARTZ,       "blockrecipe2X1",   1],
+			[Item::SANDSTONE,           SandStone::CHISELED,        Item::SLAB,                 StoneSlab::SANDSTONE,    "blockrecipe2X1",   1],
+			[Item::STONE_BRICK,         StoneBricks::CHISELED,      Item::SLAB,                 StoneSlab::STONE_BRICK,  "blockrecipe2X1",   1],
 		];
 		foreach ($recipes as $recipe){
 			$buildRecipes[] = $this->createOneIngedientRecipe($shapes[$recipe[$RECIPE_SHAPE]], $recipe[$RESULT_ITEMID], $recipe[$RESULT_META], $recipe[$RESULT_AMOUNT], $recipe[$INGREDIENT_ITEMID], $recipe[$INGREDIENT_META], "X", "Stonecutter");

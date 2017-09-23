@@ -389,7 +389,7 @@ class Block extends Position implements Metadatable{
 			self::$list[self::GOLD_BLOCK] = Gold::class;
 			self::$list[self::IRON_BLOCK] = Iron::class;
 			self::$list[self::DOUBLE_SLAB] = DoubleSlab::class;
-			self::$list[self::SLAB] = Slab::class;
+			self::$list[self::SLAB] = StoneSlab::class;
 			self::$list[self::BRICKS_BLOCK] = Bricks::class;
 			self::$list[self::TNT] = TNT::class;
 			self::$list[self::BOOKSHELF] = Bookshelf::class;
@@ -480,7 +480,7 @@ class Block extends Position implements Metadatable{
 			self::$list[self::QUARTZ_BLOCK] = Quartz::class;
 			self::$list[self::QUARTZ_STAIRS] = QuartzStairs::class;
 			self::$list[self::DOUBLE_WOOD_SLAB] = DoubleWoodSlab::class;
-			self::$list[self::WOOD_SLAB] = WoodSlab::class;
+			self::$list[self::WOOD_SLAB] = WoodenSlab::class;
 			self::$list[self::STAINED_CLAY] = StainedClay::class;
 
 			self::$list[self::LEAVES2] = Leaves2::class;
