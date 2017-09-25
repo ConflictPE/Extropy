@@ -30,4 +30,5 @@ class GoldAxe extends Tool{
 	public function isAxe(){
 		return Tool::TIER_GOLD;
 	}
+
 }

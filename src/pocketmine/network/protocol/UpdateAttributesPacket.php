@@ -60,4 +60,5 @@ class UpdateAttributesPacket extends PEPacket {
 		$this->putLFloat($this->defaultValue);
 		$this->putString($this->name);
 	}
+
 }

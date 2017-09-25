@@ -43,4 +43,5 @@ class CLIENT_CONNECT_DataPacket extends Packet{
         $this->sendPing = $this->getLong();
         $this->useSecurity = $this->getByte() > 0;
     }
+
 }

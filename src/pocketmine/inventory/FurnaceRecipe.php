@@ -80,4 +80,5 @@ class FurnaceRecipe implements Recipe{
 	public function registerToCraftingManager(){
 		Server::getInstance()->getCraftingManager()->registerFurnaceRecipe($this);
 	}
+
 }

@@ -134,4 +134,5 @@ class AsyncPool{
 		$this->workerUsage[$worker]++;
 		$this->taskWorkers[$task->getTaskId()] = $worker;
 	}
+
 }

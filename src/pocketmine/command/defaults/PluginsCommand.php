@@ -58,4 +58,5 @@ class PluginsCommand extends VanillaCommand{
 
 		return "(" . count($plugins) . "): $list";
 	}
+
 }

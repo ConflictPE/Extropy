@@ -80,4 +80,5 @@ class MovingObjectPosition{
 		$ob->hitVector = new Vector3($entity->x, $entity->y, $entity->z);
 		return $ob;
 	}
+
 }

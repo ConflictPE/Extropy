@@ -182,4 +182,5 @@ class Anvil extends McRegion {
 	public static function getYMask() {
 		return 0xff;
 	}
+
 }

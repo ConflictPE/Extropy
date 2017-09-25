@@ -112,4 +112,5 @@ class PlayerInteractEvent extends PlayerEvent implements Cancellable{
 	public function getFace(){
 		return $this->blockFace;
 	}
+
 }

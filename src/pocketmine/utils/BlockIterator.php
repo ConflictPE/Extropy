@@ -295,4 +295,5 @@ class BlockIterator implements \Iterator{
 			$this->currentBlock = 0;
 		}
 	}
+
 }

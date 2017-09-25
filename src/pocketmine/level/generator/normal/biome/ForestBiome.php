@@ -60,4 +60,5 @@ class ForestBiome extends GrassyBiome{
 	public function getName(){
 		return $this->type === self::TYPE_BIRCH ? "Birch Forest" : "Forest";
 	}
+
 }

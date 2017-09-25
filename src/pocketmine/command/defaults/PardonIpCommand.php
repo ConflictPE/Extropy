@@ -56,4 +56,5 @@ class PardonIpCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

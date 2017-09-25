@@ -30,4 +30,5 @@ class GoldHoe extends Tool{
 	public function isHoe(){
 		return Tool::TIER_GOLD;
 	}
+
 }

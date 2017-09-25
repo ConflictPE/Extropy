@@ -33,4 +33,5 @@ abstract class PlayerEvent extends Event{
 	public function getPlayer(){
 		return $this->player;
 	}
+
 }

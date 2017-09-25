@@ -182,4 +182,5 @@ class ParticleCommand extends VanillaCommand{
 
 		return null;
 	}
+
 }

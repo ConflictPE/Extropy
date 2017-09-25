@@ -81,4 +81,5 @@ class PermissionAttachmentInfo{
 	public function getValue(){
 		return $this->value;
 	}
+
 }

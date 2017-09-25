@@ -173,4 +173,5 @@ class FallingSand extends Entity{
 
 		parent::spawnTo($player);
 	}
+
 }

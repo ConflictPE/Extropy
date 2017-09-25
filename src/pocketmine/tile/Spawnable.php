@@ -68,4 +68,5 @@ abstract class Spawnable extends Tile{
 			}
 		}
 	}
+
 }

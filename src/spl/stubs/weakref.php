@@ -49,6 +49,7 @@ class WeakRef{
      */
     public function valid(){
     }
+
 }
 
 class WeakMap implements Countable, ArrayAccess, Iterator{
@@ -140,4 +141,5 @@ class WeakMap implements Countable, ArrayAccess, Iterator{
      */
     public function valid(){
     }
+
 }

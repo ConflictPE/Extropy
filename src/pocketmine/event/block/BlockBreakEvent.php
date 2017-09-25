@@ -73,4 +73,5 @@ class BlockBreakEvent extends BlockEvent implements Cancellable{
 	public function setDrops($drop = []) {
 		$this->drop = $drop;
 	}
+
 }

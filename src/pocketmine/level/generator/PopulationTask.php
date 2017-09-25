@@ -184,4 +184,5 @@ class PopulationTask extends AsyncTask{
 			$level->generateChunkCallback($chunk->getX(), $chunk->getZ(), $chunk);
 		}
 	}
+
 }

@@ -111,4 +111,5 @@ class EffectCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

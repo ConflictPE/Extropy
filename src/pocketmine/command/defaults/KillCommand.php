@@ -59,4 +59,5 @@ class KillCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

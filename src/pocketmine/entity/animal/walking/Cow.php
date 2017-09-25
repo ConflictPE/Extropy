@@ -42,4 +42,5 @@ class Cow extends WalkingAnimal{
 		}
 		return [];
 	}
+
 }

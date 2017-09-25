@@ -33,4 +33,5 @@ class SmallMountainsBiome extends MountainsBiome{
 	public function getName(){
 		return "Small Mountains";
 	}
+
 }

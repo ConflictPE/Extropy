@@ -58,4 +58,5 @@ class InventorySlotPacket extends PEPacket {
 			$this->putSlot($this->item, $playerProtocol);
 		}
 	}
+
 }

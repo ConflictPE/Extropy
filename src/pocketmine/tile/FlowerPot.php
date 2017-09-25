@@ -92,4 +92,5 @@ class FlowerPot extends Spawnable{
 			new IntTag("mData", (int) $this->namedtag["mData"])
 		]);
 	}
+
 }

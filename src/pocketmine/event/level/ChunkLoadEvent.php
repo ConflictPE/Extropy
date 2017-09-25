@@ -42,4 +42,5 @@ class ChunkLoadEvent extends ChunkEvent{
 	public function isNewChunk(){
 		return $this->newChunk;
 	}
+
 }

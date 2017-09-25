@@ -28,4 +28,5 @@ class Carrot extends Item{
 		$this->block = Block::get(Item::CARROT_BLOCK);
 		parent::__construct(self::CARROT, 0, $count, "Carrot");
 	}
+
 }

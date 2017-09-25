@@ -125,4 +125,3 @@ class LoginPacket extends PEPacket {
 	}
 
 }
-

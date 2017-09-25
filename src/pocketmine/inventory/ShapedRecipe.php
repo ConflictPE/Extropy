@@ -158,4 +158,5 @@ class ShapedRecipe implements Recipe{
 	public function registerToCraftingManager(){
 		Server::getInstance()->getCraftingManager()->registerShapedRecipe($this);
 	}
+
 }

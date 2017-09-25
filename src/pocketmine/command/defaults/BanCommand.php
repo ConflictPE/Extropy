@@ -61,4 +61,5 @@ class BanCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

@@ -37,4 +37,5 @@ class Ocelot extends WalkingAnimal{
 	public function getDrops(){
 		return [];
 	}
+
 }

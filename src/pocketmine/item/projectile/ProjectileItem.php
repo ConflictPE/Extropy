@@ -1,4 +1,5 @@
 <?php
+
 /*
  *
  *  ____            _        _   __  __ _                  __  __ ____
@@ -20,6 +21,88 @@
 
 namespace pocketmine\item\projectile;
 
-class ProjectileItem {
+use pocketmine\entity\Entity;
+use pocketmine\entity\Projectile;
+use pocketmine\event\entity\ProjectileLaunchEvent;
+use pocketmine\item\Item;
+use pocketmine\level\sound\LaunchSound;
+use pocketmine\math\Vector3;
+use pocketmine\nbt\tag\Compound;
+use pocketmine\nbt\tag\DoubleTag;
+use pocketmine\nbt\tag\Enum;
+use pocketmine\nbt\tag\FloatTag;
+use pocketmine\Player;
+
+abstract class ProjectileItem extends Item {
+
+	/**
+	 * Entity type to be created
+	 *
+	 * @return string
+	 */
+	abstract public function getProjectileEntityType() : string;
+
+	/**
+	 * Default projectile spawn compound
+	 *
+	 * @param Player $player
+	 * @param Vector3 $direction
+	 *
+	 * @return Compound
+	 */
+	public function getProjectileSpawnCompound(Player $player, Vector3 $direction) : Compound {
+		return new Compound("", [
+			new Enum("Pos", [
+				new DoubleTag("", $player->x),
+				new DoubleTag("", $player->y + $player->getEyeHeight()),
+				new DoubleTag("", $player->z)
+			]),
+			new Enum("Motion", [
+				new DoubleTag("", $direction->x),
+				new DoubleTag("", $direction->y),
+				new DoubleTag("", $direction->z)
+			]),
+			new Enum("Rotation", [
+				new FloatTag("", $player->yaw),
+				new FloatTag("", $player->pitch)
+			]),
+		]);
+	}
+
+	/**
+	 * Force to be applied to entity motion
+	 *
+	 * @return float
+	 */
+	abstract public function getThrowForce() : float;
+
+	/**
+	 * Spawn the projectile when a player clicks/interacts with air
+	 *
+	 * @param Player $player
+	 * @param Vector3 $directionVector
+	 *
+	 * @return bool
+	 */
+	public function onClickAir(Player $player, Vector3 $directionVector) : bool {
+		$projectile = Entity::createEntity($this->getProjectileEntityType(), $player->chunk, $this->getProjectileSpawnCompound($player, $directionVector), $player);
+		$projectile->setMotion($projectile->getMotion()->multiply($this->getThrowForce()));
+
+		$this->count--;
+
+		if($projectile instanceof Projectile){
+			$player->getServer()->getPluginManager()->callEvent($projectileEv = new ProjectileLaunchEvent($projectile));
+			if($projectileEv->isCancelled()){
+				$projectile->kill();
+			}else{
+				$projectile->spawnToAll();
+				$player->getLevel()->addSound(new LaunchSound($player), $player->getViewers());
+			}
+		}else{
+			$projectile->spawnToAll();
+		}
+
+		return true;
+	}
 
 }

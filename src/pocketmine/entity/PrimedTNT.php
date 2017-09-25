@@ -158,4 +158,5 @@ class PrimedTNT extends Entity implements Explosive{
 	public function setOwner($owner){
 		$this->owner = $owner;
 	}
+
 }

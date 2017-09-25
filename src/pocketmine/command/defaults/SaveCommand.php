@@ -55,4 +55,5 @@ class SaveCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

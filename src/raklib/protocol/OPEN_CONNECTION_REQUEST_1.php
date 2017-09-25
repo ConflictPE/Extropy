@@ -39,4 +39,5 @@ class OPEN_CONNECTION_REQUEST_1 extends Packet{
         $this->protocol = $this->getByte();
         $this->mtuSize = strlen($this->get(true)) + 18;
     }
+
 }

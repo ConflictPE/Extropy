@@ -47,4 +47,5 @@ class SaveOnCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

@@ -105,4 +105,5 @@ class InventoryType{
 	public function getNetworkType(){
 		return $this->typeId;
 	}
+
 }

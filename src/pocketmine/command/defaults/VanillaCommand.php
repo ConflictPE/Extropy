@@ -65,4 +65,5 @@ abstract class VanillaCommand extends Command{
 
 		return $i;
 	}
+
 }

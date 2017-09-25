@@ -138,4 +138,5 @@ class PharPluginLoader implements PluginLoader{
 			$plugin->setEnabled(false);
 		}
 	}
+
 }

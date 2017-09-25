@@ -33,4 +33,5 @@ class OreType{
 		$this->maxHeight = (int) $maxHeight;
 		$this->minHeight = (int) $minHeight;
 	}
+
 }

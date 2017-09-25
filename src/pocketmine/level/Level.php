@@ -2699,4 +2699,5 @@ class Level implements ChunkManager, Metadatable{
 	public function getMaxY() {
 		return $this->maxY;
 	}
+
 }

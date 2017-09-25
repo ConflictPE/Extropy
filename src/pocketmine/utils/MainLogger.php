@@ -210,4 +210,5 @@ class MainLogger extends \AttachableThreadedLogger{
 	public function run(){
 		$this->shutdown = false;
 	}
+
 }

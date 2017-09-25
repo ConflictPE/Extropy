@@ -34,4 +34,5 @@ class PluginEnableEvent extends PluginEvent{
 	public function __construct(Plugin $plugin){
 		parent::__construct($plugin);
 	}
+
 }

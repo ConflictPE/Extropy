@@ -53,4 +53,5 @@ class Pond extends Populator{
 	public function setLavaSurfaceOdd($lavaSurfaceOdd){
 		$this->lavaSurfaceOdd = $lavaSurfaceOdd;
 	}
+
 }

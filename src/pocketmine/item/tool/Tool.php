@@ -19,19 +19,19 @@
  *
 */
 
-
 namespace pocketmine\item;
 
 use pocketmine\block\Block;
 use pocketmine\entity\Entity;
 
-abstract class Tool extends Item{
+abstract class Tool extends Item {
+
 	const TIER_WOODEN = 1;
 	const TIER_GOLD = 2;
 	const TIER_STONE = 3;
 	const TIER_IRON = 4;
 	const TIER_DIAMOND = 5;
-	
+
 	const TYPE_NONE = 0;
 	const TYPE_SWORD = 1;
 	const TYPE_SHOVEL = 2;
@@ -39,11 +39,7 @@ abstract class Tool extends Item{
 	const TYPE_AXE = 4;
 	const TYPE_SHEARS = 5;
 
-	public function __construct($id, $meta = 0, $count = 1, $name = "Unknown"){
-		parent::__construct($id, $meta, $count, $name);
-	}
-
-	public function getMaxStackSize(){
+	public function getMaxStackSize() {
 		return 1;
 	}
 
@@ -128,4 +124,5 @@ abstract class Tool extends Item{
 	public function isTool(){
 		return ($this->id === self::FLINT_STEEL or $this->id === self::SHEARS or $this->id === self::BOW or $this->isPickaxe() !== false or $this->isAxe() !== false or $this->isShovel() !== false or $this->isSword() !== false);
 	}
+
 }

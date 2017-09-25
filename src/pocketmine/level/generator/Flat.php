@@ -183,4 +183,5 @@ class Flat extends Generator{
 	public function getSpawn(){
 		return new Vector3(128, $this->floorLevel, 128);
 	}
+
 }

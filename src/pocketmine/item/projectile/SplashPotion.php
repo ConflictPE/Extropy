@@ -1,4 +1,5 @@
 <?php
+
 /*
  *
  *  ____            _        _   __  __ _                  __  __ ____
@@ -20,6 +21,22 @@
 
 namespace pocketmine\item\projectile;
 
-class SplashPotion {
+class SplashPotion extends ProjectileItem {
+
+	public function __construct($meta = 0, $count = 1){
+		parent::__construct(self::SPLASH_POTION, 0, $count, "Snowball");
+	}
+
+	public function getMaxStackSize() {
+		return 16;
+	}
+
+	public function getProjectileEntityType() : string {
+		return "Snowball";
+	}
+
+	public function getThrowForce() : float {
+		return 1.5;
+	}
 
 }

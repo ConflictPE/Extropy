@@ -38,4 +38,5 @@ class UNCONNECTED_PING extends Packet{
 //        $this->offset += 16; //magic
 //        $this->GUID = $this->getLong();
     }
+
 }

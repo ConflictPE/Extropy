@@ -62,6 +62,7 @@ namespace {
 	function dummy(){
 
 	}
+
 }
 
 namespace pocketmine {

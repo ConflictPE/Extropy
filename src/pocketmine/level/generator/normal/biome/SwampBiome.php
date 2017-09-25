@@ -39,4 +39,5 @@ class SwampBiome extends GrassyBiome{
 	public function getColor(){
 		return 0x6a7039;
 	}
+
 }

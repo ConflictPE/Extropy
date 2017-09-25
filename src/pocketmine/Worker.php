@@ -86,4 +86,5 @@ abstract class Worker extends \Worker{
 	public function getThreadName(){
 		return (new \ReflectionClass($this))->getShortName();
 	}
+
 }

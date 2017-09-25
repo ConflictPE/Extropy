@@ -42,4 +42,5 @@ class SetHealthPacket extends PEPacket {
 		$this->reset($playerProtocol);
 		$this->putSignedVarInt($this->value);
 	}
+
 }

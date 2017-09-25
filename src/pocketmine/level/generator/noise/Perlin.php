@@ -145,4 +145,5 @@ class Perlin extends Noise{
 	public function getNoise2D($x, $y){
 		return $this->getNoise3D($x, $y, 0);
 	}
+
 }

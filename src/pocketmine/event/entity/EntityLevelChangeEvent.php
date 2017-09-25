@@ -45,4 +45,5 @@ class EntityLevelChangeEvent extends EntityEvent implements Cancellable{
 	public function getTarget(){
 		return $this->targetLevel;
 	}
+
 }

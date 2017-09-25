@@ -41,6 +41,7 @@ if(!extension_loaded("pthreads")){
         echo "[CRITICAL] pthreads >= 3.0.0 is required, while you have $pthreads_version.";
         ++$errors;
     }
+
 }
 
 if($errors > 0){
@@ -159,4 +160,5 @@ abstract class RakLib{
     public static function bootstrap(\ClassLoader $loader){
         $loader->addPath(dirname(__FILE__) . DIRECTORY_SEPARATOR . "..");
     }
+
 }

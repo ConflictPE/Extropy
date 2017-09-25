@@ -61,4 +61,5 @@ class GeneratorRegisterTask extends AsyncTask{
 		$this->saveToThreadStore("generation.level{$this->levelId}.generator", $generator);
 		
 	}
+
 }

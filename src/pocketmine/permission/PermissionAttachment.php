@@ -150,4 +150,5 @@ class PermissionAttachment{
 	public function remove(){
 		$this->permissible->removeAttachment($this);
 	}
+
 }

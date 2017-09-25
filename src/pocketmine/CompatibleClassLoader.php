@@ -29,4 +29,5 @@ class CompatibleClassLoader extends \BaseClassLoader{
 	public function add($namespace, $paths){
 		$this->addPath(array_shift($paths));
 	}
+
 }

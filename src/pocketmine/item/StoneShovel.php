@@ -30,4 +30,5 @@ class StoneShovel extends Tool{
 	public function isShovel(){
 		return Tool::TIER_STONE;
 	}
+
 }

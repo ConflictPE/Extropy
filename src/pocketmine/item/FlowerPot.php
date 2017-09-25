@@ -29,4 +29,5 @@ class FlowerPot extends Item{
 		$this->block = Block::get(Item::FLOWER_POT_BLOCK);
 		parent::__construct(self::FLOWER_POT, $meta, $count, "Flower Pot");
 	}
+
 }

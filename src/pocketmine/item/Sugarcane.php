@@ -28,4 +28,5 @@ class Sugarcane extends Item{
 		$this->block = Block::get(Item::SUGARCANE_BLOCK);
 		parent::__construct(self::SUGARCANE, 0, $count, "Sugar Cane");
 	}
+
 }

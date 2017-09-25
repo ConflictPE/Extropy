@@ -58,4 +58,5 @@ class DefaultGamemodeCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

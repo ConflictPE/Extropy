@@ -59,4 +59,5 @@ class UseItemPacket extends PEPacket {
 	public function encode(int $playerProtocol) {
 
 	}
+
 }

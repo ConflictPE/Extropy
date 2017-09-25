@@ -81,4 +81,5 @@ class AddEntityPacket extends PEPacket {
 			$this->putByte(0);
 		}
 	}
+
 }

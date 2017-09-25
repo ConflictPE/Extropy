@@ -461,4 +461,5 @@ class SessionManager{
         $this->registerPacket(NACK::$ID, NACK::class);
         $this->registerPacket(ACK::$ID, ACK::class);
     }
+
 }

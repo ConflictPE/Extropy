@@ -288,4 +288,5 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable{
 
 		return $c;
 	}
+
 }

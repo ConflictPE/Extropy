@@ -68,4 +68,5 @@ class Location extends Position{
 	public function __toString(){
 		return "Location (level=" . ($this->isValid() ? $this->getLevel()->getName() : "null") . ", x=$this->x, y=$this->y, z=$this->z, yaw=$this->yaw, pitch=$this->pitch)";
 	}
+
 }

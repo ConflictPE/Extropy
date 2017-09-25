@@ -87,4 +87,5 @@ class PlayerChatEvent extends PlayerEvent implements Cancellable{
 	public function setRecipients(array $recipients){
 		$this->recipients = $recipients;
 	}
+
 }

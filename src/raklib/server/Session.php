@@ -546,4 +546,5 @@ class Session{
 	public function getPing(){
 		return round((array_sum($this->pingAverage) / count($this->pingAverage)) * 1000);
 	}
+
 }

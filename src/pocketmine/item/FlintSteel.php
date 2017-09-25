@@ -52,4 +52,5 @@ class FlintSteel extends Tool{
 
 		return false;
 	}
+
 }

@@ -27,4 +27,5 @@ class SlimeParticle extends GenericParticle{
 	public function __construct(Vector3 $pos){
 		parent::__construct($pos, Particle::TYPE_SLIME);
 	}
+
 }

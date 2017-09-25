@@ -94,4 +94,5 @@ class GenerationTask extends AsyncTask{
 			$level->generateChunkCallback($chunk->getX(), $chunk->getZ(), $chunk);
 		}
 	}
+
 }

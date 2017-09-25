@@ -184,4 +184,5 @@ class RCONInstance extends Thread{
 	public function getThreadName(){
 		return "RCON";
 	}
+
 }

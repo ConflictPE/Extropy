@@ -75,4 +75,5 @@ abstract class ThreadedLoggerAttachment extends \Threaded implements \LoggerAtta
 
         return $attachments;
     }
+
 }

@@ -19,7 +19,7 @@
  *
 */
 
-$dir = __DIR__ . "/block";
+$dir = __DIR__ . "/../src";
 
 /** @var \SplFileInfo $file */
 foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir)) as $file) {

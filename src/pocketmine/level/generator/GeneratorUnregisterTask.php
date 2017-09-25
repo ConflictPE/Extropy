@@ -39,4 +39,5 @@ class GeneratorUnregisterTask extends AsyncTask{
 		$this->saveToThreadStore("generation.level{$this->levelId}.manager", null);
 		$this->saveToThreadStore("generation.level{$this->levelId}.generator", null);
 	}
+
 }

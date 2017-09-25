@@ -44,4 +44,5 @@ class BirchTree extends Tree{
 		}
 		parent::placeObject($level, $x, $y, $z, $random);
 	}
+
 }

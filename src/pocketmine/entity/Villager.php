@@ -86,4 +86,5 @@ class Villager extends Creature implements NPC, Ageable{
 	public function isBaby(){
 		return $this->getDataFlag(self::DATA_AGEABLE_FLAGS, self::DATA_FLAG_BABY);
 	}
+
 }

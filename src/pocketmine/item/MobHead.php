@@ -32,4 +32,5 @@ class MobHead extends Item{
 	public function getMaxStackSize(){
 		return 64;
 	}
+
 }

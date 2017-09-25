@@ -452,4 +452,5 @@ class Chunk extends BaseFullChunk{
 		$this->nbt->LightPopulated = new ByteTag("LightPopulated", $value ? 1 : 0);
 		$this->hasChanged = true;
 	}
+
 }

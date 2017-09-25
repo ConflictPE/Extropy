@@ -60,4 +60,5 @@ class MeCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

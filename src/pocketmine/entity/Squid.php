@@ -104,4 +104,5 @@ class Squid extends WaterAnimal implements Ageable{
 			ItemItem::get(ItemItem::DYE, 0, mt_rand(1, 3))
 		];
 	}
+
 }

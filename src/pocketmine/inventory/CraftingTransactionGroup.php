@@ -108,4 +108,5 @@ class CraftingTransactionGroup extends SimpleTransactionGroup{
 
 		return true;
 	}
+
 }

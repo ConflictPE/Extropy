@@ -31,4 +31,5 @@ class CLIENT_DISCONNECT_DataPacket extends Packet{
     public function decode(){
         parent::decode();
     }
+
 }

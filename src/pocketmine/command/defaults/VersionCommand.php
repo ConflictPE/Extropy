@@ -95,4 +95,5 @@ class VersionCommand extends VanillaCommand{
 
 		$sender->sendMessage($message);
 	}
+
 }

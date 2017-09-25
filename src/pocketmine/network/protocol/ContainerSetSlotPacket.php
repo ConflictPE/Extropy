@@ -64,4 +64,5 @@ class ContainerSetSlotPacket extends PEPacket {
 			$this->putByte($this->selectSlot);
 		}
 	}
+
 }

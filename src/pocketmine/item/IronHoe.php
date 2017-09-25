@@ -30,4 +30,5 @@ class IronHoe extends Tool{
 	public function isHoe(){
 		return Tool::TIER_IRON;
 	}
+
 }

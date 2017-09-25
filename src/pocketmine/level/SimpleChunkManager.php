@@ -141,4 +141,5 @@ class SimpleChunkManager implements ChunkManager{
 	public function getMaxY() {
 		return $this->maxY;
 	}
+
 }

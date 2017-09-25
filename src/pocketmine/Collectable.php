@@ -32,4 +32,5 @@ abstract class Collectable extends \Threaded implements \Collectable{
 	public function setGarbage(){
 		$this->isGarbage = true;
 	}
+
 }

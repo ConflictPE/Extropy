@@ -364,4 +364,5 @@ class Effect{
 				break;
 		}
 	}
+
 }

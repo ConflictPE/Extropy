@@ -44,4 +44,5 @@ abstract class ChunkEvent extends LevelEvent{
 	public function getChunk(){
 		return $this->chunk;
 	}
+
 }

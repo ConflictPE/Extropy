@@ -90,4 +90,5 @@ class GamemodeCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

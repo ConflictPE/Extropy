@@ -41,4 +41,5 @@ class SetCommandsEnabledPacket extends PEPacket {
 		$this->reset($playerProtocol);
 		$this->putByte($this->enabled);
 	}
+
 }

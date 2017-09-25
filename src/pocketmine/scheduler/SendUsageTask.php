@@ -34,4 +34,5 @@ class SendUsageTask extends AsyncTask{
 	public function onRun() {
 		$this->postURL($this->endpoint, unserialize($this->data));
 	}
+
 }

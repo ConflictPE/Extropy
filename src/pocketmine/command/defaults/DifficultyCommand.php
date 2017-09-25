@@ -70,4 +70,5 @@ class DifficultyCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

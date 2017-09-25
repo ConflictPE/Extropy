@@ -11,4 +11,5 @@ class PlayerRespawnAfterEvent extends PlayerEvent {
 	public function __construct(Player $player) {
 		$this->player = $player;
 	}
+
 }

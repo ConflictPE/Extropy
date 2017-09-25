@@ -83,4 +83,5 @@ class BiomeSelector{
 		$biomeId = $this->map[$temperature + ($rainfall << 6)];
 		return isset($this->biomes[$biomeId]) ? $this->biomes[$biomeId] : $this->fallback;
 	}
+
 }

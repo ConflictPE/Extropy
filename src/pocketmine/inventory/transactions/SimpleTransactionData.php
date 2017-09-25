@@ -139,4 +139,5 @@ class SimpleTransactionData {
 		}
 		return new BaseTransaction($inventory, $slot, $this->oldItem, $this->newItem);
 	}
+
 }

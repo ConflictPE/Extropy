@@ -97,4 +97,5 @@ class PluginLogger implements \AttachableLogger{
 			$attachment->log($level, $message);
 		}
 	}
+
 }

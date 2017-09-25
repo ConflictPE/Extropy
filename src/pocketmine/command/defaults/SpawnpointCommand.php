@@ -93,4 +93,5 @@ class SpawnpointCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

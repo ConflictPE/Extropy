@@ -170,4 +170,5 @@ class FishingHook extends Projectile{
 
 		parent::spawnTo($player);
 	}
+
 }

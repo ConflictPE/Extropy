@@ -49,4 +49,5 @@ class CompressBatchedTask extends AsyncTask{
 	public function onCompletion(Server $server){
 		$server->broadcastPacketsCallback($this->final, $this->targets);
 	}
+
 }

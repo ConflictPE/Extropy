@@ -30,4 +30,5 @@ class DiamondPickaxe extends Tool{
 	public function isPickaxe(){
 		return Tool::TIER_DIAMOND;
 	}
+
 }

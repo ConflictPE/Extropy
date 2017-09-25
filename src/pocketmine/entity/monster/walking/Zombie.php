@@ -97,4 +97,5 @@ class Zombie extends WalkingMonster implements Ageable{
 		}
 		return $drops;
 	}
+
 }

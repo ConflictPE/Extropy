@@ -61,4 +61,5 @@ class SayCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

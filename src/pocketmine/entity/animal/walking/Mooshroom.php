@@ -38,4 +38,5 @@ class Mooshroom extends WalkingAnimal{
 		}
 		return $drops;
 	}
+
 }

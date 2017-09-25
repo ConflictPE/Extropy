@@ -55,4 +55,5 @@ class ListCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

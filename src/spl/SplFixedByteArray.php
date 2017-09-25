@@ -104,4 +104,5 @@ class SplFixedByteArray extends SplFixedArray{
 	public function __toString(){
 		return $this->toString();
 	}
+
 }

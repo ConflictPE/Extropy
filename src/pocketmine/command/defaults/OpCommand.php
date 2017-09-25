@@ -59,4 +59,5 @@ class OpCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

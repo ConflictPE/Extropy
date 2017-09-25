@@ -43,4 +43,5 @@ class OPEN_CONNECTION_REQUEST_2 extends Packet{
         $this->mtuSize = $this->getShort();
         $this->clientID = $this->getLong();
     }
+
 }

@@ -219,4 +219,5 @@ class PermissibleBase implements Permissible{
 	public function getEffectivePermissions(){
 		return $this->permissions;
 	}
+
 }
