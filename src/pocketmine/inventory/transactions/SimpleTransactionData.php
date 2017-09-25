@@ -10,21 +10,21 @@ use pocketmine\network\protocol\v120\Protocol120;
 use pocketmine\Player;
 
 class SimpleTransactionData {
-	
+
 	/**
-	 * @INPORTANT don't use constants ACTION_ outside this class, it will change with new spec 
+	 * @INPORTANT don't use constants ACTION_ outside this class, it will change with new spec
 	 */
 	const ACTION_CRAFT_PUT_SLOT = 3;
 	const ACTION_CRAFT_GET_SLOT = 5;
 	const ACTION_CRAFT_GET_RESULT = 7;
 	const ACTION_CRAFT_USE = 9;
-	
+
 	const ACTION_ENCH_ITEM = 29;
 	const ACTION_ENCH_LAPIS = 31;
 	const ACTION_ENCH_RESULT = 33;
-	
+
 	const ACTION_DROP = 199;
-	
+
 	/** @var integer */
 	/** @important for InventoryTransactionPacket */
 	public $sourceType = 0;
@@ -40,12 +40,12 @@ class SimpleTransactionData {
 	public $action = -1;
 	/** @var integer */
 	public $flags = 0;
-	
+
 	public function __construct() {
 		$this->oldItem = Item::get(Item::AIR);
 		$this->newItem = Item::get(Item::AIR);
 	}
-	
+
 	public function __toString() {
 		return 'Source type: ' . $this->sourceType . PHP_EOL .
 				'Inv.ID: ' . $this->inventoryId . PHP_EOL .
@@ -55,12 +55,12 @@ class SimpleTransactionData {
 				'Old item: ' . $this->oldItem . PHP_EOL .
 				'New item: ' . $this->newItem . PHP_EOL;
 	}
-	
+
 	public function isDropItemTransaction() {
-		return $this->sourceType == InventoryTransactionPacket::INV_SOURCE_TYPE_WORLD_INTERACTION && 
+		return $this->sourceType == InventoryTransactionPacket::INV_SOURCE_TYPE_WORLD_INTERACTION &&
 				$this->inventoryId == Protocol120::CONTAINER_ID_NONE;
 	}
-	
+
 	public function isCompleteEnchantTransaction() {
 		return $this->action == self::ACTION_ENCH_RESULT;
 	}
@@ -68,7 +68,7 @@ class SimpleTransactionData {
 	public function isUpdateEnchantSlotTransaction() {
 		return $this->action == self::ACTION_ENCH_ITEM || $this->action == self::ACTION_ENCH_LAPIS;
 	}
-	
+
 	/**
 	 * source - old
 	 * target - new
@@ -135,7 +135,7 @@ class SimpleTransactionData {
 				$inventory = $player->getCurrentWindow();
 				$slot = $this->slot;
 				break;
-			
+
 		}
 		return new BaseTransaction($inventory, $slot, $this->oldItem, $this->newItem);
 	}

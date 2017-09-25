@@ -22,7 +22,7 @@
 
 namespace pocketmine\entity;
 
-use pocketmine\item\Potion;
+use pocketmine\item\food\Potion;
 use pocketmine\level\format\FullChunk;
 use pocketmine\level\particle\SpellParticle;
 use pocketmine\nbt\tag\Compound;

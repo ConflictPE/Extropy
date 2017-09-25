@@ -1,5 +1,4 @@
 <?php
-
 /*
  *
  *  ____            _        _   __  __ _                  __  __ ____
@@ -18,33 +17,119 @@
  *
  *
 */
-
 declare(strict_types=1);
 
 namespace pocketmine\item;
 
 use pocketmine\block\BlockFactory;
-use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\item\armor\boots\ChainBoots;
+use pocketmine\item\armor\boots\DiamondBoots;
+use pocketmine\item\armor\boots\GoldBoots;
+use pocketmine\item\armor\boots\IronBoots;
+use pocketmine\item\armor\boots\LeatherBoots;
+use pocketmine\item\armor\chestplate\ChainChestplate;
+use pocketmine\item\armor\chestplate\DiamondChestplate;
+use pocketmine\item\armor\chestplate\GoldChestplate;
+use pocketmine\item\armor\chestplate\IronChestplate;
+use pocketmine\item\armor\chestplate\LeatherTunic;
+use pocketmine\item\armor\helmet\ChainHelmet;
+use pocketmine\item\armor\helmet\DiamondHelmet;
+use pocketmine\item\armor\helmet\GoldHelmet;
+use pocketmine\item\armor\helmet\IronHelmet;
+use pocketmine\item\armor\helmet\LeatherCap;
+use pocketmine\item\armor\leggings\ChainLeggings;
+use pocketmine\item\armor\leggings\DiamondLeggings;
+use pocketmine\item\armor\leggings\GoldLeggings;
+use pocketmine\item\armor\leggings\IronLeggings;
+use pocketmine\item\armor\leggings\LeatherPants;
+use pocketmine\item\food\Apple;
+use pocketmine\item\food\BakedPotato;
+use pocketmine\item\food\Beetroot;
+use pocketmine\item\food\BeetrootSoup;
+use pocketmine\item\food\Bread;
+use pocketmine\item\food\Carrot;
+use pocketmine\item\food\ChorusFruit;
+use pocketmine\item\food\CookedChicken;
+use pocketmine\item\food\CookedFish;
+use pocketmine\item\food\CookedMutton;
+use pocketmine\item\food\CookedPorkchop;
+use pocketmine\item\food\CookedRabbit;
+use pocketmine\item\food\Cookie;
+use pocketmine\item\food\EnchantedGoldenApple;
+use pocketmine\item\food\Fish;
+use pocketmine\item\food\GoldenApple;
+use pocketmine\item\food\Melon;
+use pocketmine\item\food\MushroomStew;
+use pocketmine\item\food\PoisonousPotato;
+use pocketmine\item\food\Potato;
+use pocketmine\item\food\Potion;
+use pocketmine\item\food\PumpkinPie;
+use pocketmine\item\food\RabbitStew;
+use pocketmine\item\food\RawBeef;
+use pocketmine\item\food\RawChicken;
+use pocketmine\item\food\RawMutton;
+use pocketmine\item\food\RawPorkchop;
+use pocketmine\item\food\RawRabbit;
+use pocketmine\item\food\RottenFlesh;
+use pocketmine\item\food\SpiderEye;
+use pocketmine\item\food\Steak;
+use pocketmine\item\fuel\BlazeRod;
+use pocketmine\item\fuel\Boat;
+use pocketmine\item\fuel\Bowl;
+use pocketmine\item\fuel\Coal;
+use pocketmine\item\fuel\Stick;
+use pocketmine\item\projectile\Egg;
+use pocketmine\item\projectile\Snowball;
+use pocketmine\item\projectile\SplashPotion;
+use pocketmine\item\tool\axe\DiamondAxe;
+use pocketmine\item\tool\axe\GoldAxe;
+use pocketmine\item\tool\axe\IronAxe;
+use pocketmine\item\tool\axe\StoneAxe;
+use pocketmine\item\tool\axe\WoodenAxe;
+use pocketmine\item\tool\Bow;
+use pocketmine\item\tool\FishingRod;
+use pocketmine\item\tool\FlintSteel;
+use pocketmine\item\tool\hoe\DiamondHoe;
+use pocketmine\item\tool\hoe\GoldHoe;
+use pocketmine\item\tool\hoe\IronHoe;
+use pocketmine\item\tool\hoe\StoneHoe;
+use pocketmine\item\tool\hoe\WoodenHoe;
+use pocketmine\item\tool\pickaxe\DiamondPickaxe;
+use pocketmine\item\tool\pickaxe\GoldPickaxe;
+use pocketmine\item\tool\pickaxe\IronPickaxe;
+use pocketmine\item\tool\pickaxe\StonePickaxe;
+use pocketmine\item\tool\pickaxe\WoodenPickaxe;
+use pocketmine\item\tool\Shears;
+use pocketmine\item\tool\shovel\DiamondShovel;
+use pocketmine\item\tool\shovel\GoldShovel;
+use pocketmine\item\tool\shovel\IronShovel;
+use pocketmine\item\tool\shovel\StoneShovel;
+use pocketmine\item\tool\shovel\WoodenShovel;
+use pocketmine\item\tool\sword\DiamondSword;
+use pocketmine\item\tool\sword\GoldSword;
+use pocketmine\item\tool\sword\IronSword;
+use pocketmine\item\tool\sword\StoneSword;
+use pocketmine\item\tool\sword\WoodenSword;
+use pocketmine\nbt\tag\Compound;
 
 /**
  * Manages Item instance creation and registration
  */
-class ItemFactory{
+class ItemFactory {
 
 	/** @var \SplFixedArray */
 	private static $list = null;
 
-	public static function init(){
-		if(self::$list === null){
+	public static function init() {
+		if(self::$list === null) {
 			self::$list = new \SplFixedArray(65536);
-
 			self::registerItem(new IronShovel());
 			self::registerItem(new IronPickaxe());
 			self::registerItem(new IronAxe());
 			self::registerItem(new FlintSteel());
 			self::registerItem(new Apple());
 			self::registerItem(new Bow());
-			self::registerItem(new Arrow());
+			self::registerItem(new Item(Item::ARROW, 0, "Arrow"));
 			self::registerItem(new Coal());
 			self::registerItem(new Item(Item::DIAMOND, 0, "Diamond"));
 			self::registerItem(new Item(Item::IRON_INGOT, 0, "Iron Ingot"));
@@ -69,7 +154,7 @@ class ItemFactory{
 			self::registerItem(new GoldShovel());
 			self::registerItem(new GoldPickaxe());
 			self::registerItem(new GoldAxe());
-			self::registerItem(new StringItem());
+			self::registerItem(new Item(Item::STRING, 0, "String"));
 			self::registerItem(new Item(Item::FEATHER, 0, "Feather"));
 			self::registerItem(new Item(Item::GUNPOWDER, 0, "Gunpowder"));
 			self::registerItem(new WoodenHoe());
@@ -108,31 +193,28 @@ class ItemFactory{
 			self::registerItem(new Sign());
 			self::registerItem(new WoodenDoor());
 			self::registerItem(new Bucket());
-
-			self::registerItem(new Minecart());
+			self::registerItem(new Item(Item::MINECART, 0, "Minecart"));
 			//TODO: SADDLE
 			self::registerItem(new IronDoor());
 			self::registerItem(new Redstone());
 			self::registerItem(new Snowball());
 			self::registerItem(new Boat());
 			self::registerItem(new Item(Item::LEATHER, 0, "Leather"));
-
 			self::registerItem(new Item(Item::BRICK, 0, "Brick"));
 			self::registerItem(new Item(Item::CLAY_BALL, 0, "Clay"));
 			self::registerItem(new Sugarcane());
 			self::registerItem(new Item(Item::PAPER, 0, "Paper"));
-			self::registerItem(new Book());
+			self::registerItem(new Item(Item::BOOK, 0, "Book"));
 			self::registerItem(new Item(Item::SLIME_BALL, 0, "Slimeball"));
 			//TODO: CHEST_MINECART
-
 			self::registerItem(new Egg());
-			self::registerItem(new Compass());
+			self::registerItem(new Item(Item::COMPASS, 0, "Compass"));
 			self::registerItem(new FishingRod());
-			self::registerItem(new Clock());
+			self::registerItem(new Item(Item::CLOCK, 0, "Clock"));
 			self::registerItem(new Item(Item::GLOWSTONE_DUST, 0, "Glowstone Dust"));
 			self::registerItem(new Fish());
 			self::registerItem(new CookedFish());
-			self::registerItem(new Dye());
+			self::registerItem(new Item(Item::DYE, 0, "Dye"));
 			self::registerItem(new Item(Item::BONE, 0, "Bone"));
 			self::registerItem(new Item(Item::SUGAR, 0, "Sugar"));
 			self::registerItem(new Cake());
@@ -148,12 +230,12 @@ class ItemFactory{
 			self::registerItem(new Steak());
 			self::registerItem(new RawChicken());
 			self::registerItem(new CookedChicken());
-			//TODO: ROTTEN_FLESH
+			self::registerItem(new RottenFlesh());
 			//TODO: ENDER_PEARL
 			self::registerItem(new BlazeRod());
 			self::registerItem(new Item(Item::GHAST_TEAR, 0, "Ghast Tear"));
 			self::registerItem(new Item(Item::GOLD_NUGGET, 0, "Gold Nugget"));
-			self::registerItem(new NetherWart());
+			self::registerItem(new Item(Item::NETHER_WART, 0, "Nether Wart"));
 			self::registerItem(new Potion());
 			self::registerItem(new GlassBottle());
 			self::registerItem(new SpiderEye());
@@ -167,21 +249,19 @@ class ItemFactory{
 			self::registerItem(new SpawnEgg());
 			//TODO: BOTTLE_O_ENCHANTING
 			//TODO: FIREBALL
-
 			self::registerItem(new Item(Item::EMERALD, 0, "Emerald"));
 			self::registerItem(new ItemFrame());
 			self::registerItem(new FlowerPot());
 			self::registerItem(new Carrot());
 			self::registerItem(new Potato());
 			self::registerItem(new BakedPotato());
-			//TODO: POISONOUS_POTATO
+			self::registerItem(new PoisonousPotato());
 			//TODO: EMPTYMAP
 			self::registerItem(new GoldenCarrot());
 			self::registerItem(new Skull());
 			//TODO: CARROTONASTICK
 			self::registerItem(new Item(Item::NETHER_STAR, 0, "Nether Star"));
 			self::registerItem(new PumpkinPie());
-
 			//TODO: ENCHANTED_BOOK
 			//TODO: COMPARATOR
 			self::registerItem(new Item(Item::NETHER_BRICK, 0, "Nether Brick"));
@@ -190,9 +270,9 @@ class ItemFactory{
 			//TODO: HOPPER_MINECART
 			self::registerItem(new Item(Item::PRISMARINE_SHARD, 0, "Prismarine Shard"));
 			//TODO: HOPPER
-			//TODO: RABBIT
+			self::registerItem(new RawRabbit());
 			self::registerItem(new CookedRabbit());
-			//TODO: RABBIT_STEW
+			self::registerItem(new RabbitStew());
 			self::registerItem(new Item(Item::RABBIT_FOOT, 0, "Rabbit's Foot"));
 			//TODO: RABBIT_HIDE
 			//TODO: HORSEARMORLEATHER
@@ -202,42 +282,29 @@ class ItemFactory{
 			//TODO: LEAD
 			//TODO: NAMETAG
 			self::registerItem(new Item(Item::PRISMARINE_CRYSTALS, 0, "Prismarine Crystals"));
-			//TODO: MUTTONRAW
-			//TODO: COOKED_MUTTON
-
+			self::registerItem(new RawMutton());
+			self::registerItem(new  CookedMutton());
 			//TODO: END_CRYSTAL
 			//TODO: SPRUCE_DOOR
 			//TODO: BIRCH_DOOR
 			//TODO: JUNGLE_DOOR
 			//TODO: ACACIA_DOOR
 			//TODO: DARK_OAK_DOOR
-			//TODO: CHORUS_FRUIT
+			self::registerItem(new ChorusFruit());
 			self::registerItem(new Item(Item::CHORUS_FRUIT_POPPED, 0, "Popped Chorus Fruit"));
-
 			//TODO: DRAGON_BREATH
-			//TODO: SPLASH_POTION
-
+			self::registerItem(new SplashPotion());
 			//TODO: LINGERING_POTION
-
 			//TODO: COMMAND_BLOCK_MINECART
 			//TODO: ELYTRA
 			self::registerItem(new Item(Item::SHULKER_SHELL, 0, "Shulker Shell"));
-
 			//TODO: TOTEM
-
 			self::registerItem(new Item(Item::IRON_NUGGET, 0, "Iron Nugget"));
-
 			self::registerItem(new Beetroot());
 			self::registerItem(new BeetrootSeeds());
 			self::registerItem(new BeetrootSoup());
-			//TODO: RAW_SALMON
-			//TODO: CLOWNFISH
-			//TODO: PUFFERFISH
-			//TODO: COOKED_SALMON
-
-			self::registerItem(new GoldenAppleEnchanted());
+			self::registerItem(new EnchantedGoldenApple());
 		}
-
 		Item::initCreativeItems();
 	}
 
@@ -254,50 +321,46 @@ class ItemFactory{
 	 * @throws \RuntimeException if something attempted to override an already-registered item without specifying the
 	 * $override parameter.
 	 */
-	public static function registerItem(Item $item, bool $override = false){
+	public static function registerItem(Item $item, bool $override = false) {
 		$id = $item->getId();
-		if(!$override and self::isRegistered($id)){
+		if(!$override and self::isRegistered($id)) {
 			throw new \RuntimeException("Trying to overwrite an already registered item");
 		}
-
 		self::$list[$id] = clone $item;
 	}
 
 	/**
 	 * Returns an instance of the Item with the specified id, meta, count and NBT.
 	 *
-	 * @param int                $id
-	 * @param int                $meta
-	 * @param int                $count
-	 * @param CompoundTag|string $tags
+	 * @param int $id
+	 * @param int $meta
+	 * @param int $count
+	 * @param Compound|string $tags
 	 *
 	 * @return Item
 	 * @throws \TypeError
 	 */
-	public static function get(int $id, int $meta = 0, int $count = 1, $tags = "") : Item{
-		if(!is_string($tags) and !($tags instanceof CompoundTag)){
-			throw new \TypeError("`tags` argument must be a string or CompoundTag instance, " . (is_object($tags) ? "instance of " . get_class($tags) : gettype($tags)) . " given");
+	public static function get(int $id, int $meta = 0, int $count = 1, $tags = "") : Item {
+		if(!is_string($tags) and !($tags instanceof Compound)) {
+			throw new \TypeError("`tags` argument must be a string or Compound instance, " . (is_object($tags) ? "instance of " . get_class($tags) : gettype($tags)) . " given");
 		}
-
 		$item = null;
-		try{
-			if($id < 256){
+		try {
+			if($id < 256) {
 				/* Blocks must have a damage value 0-15, but items can have damage value -1 to indicate that they are
 				 * crafting ingredients with any-damage. */
 				$item = new ItemBlock(BlockFactory::get($id, $meta !== -1 ? $meta & 0xf : 0), $meta);
-			}else{
+			} else {
 				/** @var Item|null $listed */
 				$listed = self::$list[$id];
-				if($listed !== null){
+				if($listed !== null) {
 					$item = clone $listed;
 				}
 			}
-		}catch(\RuntimeException $e){
+		} catch(\RuntimeException $e) {
 			throw new \InvalidArgumentException("Item ID $id is invalid or out of bounds");
 		}
-
 		$item = ($item ?? new Item($id, $meta));
-
 		$item->setDamage($meta);
 		$item->setCount($count);
 		$item->setCompoundTag($tags);
@@ -316,37 +379,34 @@ class ItemFactory{
 	 * `diamond_pickaxe,wooden_shovel:18,iron_ingot`
 	 *
 	 * @param string $str
-	 * @param bool   $multiple
+	 * @param bool $multiple
 	 *
 	 * @return Item[]|Item
 	 */
-	public static function fromString(string $str, bool $multiple = false){
-		if($multiple === true){
+	public static function fromString(string $str, bool $multiple = false) {
+		if($multiple === true) {
 			$blocks = [];
-			foreach(explode(",", $str) as $b){
+			foreach(explode(",", $str) as $b) {
 				$blocks[] = self::fromString($b, false);
 			}
-
 			return $blocks;
-		}else{
+		} else {
 			$b = explode(":", str_replace([" ", "minecraft:"], ["_", ""], trim($str)));
-			if(!isset($b[1])){
+			if(!isset($b[1])) {
 				$meta = 0;
-			}else{
+			} else {
 				$meta = $b[1] & 0xFFFF;
 			}
-
-			if(defined(Item::class . "::" . strtoupper($b[0]))){
+			if(defined(Item::class . "::" . strtoupper($b[0]))) {
 				$item = self::get(constant(Item::class . "::" . strtoupper($b[0])), $meta);
-				if($item->getId() === Item::AIR and strtoupper($b[0]) !== "AIR" and is_numeric($b[0])){
+				if($item->getId() === Item::AIR and strtoupper($b[0]) !== "AIR" and is_numeric($b[0])) {
 					$item = self::get(((int) $b[0]) & 0xFFFF, $meta);
 				}
-			}elseif(is_numeric($b[0])){
+			} elseif(is_numeric($b[0])) {
 				$item = self::get(((int) $b[0]) & 0xFFFF, $meta);
-			}else{
+			} else {
 				$item = self::get(Item::AIR, 0, 0);
 			}
-
 			return $item;
 		}
 	}
@@ -355,10 +415,11 @@ class ItemFactory{
 	 * Returns whether the specified item ID is already registered in the item factory.
 	 *
 	 * @param int $id
+	 *
 	 * @return bool
 	 */
-	public static function isRegistered(int $id) : bool{
-		if($id < 256){
+	public static function isRegistered(int $id) : bool {
+		if($id < 256) {
 			return BlockFactory::isRegistered($id);
 		}
 		return self::$list[$id] !== null;

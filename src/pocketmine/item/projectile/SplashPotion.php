@@ -21,22 +21,58 @@
 
 namespace pocketmine\item\projectile;
 
+use pocketmine\math\Vector3;
+use pocketmine\nbt\tag\Compound;
+use pocketmine\nbt\tag\DoubleTag;
+use pocketmine\nbt\tag\Enum;
+use pocketmine\nbt\tag\FloatTag;
+use pocketmine\nbt\tag\ShortTag;
+use pocketmine\Player;
+
 class SplashPotion extends ProjectileItem {
 
 	public function __construct($meta = 0, $count = 1){
-		parent::__construct(self::SPLASH_POTION, 0, $count, "Snowball");
+		parent::__construct(self::SPLASH_POTION, 0, "Splash Potion");
 	}
 
-	public function getMaxStackSize() {
+	public function getMaxStackSize() : int {
 		return 16;
 	}
 
+	/**
+	 * Default projectile spawn compound
+	 *
+	 * @param Player $player
+	 * @param Vector3 $direction
+	 *
+	 * @return Compound
+	 */
+	public function getProjectileSpawnCompound(Player $player, Vector3 $direction) : Compound {
+		return new Compound("", [
+			new Enum("Pos", [
+				new DoubleTag("", $player->x),
+				new DoubleTag("", $player->y + $player->getEyeHeight()),
+				new DoubleTag("", $player->z)
+			]),
+			new Enum("Motion", [
+				new DoubleTag("", $direction->x),
+				new DoubleTag("", $direction->y),
+				new DoubleTag("", $direction->z)
+			]),
+			new Enum("Rotation", [
+				new FloatTag("", $player->yaw),
+				new FloatTag("", $player->pitch)
+			]),
+			new ShortTag("PotionId", $this->meta),
+		]);
+	}
+
 	public function getProjectileEntityType() : string {
-		return "Snowball";
+		return "ThrownPotion";
 	}
 
 	public function getThrowForce() : float {
-		return 1.5;
+		return 1.1;
 	}
 
 }

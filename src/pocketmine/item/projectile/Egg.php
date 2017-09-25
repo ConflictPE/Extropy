@@ -24,11 +24,11 @@ namespace pocketmine\item\projectile;
 
 class Egg extends ProjectileItem {
 
-	public function __construct($meta = 0, $count = 1){
-		parent::__construct(self::EGG, 0, $count, "Egg");
+	public function __construct($meta = 0){
+		parent::__construct(self::EGG, 0, "Egg");
 	}
 
-	public function getMaxStackSize() {
+	public function getMaxStackSize() : int {
 		return 16;
 	}
 
