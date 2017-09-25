@@ -19,53 +19,48 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\block;
 
 use pocketmine\entity\Entity;
-use pocketmine\item\Item;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\DoubleTag;
-use pocketmine\nbt\tag\Enum;
 use pocketmine\nbt\tag\FloatTag;
 use pocketmine\nbt\tag\IntTag;
-use pocketmine\Player;
+use pocketmine\nbt\tag\Enum;
 
-abstract class Fallable extends Solid{
+abstract class Fallable extends Solid {
 
-	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
-		$ret = $this->getLevel()->setBlock($this, $this, true, true);
-
-		return $ret;
-	}
-
-	public function onUpdate($type){
-		if($type === Level::BLOCK_UPDATE_NORMAL){
+	public function onUpdate(int $type) {
+		if($type === Level::BLOCK_UPDATE_NORMAL) {
 			$down = $this->getSide(Vector3::SIDE_DOWN);
-			if($down->getId() === self::AIR or ($down instanceof Liquid)){
+			if($down->getId() === self::AIR or ($down instanceof Liquid)) {
+				$this->level->setBlock($this, BlockFactory::get(Block::AIR), true, true);
 				$fall = Entity::createEntity("FallingSand", $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4), new Compound("", [
 					new Enum("Pos", [
-						new DoubleTag(0, $this->x + 0.5),
-						new DoubleTag(1, $this->y),
-						new DoubleTag(2, $this->z + 0.5)
+						new DoubleTag("", $this->x + 0.5),
+						new DoubleTag("", $this->y),
+						new DoubleTag("", $this->z + 0.5),
 					]),
 					new Enum("Motion", [
-						new DoubleTag(0, 0),
-						new DoubleTag(1, 0),
-						new DoubleTag(2, 0)
+						new DoubleTag("", 0),
+						new DoubleTag("", 0),
+						new DoubleTag("", 0),
 					]),
 					new Enum("Rotation", [
-						new FloatTag(0, 0),
-						new FloatTag(1, 0)
+						new FloatTag("", 0),
+						new FloatTag("", 0),
 					]),
 					new IntTag("TileID", $this->getId()),
 					new ByteTag("Data", $this->getDamage()),
 				]));
-
 				$fall->spawnToAll();
 			}
 		}
 	}
+
 }

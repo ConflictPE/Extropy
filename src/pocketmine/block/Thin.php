@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,55 +15,52 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\block;
 
-
 use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Vector3;
 
-abstract class Thin extends Transparent{
+abstract class Thin extends Transparent {
 
-	public function isSolid(){
+	public function isSolid() : bool {
 		return false;
 	}
 
-	protected function recalculateBoundingBox(){
-
+	protected function recalculateBoundingBox() {
 		$f = 0.4375;
 		$f1 = 0.5625;
 		$f2 = 0.4375;
 		$f3 = 0.5625;
-
-		$flag = $this->canConnect($this->getSide(2));
-		$flag1 = $this->canConnect($this->getSide(3));
-		$flag2 = $this->canConnect($this->getSide(4));
-		$flag3 = $this->canConnect($this->getSide(5));
-
-		if((!$flag2 or !$flag3) and ($flag2 or $flag3 or $flag or $flag1)){
-			if($flag2 and !$flag3){
+		$flag = $this->canConnect($this->getSide(Vector3::SIDE_NORTH));
+		$flag1 = $this->canConnect($this->getSide(Vector3::SIDE_SOUTH));
+		$flag2 = $this->canConnect($this->getSide(Vector3::SIDE_WEST));
+		$flag3 = $this->canConnect($this->getSide(Vector3::SIDE_EAST));
+		if((!$flag2 or !$flag3) and ($flag2 or $flag3 or $flag or $flag1)) {
+			if($flag2 and !$flag3) {
 				$f = 0;
-			}elseif(!$flag2 and $flag3){
+			} elseif(!$flag2 and $flag3) {
 				$f1 = 1;
 			}
-		}else{
+		} else {
 			$f = 0;
 			$f1 = 1;
 		}
-
-		if((!$flag or !$flag1) and ($flag2 or $flag3 or $flag or $flag1)){
-			if($flag and !$flag1){
+		if((!$flag or !$flag1) and ($flag2 or $flag3 or $flag or $flag1)) {
+			if($flag and !$flag1) {
 				$f2 = 0;
-			}elseif(!$flag and $flag1){
+			} elseif(!$flag and $flag1) {
 				$f3 = 1;
 			}
-		}else{
+		} else {
 			$f2 = 0;
 			$f3 = 1;
 		}
-
 		return new AxisAlignedBB(
 			$this->x + $f,
 			$this->y,
@@ -74,8 +71,7 @@ abstract class Thin extends Transparent{
 		);
 	}
 
-
-	public function canConnect(Block $block){
+	public function canConnect(Block $block) {
 		return $block->isSolid() or $block->getId() === $this->getId() or $block->getId() === self::GLASS_PANE or $block->getId() === self::GLASS;
 	}
 

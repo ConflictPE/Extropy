@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,56 +15,42 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\block;
 
+use pocketmine\block\utils\ColorBlockMetaHelper;
 use pocketmine\item\Item;
 use pocketmine\level\Level;
 use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Vector3;
 use pocketmine\Player;
 
-class Carpet extends Flowable{
+class Carpet extends Flowable {
 
 	protected $id = self::CARPET;
 
-	public function __construct($meta = 0){
+	public function __construct(int $meta = 0) {
 		$this->meta = $meta;
 	}
 
-	public function getHardness(){
+	public function getHardness() : float {
 		return 0.1;
 	}
 
-	public function isSolid(){
+	public function isSolid() : bool {
 		return true;
 	}
 
-	public function getName(){
-		static $names = [
-			0 => "White Carpet",
-			1 => "Orange Carpet",
-			2 => "Magenta Carpet",
-			3 => "Light Blue Carpet",
-			4 => "Yellow Carpet",
-			5 => "Lime Carpet",
-			6 => "Pink Carpet",
-			7 => "Gray Carpet",
-			8 => "Light Gray Carpet",
-			9 => "Cyan Carpet",
-			10 => "Purple Carpet",
-			11 => "Blue Carpet",
-			12 => "Brown Carpet",
-			13 => "Green Carpet",
-			14 => "Red Carpet",
-			15 => "Black Carpet",
-		];
-		return $names[$this->meta & 0x0f];
+	public function getName() : string {
+		return ColorBlockMetaHelper::getColorFromMeta($this->meta) . " Carpet";
 	}
 
-	protected function recalculateBoundingBox(){
+	protected function recalculateBoundingBox() {
 
 		return new AxisAlignedBB(
 			$this->x,
@@ -76,26 +62,22 @@ class Carpet extends Flowable{
 		);
 	}
 
-	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
-		$down = $this->getSide(0);
-		if($down->getId() !== self::AIR){
-			$this->getLevel()->setBlock($block, $this, true, true);
-
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $facePos, Player $player = null) : bool {
+		$down = $this->getSide(Vector3::SIDE_DOWN);
+		if($down->getId() !== self::AIR) {
+			$this->getLevel()->setBlock($blockReplace, $this, true, true);
 			return true;
 		}
-
 		return false;
 	}
 
-	public function onUpdate($type){
-		if($type === Level::BLOCK_UPDATE_NORMAL){
-			if($this->getSide(0)->getId() === self::AIR){
+	public function onUpdate(int $type) {
+		if($type === Level::BLOCK_UPDATE_NORMAL) {
+			if($this->getSide(Vector3::SIDE_DOWN)->getId() === self::AIR) {
 				$this->getLevel()->useBreakOn($this);
-
 				return Level::BLOCK_UPDATE_NORMAL;
 			}
 		}
-
 		return false;
 	}
 

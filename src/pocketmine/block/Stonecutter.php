@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,52 +15,38 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\item\Tool;
-use pocketmine\Player;
 
-//TODO: check orientation
-class Stonecutter extends Solid{
+class Stonecutter extends Solid {
 
 	protected $id = self::STONECUTTER;
 
-	public function __construct($meta = 0){
+	public function __construct(int $meta = 0) {
 		$this->meta = $meta;
 	}
 
-	public function getName(){
+	public function getName() : string {
 		return "Stonecutter";
 	}
 
-	public function getToolType(){
+	public function getToolType() : int {
 		return Tool::TYPE_PICKAXE;
 	}
 
-	public function canBeActivated(){
-		return true;
-	}
-
-	public function onActivate(Item $item, Player $player = null){
-		if($player instanceof Player){
-			$player->craftingType = 2;
+	public function getDrops(Item $item) : array {
+		if($item->isPickaxe() >= Tool::TIER_WOODEN) {
+			return parent::getDrops($item);
 		}
-
-		return true;
+		return [];
 	}
 
-	public function getDrops(Item $item){
-		if($item->isPickaxe() >= 1){
-			return [
-				[Item::STONECUTTER, 0, 1],
-			];
-		}else{
-			return [];
-		}
-	}
 }

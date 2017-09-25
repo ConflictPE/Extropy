@@ -1,82 +1,36 @@
 <?php
 
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
+
 namespace pocketmine\block;
 
-use pocketmine\item\Item;
+use pocketmine\block\utils\ColorBlockMetaHelper;
 
-class StainedGlass extends Solid {
-    
-	const WHITE = 0;
-	const ORANGE = 1;
-	const MAGENTA = 2;
-	const LIGHT_BLUE = 3;
-	const YELLOW = 4;
-	const LIME = 5;
-	const PINK = 6;
-	const GRAY = 7;
-	const LIGHT_GRAY = 8;
-	const CYAN = 9;
-	const PURPLE = 10;
-	const BLUE = 11;
-	const BROWN = 12;
-	const GREEN = 13;
-	const RED = 14;
-	const BLACK = 15;
-	
-    protected $id = self::STAINED_GLASS;
-    
-    public function __construct($meta = 0){
-		$this->meta = $meta;
+class StainedGlass extends Glass {
+
+	protected $id = self::STAINED_GLASS;
+
+	public function getName() : string {
+		return ColorBlockMetaHelper::getColorFromMeta($this->meta) . " Stained Glass";
 	}
-    
-    public function getName() {
-        return $this->getColorName() . 'Stained Glass';
-    }
-    
-    public function getHardness() {
-        return 0.3;
-    }
-    
-    public function getDrops(Item $item) {
-        return [];
-    }
-    
-    protected function getColorName() {
-		switch ($this->meta) {
-			case self::WHITE:
-				return 'White ';
-			case self::ORANGE:
-				return 'Orange ';
-			case self::MAGENTA:
-				return 'Magenta ';
-			case self::LIGHT_BLUE:
-				return 'Light blue ';
-			case self::YELLOW:
-				return 'Yellow ';
-			case self::LIME:
-				return 'Lime ';
-			case self::PINK:
-				return 'Pink ';
-			case self::GRAY:
-				return 'Gray ';
-			case self::LIGHT_GRAY:
-				return 'Light gray ';
-			case self::CYAN:
-				return 'Cyan ';
-			case self::PURPLE:
-				return 'Purple ';
-			case self::BLUE:
-				return 'Blue ';
-			case self::BROWN:
-				return 'Brown ';
-			case self::GREEN:
-				return 'Green ';
-			case self::RED:
-				return 'Red ';
-			case self::BLACK:
-				return 'Black ';
-		}
-        return '';
-    }
-    
+
 }

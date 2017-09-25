@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,17 +15,21 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
+use pocketmine\item\Tool;
 use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Vector3;
 use pocketmine\Player;
 
-abstract class Stair extends Transparent{
+abstract class Stair extends Transparent {
 
 	/*
 	public function collidesWithBB(AxisAlignedBB $bb, &$list = []){
@@ -102,10 +106,9 @@ abstract class Stair extends Transparent{
 		}
 	}
 	*/
+	protected function recalculateBoundingBox() {
 
-	protected function recalculateBoundingBox(){
-
-		if(($this->getDamage() & 0x04) > 0){
+		if(($this->getDamage() & 0x04) > 0) {
 			return new AxisAlignedBB(
 				$this->x,
 				$this->y + 0.5,
@@ -114,7 +117,7 @@ abstract class Stair extends Transparent{
 				$this->y + 1,
 				$this->z + 1
 			);
-		}else{
+		} else {
 			return new AxisAlignedBB(
 				$this->x,
 				$this->y,
@@ -126,7 +129,7 @@ abstract class Stair extends Transparent{
 		}
 	}
 
-	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $facePos, Player $player = null) : bool {
 		$faces = [
 			0 => 0,
 			1 => 2,
@@ -134,21 +137,22 @@ abstract class Stair extends Transparent{
 			3 => 3,
 		];
 		$this->meta = $faces[$player->getDirection()] & 0x03;
-		if(($fy > 0.5 and $face !== 1) or $face === 0){
+		if(($facePos->y > 0.5 and $face !== Vector3::SIDE_UP) or $face === Vector3::SIDE_DOWN) {
 			$this->meta |= 0x04; //Upside-down stairs
 		}
-		$this->getLevel()->setBlock($block, $this, true, true);
-
+		$this->getLevel()->setBlock($blockReplace, $this, true, true);
 		return true;
 	}
 
-	public function getDrops(Item $item){
-		if($item->isPickaxe() >= 1){
-			return [
-				[$this->getId(), 0, 1],
-			];
-		}else{
-			return [];
-		}
+	public function getVariantBitmask() : int {
+		return 0;
 	}
+
+	public function getDrops(Item $item) : array {
+		if($item->isPickaxe() >= Tool::TIER_WOODEN) {
+			return parent::getDrops($item);
+		}
+		return [];
+	}
+
 }

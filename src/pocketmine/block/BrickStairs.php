@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,37 +15,38 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
-namespace pocketmine\block;
+declare(strict_types=1);
 
+namespace pocketmine\block;
 
 use pocketmine\item\Tool;
 
-class BrickStairs extends Stair{
+class BrickStairs extends Stair {
 
 	protected $id = self::BRICK_STAIRS;
 
-	public function __construct($meta = 0){
+	public function __construct(int $meta = 0) {
 		$this->meta = $meta;
 	}
 
-	public function getHardness(){
+	public function getName() : string {
+		return "Brick Stairs";
+	}
+
+	public function getHardness() : float {
 		return 2;
 	}
 
-	public function getResistance(){
+	public function getBlastResistance() : float {
 		return 30;
 	}
 
-	public function getToolType(){
+	public function getToolType() : int {
 		return Tool::TYPE_PICKAXE;
-	}
-
-	public function getName(){
-		return "Brick Stairs";
 	}
 
 }

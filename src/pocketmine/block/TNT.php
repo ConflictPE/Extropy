@@ -19,6 +19,8 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\block;
 
 use pocketmine\entity\Entity;
@@ -26,63 +28,57 @@ use pocketmine\item\Item;
 use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\DoubleTag;
-use pocketmine\nbt\tag\Enum;
 use pocketmine\nbt\tag\FloatTag;
+use pocketmine\nbt\tag\Enum;
 use pocketmine\Player;
 use pocketmine\utils\Random;
 
-class TNT extends Solid{
+class TNT extends Solid {
 
 	protected $id = self::TNT;
 
-	public function __construct(){
-
+	public function __construct(int $meta = 0) {
+		$this->meta = $meta;
 	}
 
-	public function getName(){
+	public function getName() : string {
 		return "TNT";
 	}
 
-	public function getHardness(){
+	public function getHardness() : float {
 		return 0;
 	}
 
-	public function canBeActivated(){
-		return true;
-	}
-
-	public function onActivate(Item $item, Player $player = null){
-		if($item->getId() === Item::FLINT_STEEL){
+	public function onActivate(Item $item, Player $player = null) : bool {
+		if($item->getId() === Item::FLINT_STEEL) {
 			$item->useOn($this);
-			$this->getLevel()->setBlock($this, new Air());
-
-			$mot = (new Random())->nextSignedFloat() * M_PI * 2;
-			$tnt = Entity::createEntity("PrimedTNT", $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4), new Compound("", [
-				new Enum("Pos", [
-					new DoubleTag(0, $this->x + 0.5),
-					new DoubleTag(1, $this->y),
-					new DoubleTag(2, $this->z + 0.5)
-				]),
-				new Enum("Motion", [
-					new DoubleTag(0, -sin($mot) * 0.02),
-					new DoubleTag(1, 0.2),
-					new DoubleTag(2, -cos($mot) * 0.02)
-				]),
-				new Enum("Rotation", [
-					new FloatTag(0, 0),
-					new FloatTag(1, 0)
-				]),
-				new ByteTag("Fuse", 80)
-			]));
-
-			if($player != null){
-				$tnt->setOwner($player);
-			}
-			$tnt->spawnToAll();
-
+			$this->ignite();
 			return true;
 		}
-
 		return false;
 	}
+
+	public function ignite(int $fuse = 80) {
+		$this->getLevel()->setBlock($this, BlockFactory::get(Block::AIR), true);
+		$mot = (new Random())->nextSignedFloat() * M_PI * 2;
+		$tnt = Entity::createEntity("PrimedTNT", $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4), new Compound("", [
+			new Enum("Pos", [
+				new DoubleTag("", $this->x + 0.5),
+				new DoubleTag("", $this->y),
+				new DoubleTag("", $this->z + 0.5),
+			]),
+			new Enum("Motion", [
+				new DoubleTag("", -sin($mot) * 0.02),
+				new DoubleTag("", 0.2),
+				new DoubleTag("", -cos($mot) * 0.02),
+			]),
+			new Enum("Rotation", [
+				new FloatTag("", 0),
+				new FloatTag("", 0),
+			]),
+			new ByteTag("Fuse", $fuse),
+		]));
+		$tnt->spawnToAll();
+	}
+
 }

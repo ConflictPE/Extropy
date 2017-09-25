@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,46 +15,46 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\item\Tool;
 
-class Bricks extends Solid{
+class Bricks extends Solid {
 
-	protected $id = self::BRICKS_BLOCK;
+	protected $id = self::BRICK_BLOCK;
 
-	public function __construct(){
-
+	public function __construct(int $meta = 0) {
+		$this->meta = $meta;
 	}
 
-	public function getHardness(){
-		return 2;
-	}
-
-	public function getResistance(){
-		return 30;
-	}
-
-	public function getToolType(){
-		return Tool::TYPE_PICKAXE;
-	}
-
-	public function getName(){
+	public function getName() : string {
 		return "Bricks";
 	}
 
-	public function getDrops(Item $item){
-		if($item->isPickaxe() >= 1){
-			return [
-				[Item::BRICKS_BLOCK, 0, 1],
-			];
-		}else{
-			return [];
-		}
+	public function getHardness() : float {
+		return 2;
 	}
+
+	public function getBlastResistance() : float {
+		return 30;
+	}
+
+	public function getToolType() : int {
+		return Tool::TYPE_PICKAXE;
+	}
+
+	public function getDrops(Item $item) : array {
+		if($item->isPickaxe() >= Tool::TIER_WOODEN) {
+			return parent::getDrops($item);
+		}
+		return [];
+	}
+
 }
