@@ -172,7 +172,7 @@ abstract class Liquid extends Transparent {
 	public function onUpdate(int $type) {
 		if($type === Level::BLOCK_UPDATE_NORMAL) {
 			$this->checkForHarden();
-			$this->getLevel()->scheduleDelayedBlockUpdate($this, $this->tickRate());
+			$this->getLevel()->scheduleUpdate($this, $this->tickRate());
 		} elseif($type === Level::BLOCK_UPDATE_SCHEDULED) {
 			if($this->temporalVector === null) {
 				$this->temporalVector = new Vector3(0, 0, 0);
@@ -216,7 +216,7 @@ abstract class Liquid extends Transparent {
 						$this->getLevel()->setBlock($this, BlockFactory::get(Block::AIR), true, true);
 					} else {
 						$this->getLevel()->setBlock($this, BlockFactory::get($this->id, $decay), true, true);
-						$this->getLevel()->scheduleDelayedBlockUpdate($this, $this->tickRate());
+						$this->getLevel()->scheduleUpdate($this, $this->tickRate());
 					}
 				} elseif($flag) {
 					//$this->getLevel()->scheduleUpdate($this, $this->tickRate());
@@ -231,7 +231,7 @@ abstract class Liquid extends Transparent {
 					$this->getLevel()->setBlock($bottomBlock, BlockFactory::get(Block::STONE), true, true);
 				} elseif($bottomBlock->canBeFlowedInto() or ($bottomBlock instanceof Liquid and ($bottomBlock->getDamage() & 0x07) !== 0)) {
 					$this->getLevel()->setBlock($bottomBlock, BlockFactory::get($this->id, $decay | 0x08), true, false);
-					$this->getLevel()->scheduleDelayedBlockUpdate($bottomBlock, $this->tickRate());
+					$this->getLevel()->scheduleUpdate($bottomBlock, $this->tickRate());
 				} elseif($decay === 0 or !$bottomBlock->canBeFlowedInto()) {
 					$flags = $this->getOptimalFlowDirections();
 					$l = $decay + $multiplier;
@@ -266,7 +266,7 @@ abstract class Liquid extends Transparent {
 				$this->getLevel()->useBreakOn($block);
 			}
 			$this->getLevel()->setBlock($block, BlockFactory::get($this->getId(), $newFlowDecay), true, false);
-			$this->getLevel()->scheduleDelayedBlockUpdate($block, $this->tickRate());
+			$this->getLevel()->scheduleUpdate($block, $this->tickRate());
 		}
 	}
 

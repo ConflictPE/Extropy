@@ -29,6 +29,11 @@ namespace pocketmine\block;
 use pocketmine\entity\Entity;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
+use pocketmine\item\tool\axe\Axe;
+use pocketmine\item\tool\pickaxe\Pickaxe;
+use pocketmine\item\tool\Shears;
+use pocketmine\item\tool\shovel\Shovel;
+use pocketmine\item\tool\sword\Sword;
 use pocketmine\item\tool\Tool;
 use pocketmine\item\tool\ToolTier;
 use pocketmine\level\Level;
@@ -364,14 +369,14 @@ class Block extends Position implements BlockIds, Metadatable {
 	public function getBreakTime(Item $item) : float {
 		$base = $this->getHardness() * 1.5;
 		if($this->canBeBrokenWith($item)) {
-			if($this->getToolType() === Tool::TYPE_SHEARS and $item->isShears()) {
+			if($this->getToolType() === Tool::TYPE_SHEARS and $item instanceof Shears) {
 				$base /= 15;
 			} elseif(
-				($this->getToolType() === Tool::TYPE_PICKAXE and ($tier = $item->isPickaxe()) !== false) or
-				($this->getToolType() === Tool::TYPE_AXE and ($tier = $item->isAxe()) !== false) or
-				($this->getToolType() === Tool::TYPE_SHOVEL and ($tier = $item->isShovel()) !== false)
+				($item instanceof Pickaxe) or
+				($item instanceof Axe) or
+				($item instanceof Shovel)
 			) {
-				switch($tier) {
+				switch($item->getTier()) {
 					case ToolTier::WOODEN:
 						$base /= 2;
 						break;
@@ -392,7 +397,7 @@ class Block extends Position implements BlockIds, Metadatable {
 		} else {
 			$base *= 3.33;
 		}
-		if($item->isSword()) {
+		if($item instanceof Sword) {
 			$base *= 0.5;
 		}
 		return $base;

@@ -21,6 +21,9 @@
 
 namespace pocketmine\item\tool;
 
+use pocketmine\block\Block;
+use pocketmine\Player;
+
 class FlintSteel extends Tool {
 
 	public function __construct(int $meta = 0){
@@ -29,6 +32,10 @@ class FlintSteel extends Tool {
 
 	public function getMaxDurability() : int {
 		return 65;
+	}
+
+	public function onBlockUse(Player $player, Block $block) {
+		return true;
 	}
 
 }

@@ -25,6 +25,7 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
+use pocketmine\item\tool\Shears;
 
 class Leaves2 extends Leaves {
 
@@ -41,7 +42,7 @@ class Leaves2 extends Leaves {
 
 	public function getDrops(Item $item) : array {
 		$variantMeta = $this->getDamage() & 0x03;
-		if($item->isShears()) {
+		if($item instanceof Shears) {
 			return [
 				ItemFactory::get($this->getItemId(), $variantMeta, 1),
 			];

@@ -51,7 +51,7 @@ class TNT extends Solid {
 
 	public function onActivate(Item $item, Player $player = null) : bool {
 		if($item->getId() === Item::FLINT_STEEL) {
-			$item->useOn($this);
+			$item->onBlockUse($player, $this);
 			$this->ignite();
 			return true;
 		}

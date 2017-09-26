@@ -714,10 +714,23 @@ class Item implements ItemIds, \JsonSerializable {
 	 * Called when a player uses the item to break a block
 	 *
 	 * @param Player $player
+	 * @param Block $block
 	 *
 	 * @return bool
 	 */
-	public function onBlockBreak(Player $player) {
+	public function onBlockBreak(Player $player, Block $block) : bool {
+		return false;
+	}
+
+	/**
+	 * Called when a player uses an item on a block
+	 *
+	 * @param Player $player
+	 * @param Block $block
+	 *
+	 * @return bool
+	 */
+	public function onBlockUse(Player $player, Block $block)  : bool {
 		return false;
 	}
 

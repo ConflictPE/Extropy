@@ -25,7 +25,6 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\item\tool\pickaxe\Pickaxe;
-use pocketmine\item\tool\Tool;
 use pocketmine\item\tool\ToolTier;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;

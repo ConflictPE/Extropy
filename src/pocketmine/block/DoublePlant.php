@@ -25,6 +25,7 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
+use pocketmine\item\tool\Shears;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
@@ -106,7 +107,7 @@ class DoublePlant extends Flowable {
 
 	public function getDrops(Item $item) : array {
 		if($this->meta & self::BITFLAG_TOP) {
-			if(!$item->isShears() and ($this->meta === 2 or $this->meta === 3)) { //grass or fern
+			if(!($item instanceof Shears) and ($this->meta === 2 or $this->meta === 3)) { //grass or fern
 				if(mt_rand(0, 24) === 0) {
 					return [
 						ItemFactory::get(Item::SEEDS, 0, 1),

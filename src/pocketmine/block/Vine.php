@@ -25,6 +25,7 @@ namespace pocketmine\block;
 
 use pocketmine\entity\Entity;
 use pocketmine\item\Item;
+use pocketmine\item\tool\Shears;
 use pocketmine\item\tool\Tool;
 use pocketmine\level\Level;
 use pocketmine\math\AxisAlignedBB;
@@ -173,7 +174,7 @@ class Vine extends Transparent {
 	}
 
 	public function getDrops(Item $item) : array {
-		if($item->isShears()) {
+		if($item instanceof Shears) {
 			return parent::getDrops($item);
 		}
 		return [];

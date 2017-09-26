@@ -23,12 +23,12 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\event\block\BlockSpreadEvent;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
+use pocketmine\item\tool\hoe\Hoe;
+use pocketmine\item\tool\shovel\Shovel;
 use pocketmine\item\tool\Tool;
 use pocketmine\level\generator\object\TallGrass as TallGrassObject;
-use pocketmine\level\Level;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
 use pocketmine\utils\Random;
@@ -104,12 +104,12 @@ class Grass extends Solid {
 			$item->count--;
 			TallGrassObject::growGrass($this->getLevel(), $this, new Random(mt_rand()), 8, 2);
 			return true;
-		} elseif($item->isHoe()) {
-			$item->useOn($this);
+		} elseif($item instanceof Hoe) {
+			$item->onBlockUse($player, $this);
 			$this->getLevel()->setBlock($this, BlockFactory::get(Block::FARMLAND));
 			return true;
-		} elseif($item->isShovel() and $this->getSide(Vector3::SIDE_UP)->getId() === Block::AIR) {
-			$item->useOn($this);
+		} elseif($item instanceof Shovel and $this->getSide(Vector3::SIDE_UP)->getId() === Block::AIR) {
+			$item->onBlockUse($player, $this);
 			$this->getLevel()->setBlock($this, BlockFactory::get(Block::GRASS_PATH));
 			return true;
 		}

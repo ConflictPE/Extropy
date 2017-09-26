@@ -25,8 +25,8 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
+use pocketmine\item\tool\shovel\Shovel;
 use pocketmine\item\tool\Tool;
-use pocketmine\level\Level;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
 
@@ -83,7 +83,7 @@ class SnowLayer extends Flowable {
 	}
 
 	public function getDrops(Item $item) : array {
-		if($item->isShovel() !== false) {
+		if($item instanceof Shovel) {
 			return [
 				ItemFactory::get(Item::SNOWBALL, 0, 1) //TODO: check layer count
 			];
