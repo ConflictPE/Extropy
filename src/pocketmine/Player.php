@@ -1892,13 +1892,14 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 						$this->removeAllEffects();
 						$this->sendSelfData();
-						$this->setHealth($this->getMaxHealth());
-						$this->setFood(20);
 
-						$this->starvationTick = 0;
-						$this->foodTick = 0;
+						$this->setHealth($this->getMaxHealth());
+						$this->setFood(self::MAX_FOOD);
+
+						$this->setSaturation(self::MAX_SATURATION);
+						$this->setExhaustion(self::MIN_EXHAUSTION);
+						$this->foodTickTimer = 0;
 						$this->lastSentVitals = 10;
-						$this->foodUsageTime = 0;
 
 						$this->sendSettings();
 						$this->inventory->sendContents($this);
@@ -2934,7 +2935,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		if($this->spawned){
 			$pk = new UpdateAttributesPacket();
 			$pk->entityId = $this->id;
-			$this->foodTick = 0;
+			$this->foodTickTimer = 0;
 			$pk->minValue = 0;
 			$pk->maxValue = $this->getMaxHealth();
 			$pk->value = $this->getHealth();
@@ -2977,58 +2978,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	public function subtractAbsorption($amount) {
 		if($this->absorption - $amount < 0) $amount = 0;
 		$this->setAbsorption($this->getAbsorption() - $amount);
-	}
-
-	private $hunger = 20;
-
-	protected $hungerDepletion = 0;
-
-	protected $hungerEnabled = true;
-
-	public function setFoodEnabled($enabled) {
-		$this->hungerEnabled = $enabled;
-	}
-
-	public function getFoodEnabled() {
-		return $this->hungerEnabled;
-	}
-
-	public function setFood($amount){
-		if($this->spawned === true){
-			$pk = new UpdateAttributesPacket();
-			$pk->entityId = $this->id;
-			$pk->minValue = 0;
-			$pk->maxValue = 20;
-			$pk->value = $amount;
-			$pk->defaultValue = $pk->maxValue;
-			$pk->name = UpdateAttributesPacket::HUNGER;
-			$this->dataPacket($pk);
-		}
-		$this->hunger = $amount;
-	}
-
-	public function getFood() {
-		return $this->hunger;
-	}
-
-	public function subtractFood($amount){
-		if (!$this->getFoodEnabled()) {
-			return false;
-		}
-
-//		if($this->getFood()-$amount <= 6 && !($this->getFood() <= 6)) {
-////			$this->setDataProperty(self::DATA_FLAG_SPRINTING, self::DATA_TYPE_BYTE, false);
-//			$this->removeEffect(Effect::SLOWNESS);
-//		} elseif($this->getFood()-$amount < 6 && !($this->getFood() > 6)) {
-////			$this->setDataProperty(self::DATA_FLAG_SPRINTING, self::DATA_TYPE_BYTE, true);
-//			$effect = Effect::getEffect(Effect::SLOWNESS);
-//			$effect->setDuration(0x7fffffff);
-//			$effect->setAmplifier(2);
-//			$effect->setVisible(false);
-//			$this->addEffect($effect);
-//		}
-		if($this->hunger - $amount < 0) return;
-		$this->setFood($this->getFood() - $amount);
 	}
 
 	public function attack($damage, EntityDamageEvent $source){
