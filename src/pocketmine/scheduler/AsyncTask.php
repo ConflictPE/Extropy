@@ -31,18 +31,28 @@ use pocketmine\Collectable;
  */
 abstract class AsyncTask extends Collectable{
 
+	/** @var AsyncWorker $worker */
+	public $worker = null;
+
 	private $result = null;
 	/** @var int */
 	private $taskId = null;
-	
+	private $cancelRun = false;
 	protected $isFinished = false;
 
-	public function run(){		
+	public function run(){
 		$this->result = null;
 
-		$this->onRun();
-		$this->isFinished = true;
-		//$this->setGarbage();
+		if($this->cancelRun !== true){
+			try{
+				$this->onRun();
+			}catch(\Throwable $e){
+				$this->crashed = true;
+				$this->worker->handleException($e);
+			}
+		}
+
+		$this->setGarbage();
 	}
 
 	/**
@@ -125,7 +135,15 @@ abstract class AsyncTask extends Collectable{
 		global $store;
 		return $this->isFinished() ? null : $store[$identifier];
 	}
-	
+
+	public function cancelRun(){
+		$this->cancelRun = true;
+	}
+
+	public function hasCancelledRun() : bool{
+		return $this->cancelRun === true;
+	}
+
 	/**
 	 * @return bool
 	 */
@@ -166,7 +184,7 @@ abstract class AsyncTask extends Collectable{
 	public function onCompletion(Server $server){
 
 	}
-	
+
 	public function cleanObject(){
 		foreach($this as $p => $v){
 			if(!($v instanceof \Threaded)){
@@ -181,5 +199,5 @@ abstract class AsyncTask extends Collectable{
 			$store[$identifier] = $value;
 		}
 	}
-	
+
 }

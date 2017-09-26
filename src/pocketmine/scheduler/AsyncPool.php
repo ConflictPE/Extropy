@@ -46,7 +46,7 @@ class AsyncPool{
 
 		for($i = 0; $i < $this->size; ++$i){
 			$this->workerUsage[$i] = 0;
-			$this->workers[$i] = new AsyncWorker();
+			$this->workers[$i] = new AsyncWorker($this->server->getLogger(), $i, -1);
 			$this->workers[$i]->setClassLoader($this->server->getLoader());
 			$this->workers[$i]->start();
 		}
@@ -67,7 +67,7 @@ class AsyncPool{
 				$selectedTasks = $this->workerUsage[$i];
 			}
 		}
-		
+
 		$this->workers[$selectedWorker]->stack($task);
 		$this->workerUsage[$selectedWorker]++;
 		$this->taskWorkers[$task->getTaskId()] = $selectedWorker;
@@ -83,7 +83,7 @@ class AsyncPool{
 		}
 
 		unset($this->tasks[$task->getTaskId()]);
-		unset($this->taskWorkers[$task->getTaskId()]);	
+		unset($this->taskWorkers[$task->getTaskId()]);
 		$task->cleanObject();
 	}
 
@@ -107,17 +107,17 @@ class AsyncPool{
 				$this->removeTask($task);
 			}elseif($task->isTerminated()){
 				$this->removeTask($task);
-				$this->server->getLogger()->critical("Could not execute asynchronous task " . get_class($task));				
+				$this->server->getLogger()->critical("Could not execute asynchronous task " . get_class($task));
 			}
 		}
 	}
-	
-	
-	
+
+
+
 	public function getSize(){
 		return $this->size;
 	}
-	
+
 	public function submitTaskToWorker(AsyncTask $task, $worker){
 		if(isset($this->tasks[$task->getTaskId()]) or $task->isFinished()){
 			return;
