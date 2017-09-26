@@ -75,14 +75,19 @@ class Block extends Position implements BlockIds, Metadatable {
 	/** @var AxisAlignedBB */
 	public $boundingBox = null;
 
+	/** @var string|null */
+	protected $fallbackName;
+
 	/**
 	 * @param int $id The block type's ID, 0-255
 	 * @param int $meta Meta value of the block type
+	 * @param string|null $name   English name of the block type
 	 * @param int $itemId The item ID of the block type, used for block picking and dropping items.
 	 */
-	public function __construct(int $id, int $meta = 0, int $itemId = null) {
+	public function __construct(int $id, int $meta = 0, string $name = null, int $itemId = null) {
 		$this->id = $id;
 		$this->meta = $meta;
+		$this->fallbackName = $name;
 		$this->itemId = $itemId;
 	}
 
@@ -90,7 +95,7 @@ class Block extends Position implements BlockIds, Metadatable {
 	 * @return string
 	 */
 	public function getName() : string {
-		return "Unknown";
+		return $this->fallbackName ?? "Unknown";
 	}
 
 	/**

@@ -27,6 +27,7 @@ namespace pocketmine\level;
 use pocketmine\block\Air;
 use pocketmine\block\Beetroot;
 use pocketmine\block\Block;
+use pocketmine\block\BlockFactory;
 use pocketmine\block\BrownMushroom;
 use pocketmine\block\Cactus;
 use pocketmine\block\Carrot;
@@ -63,6 +64,7 @@ use pocketmine\event\LevelTimings;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\inventory\InventoryHolder;
 use pocketmine\item\Item;
+use pocketmine\item\tool\Tool;
 use pocketmine\level\format\Chunk;
 use pocketmine\level\format\FullChunk;
 use pocketmine\level\format\generic\BaseFullChunk;
@@ -74,6 +76,7 @@ use pocketmine\level\generator\Generator;
 use pocketmine\level\generator\GeneratorRegisterTask;
 use pocketmine\level\generator\GeneratorUnregisterTask;
 use pocketmine\level\generator\PopulationTask;
+use pocketmine\level\particle\DestroyBlockParticle;
 use pocketmine\level\particle\Particle;
 use pocketmine\level\sound\Sound;
 use pocketmine\math\AxisAlignedBB;
@@ -1310,10 +1313,11 @@ class Level implements ChunkManager, Metadatable{
 	 * @param Vector3 $vector
 	 * @param Item    &$item (if null, can break anything)
 	 * @param Player  $player
+	 * @param bool    $createParticles
 	 *
 	 * @return boolean
 	 */
-	public function useBreakOn(Vector3 $vector, Item &$item = null, Player $player = null){
+	public function useBreakOn(Vector3 $vector, Item &$item = null, Player $player = null, bool $createParticles = false){
 		$target = $this->getBlock($vector);
 		//TODO: Adventure mode checks
 
@@ -1358,23 +1362,22 @@ class Level implements ChunkManager, Metadatable{
 			$blockId = $target->getId();
 			$player->sendSound(LevelSoundEventPacket::SOUND_BREAK, $pos, 1, $blockId);
 			$viewers = $player->getViewers();
-			foreach ($viewers as $viewer) {
+			foreach($viewers as $viewer) {
 				$viewer->sendSound(LevelSoundEventPacket::SOUND_BREAK, $pos, 1, $blockId);
 			}
 		}elseif($item instanceof Item and !$target->isBreakable($item)){
 			return false;
 		}
 
-		$level = $target->getLevel();
-
-		if($level instanceof Level){
-			$above = $level->getBlock(new Vector3($target->x, $target->y + 1, $target->z));
-			if($above instanceof Block){
-				if($above->getId() === Item::FIRE){
-					$level->setBlock($above, new Air(), true);
-				}
-			}
+		$above = $this->getBlock(new Vector3($target->x, $target->y + 1, $target->z));
+		if($above->getId() === Item::FIRE){
+			$this->setBlock($above, BlockFactory::get(Block::AIR), true);
 		}
+
+		if($createParticles){
+			$this->addParticle(new DestroyBlockParticle($target->add(0.5, 0.5, 0.5), $target));
+		}
+
 		$target->onBreak($item);
 		$tile = $this->getTile($target);
 		if($tile instanceof Tile){
@@ -1392,8 +1395,8 @@ class Level implements ChunkManager, Metadatable{
 		}
 
 		if($item instanceof Item){
-			$item->useOn($target);
-			if($item->isTool() and $item->getDamage() >= $item->getMaxDurability()){
+			$item->onBlockBreak($player, $target);
+			if($item instanceof Tool and $item->getDamage() >= $item->getMaxDurability()){
 				$item = Item::get(Item::AIR, 0, 0);
 			}
 		}
