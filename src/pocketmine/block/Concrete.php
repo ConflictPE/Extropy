@@ -25,7 +25,7 @@ namespace pocketmine\block;
 
 use pocketmine\block\utils\ColorBlockMetaHelper;
 use pocketmine\item\Item;
-use pocketmine\item\Tool;
+use pocketmine\item\tool\Tool;
 
 class Concrete extends Solid {
 

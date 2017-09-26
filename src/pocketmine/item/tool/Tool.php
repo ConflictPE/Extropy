@@ -25,11 +25,12 @@ use pocketmine\item\Item;
 
 abstract class Tool extends Item {
 
-	const TIER_WOODEN = 1;
-	const TIER_GOLD = 2;
-	const TIER_STONE = 3;
-	const TIER_IRON = 4;
-	const TIER_DIAMOND = 5;
+	const TYPE_NONE = 0;
+	const TYPE_SWORD = 1;
+	const TYPE_SHOVEL = 2;
+	const TYPE_PICKAXE = 3;
+	const TYPE_AXE = 4;
+	const TYPE_SHEARS = 5;
 
 	public function getMaxStackSize() : int {
 		return 1;

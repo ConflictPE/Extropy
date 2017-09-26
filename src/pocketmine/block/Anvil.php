@@ -26,7 +26,7 @@ namespace pocketmine\block;
 use pocketmine\inventory\AnvilInventory;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
-use pocketmine\item\Tool;
+use pocketmine\item\tool\Tool;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
 

@@ -23,7 +23,7 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\item\Tool;
+use pocketmine\item\tool\Tool;
 
 class SandstoneStairs extends Stair {
 

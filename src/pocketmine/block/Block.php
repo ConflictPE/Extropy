@@ -29,7 +29,7 @@ namespace pocketmine\block;
 use pocketmine\entity\Entity;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
-use pocketmine\item\Tool;
+use pocketmine\item\tool\Tool;
 use pocketmine\level\Level;
 use pocketmine\level\MovingObjectPosition;
 use pocketmine\level\Position;

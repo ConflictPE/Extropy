@@ -177,8 +177,8 @@ class Bed extends Transparent {
 				$nbt2 = clone $nbt;
 				$nbt2["x"] = $next->x;
 				$nbt2["z"] = $next->z;
-				Tile::createTile(Tile::BED, $this->getLevel(), $nbt);
-				Tile::createTile(Tile::BED, $this->getLevel(), $nbt2);
+				Tile::createTile(Tile::BED, $this->getLevel()->getChunk($blockReplace->x >> 4, $blockReplace->z >> 4), $nbt);
+				Tile::createTile(Tile::BED, $this->getLevel()->getChunk($next->x >> 4, $next->z >> 4), $nbt2);
 				return true;
 			}
 		}

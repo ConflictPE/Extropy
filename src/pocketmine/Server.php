@@ -26,6 +26,7 @@
 namespace pocketmine;
 
 use pocketmine\block\Block;
+use pocketmine\block\BlockFactory;
 use pocketmine\command\CommandReader;
 use pocketmine\command\CommandSender;
 use pocketmine\command\ConsoleCommandSender;
@@ -58,6 +59,7 @@ use pocketmine\inventory\ShapedRecipe;
 use pocketmine\inventory\ShapelessRecipe;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\format\anvil\Anvil;
 use pocketmine\level\format\pmanvil\PMAnvil;
 use pocketmine\level\format\LevelProviderManager;
@@ -1642,9 +1644,9 @@ class Server{
 		$this->registerTiles();
 
 		InventoryType::init();
-		Block::init();
+		BlockFactory::init();
 		Enchantment::init();
-		Item::init();
+		ItemFactory::init();
 		Biome::init();
 		TextWrapper::init();
 		MetadataConvertor::init();

@@ -58,6 +58,7 @@ use pocketmine\item\food\Cookie;
 use pocketmine\item\food\EnchantedGoldenApple;
 use pocketmine\item\food\Fish;
 use pocketmine\item\food\GoldenApple;
+use pocketmine\item\food\GoldenCarrot;
 use pocketmine\item\food\Melon;
 use pocketmine\item\food\MushroomStew;
 use pocketmine\item\food\PoisonousPotato;
@@ -225,7 +226,7 @@ class ItemFactory {
 			self::registerItem(new Shears());
 			self::registerItem(new Melon());
 			self::registerItem(new PumpkinSeeds());
-			self::registerItem(new MelonSeeds());
+			//self::registerItem(new MelonSeeds());
 			self::registerItem(new RawBeef());
 			self::registerItem(new Steak());
 			self::registerItem(new RawChicken());
@@ -237,28 +238,28 @@ class ItemFactory {
 			self::registerItem(new Item(Item::GOLD_NUGGET, 0, "Gold Nugget"));
 			self::registerItem(new Item(Item::NETHER_WART, 0, "Nether Wart"));
 			self::registerItem(new Potion());
-			self::registerItem(new GlassBottle());
+			self::registerItem(new Item(Item::GLASS_BOTTLE, 0, "Glass Bottle"));
 			self::registerItem(new SpiderEye());
 			self::registerItem(new Item(Item::FERMENTED_SPIDER_EYE, 0, "Fermented Spider Eye"));
 			self::registerItem(new Item(Item::BLAZE_POWDER, 0, "Blaze Powder"));
 			self::registerItem(new Item(Item::MAGMA_CREAM, 0, "Magma Cream"));
-			self::registerItem(new BrewingStand());
+			//self::registerItem(new BrewingStand());
 			//TODO: CAULDRON
 			//TODO: ENDER_EYE
 			self::registerItem(new Item(Item::GLISTERING_MELON, 0, "Glistering Melon"));
-			self::registerItem(new SpawnEgg());
+			//self::registerItem(new SpawnEgg());
 			//TODO: BOTTLE_O_ENCHANTING
 			//TODO: FIREBALL
 			self::registerItem(new Item(Item::EMERALD, 0, "Emerald"));
-			self::registerItem(new ItemFrame());
-			self::registerItem(new FlowerPot());
+			//self::registerItem(new ItemFrame());
+			//self::registerItem(new FlowerPot());
 			self::registerItem(new Carrot());
 			self::registerItem(new Potato());
 			self::registerItem(new BakedPotato());
 			self::registerItem(new PoisonousPotato());
 			//TODO: EMPTYMAP
 			self::registerItem(new GoldenCarrot());
-			self::registerItem(new Skull());
+			//self::registerItem(new Skull());
 			//TODO: CARROTONASTICK
 			self::registerItem(new Item(Item::NETHER_STAR, 0, "Nether Star"));
 			self::registerItem(new PumpkinPie());
@@ -301,7 +302,7 @@ class ItemFactory {
 			//TODO: TOTEM
 			self::registerItem(new Item(Item::IRON_NUGGET, 0, "Iron Nugget"));
 			self::registerItem(new Beetroot());
-			self::registerItem(new BeetrootSeeds());
+			//self::registerItem(new BeetrootSeeds());
 			self::registerItem(new BeetrootSoup());
 			self::registerItem(new EnchantedGoldenApple());
 		}

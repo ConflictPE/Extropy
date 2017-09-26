@@ -24,7 +24,7 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\block\utils\ColorBlockMetaHelper;
-use pocketmine\item\Tool;
+use pocketmine\item\tool\Tool;
 
 class StainedClay extends Solid {
 

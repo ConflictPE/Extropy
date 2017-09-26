@@ -25,7 +25,7 @@ namespace pocketmine\block;
 
 use pocketmine\inventory\BigCraftingGrid;
 use pocketmine\item\Item;
-use pocketmine\item\Tool;
+use pocketmine\item\tool\Tool;
 use pocketmine\Player;
 
 class CraftingTable extends Solid {

@@ -27,7 +27,7 @@ use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityDamageByBlockEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\item\Item;
-use pocketmine\item\Tool;
+use pocketmine\item\tool\Tool;
 
 class Magma extends Solid {
 

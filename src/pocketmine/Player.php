@@ -88,7 +88,7 @@ use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\food\Edible;
 use pocketmine\item\food\FoodItem;
 use pocketmine\item\Item;
-use pocketmine\item\Tool;
+use pocketmine\item\tool\Tool;
 use pocketmine\level\Level;
 use pocketmine\level\Location;
 use pocketmine\level\Position;
