@@ -2345,30 +2345,46 @@ class Level implements ChunkManager, Metadatable{
 	 * @return bool|Position
 	 */
 	public function getSafeSpawn($spawn = null){
-		if(!($spawn instanceof Vector3) || $spawn->y < 1){
+		if(!($spawn instanceof Vector3) or $spawn->y < 1){
 			$spawn = $this->getSpawnLocation();
 		}
 		if($spawn instanceof Vector3){
+			$max = $this->getMaxY();
 			$v = $spawn->floor();
 			$chunk = $this->getChunk($v->x >> 4, $v->z >> 4, false);
 			$x = $v->x & 0x0f;
 			$z = $v->z & 0x0f;
 			if($chunk !== null){
-				for(; $v->y > 0; --$v->y){
-					if($v->y < ($this->getMaxY() - 1) and Block::$solid[$chunk->getBlockId($x, $v->y & $this->getYMask(), $z)]){
-						$v->y++;
-						break;
-					}
-				}
-				for(; $v->y < $this->getMaxY(); ++$v->y){
-					if(!Block::$solid[$chunk->getBlockId($x, $v->y + 1, $z)]){
-						if(!Block::$solid[$chunk->getBlockId($x, $v->y, $z)]){
-							return new Position($spawn->x, $v->y === Math::floorFloat($spawn->y) ? $spawn->y : $v->y, $spawn->z, $this);
+				$y = (int) min($max - 2, $v->y);
+				$wasAir = ($chunk->getBlockId($x, $y - 1, $z) === 0);
+				for(; $y > 0; --$y){
+					$b = $chunk->getFullBlock($x, $y, $z);
+					$block = BlockFactory::get($b >> 4, $b & 0x0f);
+					if($this->isFullBlock($block)){
+						if($wasAir){
+							$y++;
+							break;
 						}
 					}else{
-						++$v->y;
+						$wasAir = true;
 					}
 				}
+
+				for(; $y >= 0 and $y < $max; ++$y){
+					$b = $chunk->getFullBlock($x, $y + 1, $z);
+					$block = BlockFactory::get($b >> 4, $b & 0x0f);
+					if(!$this->isFullBlock($block)){
+						$b = $chunk->getFullBlock($x, $y, $z);
+						$block = BlockFactory::get($b >> 4, $b & 0x0f);
+						if(!$this->isFullBlock($block)){
+							return new Position($spawn->x, $y === (int) $spawn->y ? $spawn->y : $y, $spawn->z, $this);
+						}
+					}else{
+						++$y;
+					}
+				}
+
+				$v->y = $y;
 			}
 
 			return new Position($spawn->x, $v->y, $spawn->z, $this);
