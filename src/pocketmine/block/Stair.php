@@ -24,7 +24,9 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
+use pocketmine\item\tool\pickaxe\Pickaxe;
 use pocketmine\item\tool\Tool;
+use pocketmine\item\tool\ToolTier;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
@@ -149,7 +151,7 @@ abstract class Stair extends Transparent {
 	}
 
 	public function getDrops(Item $item) : array {
-		if($item->isPickaxe() >= Tool::TIER_WOODEN) {
+		if($item instanceof Pickaxe and $item->getTier() >= ToolTier::WOODEN) {
 			return parent::getDrops($item);
 		}
 		return [];

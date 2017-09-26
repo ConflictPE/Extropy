@@ -24,7 +24,9 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
+use pocketmine\item\tool\pickaxe\Pickaxe;
 use pocketmine\item\tool\Tool;
+use pocketmine\item\tool\ToolTier;
 
 class Sandstone extends Solid {
 
@@ -60,7 +62,7 @@ class Sandstone extends Solid {
 	}
 
 	public function getDrops(Item $item) : array {
-		if($item->isPickaxe() >= Tool::TIER_WOODEN) {
+		if($item instanceof Pickaxe and $item->getTier() >= ToolTier::WOODEN) {
 			return parent::getDrops($item);
 		}
 		return [];
