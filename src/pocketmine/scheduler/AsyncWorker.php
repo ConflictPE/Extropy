@@ -40,6 +40,7 @@ class AsyncWorker extends Worker {
 
 	public function run(){
 		$this->registerClassLoader();
+		$this->logger->registerStatic();
 		gc_enable();
 
 		if($this->memoryLimit > 0){
@@ -59,7 +60,7 @@ class AsyncWorker extends Worker {
 	}
 
 	public function getThreadName() : string{
-		return "Asynchronous Worker #" . $this->id;
+		return "Async Worker #" . $this->id;
 	}
 
 	public function getAsyncWorkerId() : int{

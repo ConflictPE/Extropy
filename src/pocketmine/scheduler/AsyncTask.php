@@ -37,19 +37,16 @@ abstract class AsyncTask extends Collectable{
 	private $result = null;
 	/** @var int */
 	private $taskId = null;
-	private $cancelRun = false;
 	protected $isFinished = false;
 
 	public function run(){
 		$this->result = null;
 
-		if($this->cancelRun !== true){
-			try{
-				$this->onRun();
-			}catch(\Throwable $e){
-				$this->crashed = true;
-				$this->worker->handleException($e);
-			}
+		try{
+			$this->onRun();
+			$this->isFinished = true;
+		}catch(\Throwable $e){
+			$this->worker->handleException($e);
 		}
 
 		$this->setGarbage();
@@ -134,14 +131,6 @@ abstract class AsyncTask extends Collectable{
 	public function getFromThreadStore($identifier){
 		global $store;
 		return $this->isFinished() ? null : $store[$identifier];
-	}
-
-	public function cancelRun(){
-		$this->cancelRun = true;
-	}
-
-	public function hasCancelledRun() : bool{
-		return $this->cancelRun === true;
 	}
 
 	/**

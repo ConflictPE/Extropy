@@ -22,6 +22,7 @@
 namespace pocketmine\command\defaults;
 
 use pocketmine\block\Block;
+use pocketmine\block\BlockFactory;
 use pocketmine\command\CommandSender;
 use pocketmine\item\Item;
 use pocketmine\level\particle\BubbleParticle;
@@ -171,7 +172,7 @@ class ParticleCommand extends VanillaCommand{
 		}elseif(substr($name, 0, 11) === "blockcrack_"){
 			$d = explode("_", $name);
 			if(count($d) === 2){
-				return new TerrainParticle($pos, Block::get($d[1] & 0xff, $d[1] >> 12));
+				return new TerrainParticle($pos, BlockFactory::get($d[1] & 0xff, $d[1] >> 12));
 			}
 		}elseif(substr($name, 0, 10) === "blockdust_"){
 			$d = explode("_", $name);

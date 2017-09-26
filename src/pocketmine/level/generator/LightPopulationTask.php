@@ -19,16 +19,14 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\level\generator;
 
-
 use pocketmine\level\format\FullChunk;
-
 use pocketmine\level\Level;
-
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
-
 
 class LightPopulationTask extends AsyncTask{
 
@@ -71,5 +69,4 @@ class LightPopulationTask extends AsyncTask{
 			$level->generateChunkCallback($chunk->getX(), $chunk->getZ(), $chunk);
 		}
 	}
-
 }

@@ -19,17 +19,15 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\level\generator;
 
-
 use pocketmine\level\format\FullChunk;
-
 use pocketmine\level\Level;
 use pocketmine\level\SimpleChunkManager;
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
-
-
 
 class GenerationTask extends AsyncTask{
 
@@ -43,12 +41,9 @@ class GenerationTask extends AsyncTask{
 		$this->levelId = $level->getId();
 		$this->chunk = $chunk->toFastBinary();
 		$this->chunkClass = get_class($chunk);
-
 	}
 
 	public function onRun(){
-			
-	//	var_dump($this->getTaskId());
 		/** @var SimpleChunkManager $manager */
 		$manager = $this->getFromThreadStore("generation.level{$this->levelId}.manager");
 		/** @var Generator $generator */
@@ -94,5 +89,4 @@ class GenerationTask extends AsyncTask{
 			$level->generateChunkCallback($chunk->getX(), $chunk->getZ(), $chunk);
 		}
 	}
-
 }

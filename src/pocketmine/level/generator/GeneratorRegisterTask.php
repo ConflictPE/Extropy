@@ -19,15 +19,15 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\level\generator;
 
-use pocketmine\block\Block;
 use pocketmine\block\BlockFactory;
 use pocketmine\level\generator\biome\Biome;
 use pocketmine\level\Level;
 use pocketmine\level\SimpleChunkManager;
 use pocketmine\scheduler\AsyncTask;
-
 use pocketmine\utils\Random;
 
 class GeneratorRegisterTask extends AsyncTask{
@@ -51,7 +51,6 @@ class GeneratorRegisterTask extends AsyncTask{
 	public function onRun(){
 		BlockFactory::init();
 		Biome::init();
-
 		$manager = new SimpleChunkManager($this->seed, $this->yMask, $this->maxY);
 		$this->saveToThreadStore("generation.level{$this->levelId}.manager", $manager);
 		/** @var Generator $generator */
@@ -59,7 +58,5 @@ class GeneratorRegisterTask extends AsyncTask{
 		$generator = new $generator(unserialize($this->settings));
 		$generator->init($manager, new Random($manager->getSeed()));
 		$this->saveToThreadStore("generation.level{$this->levelId}.generator", $generator);
-
 	}
-
 }

@@ -22,6 +22,7 @@
 namespace pocketmine;
 
 use pocketmine\block\Block;
+use pocketmine\block\BlockFactory;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\customUI\CustomUI;
@@ -1821,7 +1822,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 						$block = $target->getSide($packet->face);
 						if($block->getId() === Block::FIRE) {
-							$this->level->setBlock($block, Block::get(Block::AIR));
+							$this->level->setBlock($block, BlockFactory::get(Block::AIR));
 							break;
 						}
 

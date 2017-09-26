@@ -199,7 +199,7 @@ class Server{
 	private $tickAverage = [20, 20, 20, 20, 20];
 	private $useAverage = [20, 20, 20, 20, 20];
 
-	/** @var \AttachableThreadedLogger */
+	/** @var MainLogger */
 	private $logger;
 
 	/** @var CommandReader */
@@ -658,7 +658,7 @@ class Server{
 	}
 
 	/**
-	 * @return \AttachableThreadedLogger
+	 * @return MainLogger
 	 */
 	public function getLogger(){
 		return $this->logger;
@@ -1478,12 +1478,12 @@ class Server{
 
 	/**
 	 * @param \ClassLoader    $autoloader
-	 * @param \ThreadedLogger $logger
+	 * @param MainLogger      $logger
 	 * @param string          $filePath
 	 * @param string          $dataPath
 	 * @param string          $pluginPath
 	 */
-	public function __construct(\ClassLoader $autoloader, \ThreadedLogger $logger, $filePath, $dataPath, $pluginPath){
+	public function __construct(\ClassLoader $autoloader, MainLogger $logger, $filePath, $dataPath, $pluginPath){
 		self::$instance = $this;
 		self::$serverId =  mt_rand(0, PHP_INT_MAX);
 

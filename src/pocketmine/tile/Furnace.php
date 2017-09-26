@@ -22,6 +22,7 @@
 namespace pocketmine\tile;
 
 use pocketmine\block\Block;
+use pocketmine\block\BlockFactory;
 use pocketmine\event\inventory\FurnaceBurnEvent;
 use pocketmine\event\inventory\FurnaceSmeltEvent;
 use pocketmine\inventory\FurnaceInventory;
@@ -192,7 +193,7 @@ class Furnace extends Tile implements InventoryHolder, Container, Nameable{
 		$this->namedtag->BurnTime = new ShortTag("BurnTime", $ev->getBurnTime());
 		$this->namedtag->BurnTicks = new ShortTag("BurnTicks", 0);
 		if($this->getBlock()->getId() === Item::FURNACE){
-			$this->getLevel()->setBlock($this, Block::get(Item::BURNING_FURNACE, $this->getBlock()->getDamage()), true);
+			$this->getLevel()->setBlock($this, BlockFactory::get(Item::BURNING_FURNACE, $this->getBlock()->getDamage()), true);
 		}
 
 		if($this->namedtag["BurnTime"] > 0 and $ev->isBurning()){
@@ -256,7 +257,7 @@ class Furnace extends Tile implements InventoryHolder, Container, Nameable{
 		}else{
 			;
 			if($this->getBlock()->getId() === Item::BURNING_FURNACE){
-				$this->getLevel()->setBlock($this, Block::get(Item::FURNACE, $this->getBlock()->getDamage()), true);
+				$this->getLevel()->setBlock($this, BlockFactory::get(Item::FURNACE, $this->getBlock()->getDamage()), true);
 			}
 			$this->namedtag->BurnTime = new ShortTag("BurnTime", 0);
 			$this->namedtag->CookTime = new ShortTag("CookTime", 0);
