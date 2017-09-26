@@ -34,7 +34,7 @@ class FlintSteel extends Tool {
 		return 65;
 	}
 
-	public function onBlockUse(Player $player, Block $block) {
+	public function onBlockUse(Player $player, Block $block) : bool {
 		return true;
 	}
 

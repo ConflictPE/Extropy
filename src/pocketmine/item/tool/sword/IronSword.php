@@ -33,7 +33,7 @@ class IronSword extends Sword {
 	}
 
 	public function getTier() : int {
-		return ToolTier::IRON;
+		return ToolTier::TIER_IRON;
 	}
 
 }

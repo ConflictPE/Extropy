@@ -83,7 +83,7 @@ class Anvil extends Fallable {
 	}
 
 	public function getDrops(Item $item) : array {
-		if($item instanceof Pickaxe and $item->getTier() >= ToolTier::WOODEN) {
+		if($item instanceof Pickaxe and $item->getTier() >= ToolTier::TIER_WOODEN) {
 			return [
 				ItemFactory::get($this->getItemId(), $this->getDamage() & 0x0c, 1),
 			];

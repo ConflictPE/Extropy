@@ -34,7 +34,7 @@ class GoldShovel extends Shovel {
 	}
 
 	public function getTier() : int {
-		return ToolTier::GOLD;
+		return ToolTier::TIER_GOLD;
 	}
 
 }

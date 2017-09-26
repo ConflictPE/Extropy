@@ -34,7 +34,7 @@ class DiamondShovel extends Shovel {
 	}
 
 	public function getTier() : int {
-		return ToolTier::DIAMOND;
+		return ToolTier::TIER_DIAMOND;
 	}
 
 }

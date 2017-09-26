@@ -34,7 +34,7 @@ class DiamondAxe extends Axe {
 	}
 
 	public function getTier() : int {
-		return ToolTier::DIAMOND;
+		return ToolTier::TIER_DIAMOND;
 	}
 
 }

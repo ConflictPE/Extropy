@@ -34,7 +34,7 @@ class StonePickaxe extends Pickaxe {
 	}
 
 	public function getTier() : int {
-		return ToolTier::STONE;
+		return ToolTier::TIER_STONE;
 	}
 
 }

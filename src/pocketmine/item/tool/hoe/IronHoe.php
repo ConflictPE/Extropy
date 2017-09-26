@@ -34,7 +34,7 @@ class IronHoe extends Hoe {
 	}
 
 	public function getTier() : int {
-		return ToolTier::IRON;
+		return ToolTier::TIER_IRON;
 	}
 
 }

@@ -34,7 +34,7 @@ class IronAxe extends Axe {
 	}
 
 	public function getTier() : int {
-		return ToolTier::IRON;
+		return ToolTier::TIER_IRON;
 	}
 
 }

@@ -35,7 +35,7 @@ class WoodenPickaxe extends Pickaxe implements FuelSource {
 	}
 
 	public function getTier() : int {
-		return ToolTier::WOODEN;
+		return ToolTier::TIER_WOODEN;
 	}
 
 	public function getFuelTime() : int {

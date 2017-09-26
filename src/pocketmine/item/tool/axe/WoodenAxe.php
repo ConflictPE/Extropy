@@ -35,7 +35,7 @@ class WoodenAxe extends Axe implements FuelSource {
 	}
 
 	public function getTier() : int {
-		return ToolTier::WOODEN;
+		return ToolTier::TIER_WOODEN;
 	}
 
 	public function getFuelTime() : int {

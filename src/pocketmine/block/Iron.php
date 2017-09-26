@@ -49,7 +49,7 @@ class Iron extends Solid {
 	}
 
 	public function getDrops(Item $item) : array {
-		if($item instanceof Pickaxe and $item->getTier() >= ToolTier::STONE) {
+		if($item instanceof Pickaxe and $item->getTier() >= ToolTier::TIER_STONE) {
 			return parent::getDrops($item);
 		}
 		return [];

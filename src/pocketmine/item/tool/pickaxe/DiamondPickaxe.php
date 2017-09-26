@@ -34,7 +34,7 @@ class DiamondPickaxe extends Pickaxe {
 	}
 
 	public function getTier() : int {
-		return ToolTier::DIAMOND;
+		return ToolTier::TIER_DIAMOND;
 	}
 
 }

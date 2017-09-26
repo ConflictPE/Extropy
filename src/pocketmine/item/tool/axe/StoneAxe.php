@@ -34,7 +34,7 @@ class StoneAxe extends Axe {
 	}
 
 	public function getTier() : int {
-		return ToolTier::STONE;
+		return ToolTier::TIER_STONE;
 	}
 
 }

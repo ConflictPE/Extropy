@@ -34,7 +34,7 @@ class GoldHoe extends Hoe {
 	}
 
 	public function getTier() : int {
-		return ToolTier::GOLD;
+		return ToolTier::TIER_GOLD;
 	}
 
 }

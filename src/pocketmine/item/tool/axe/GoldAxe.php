@@ -34,7 +34,7 @@ class GoldAxe extends Axe {
 	}
 
 	public function getTier() : int {
-		return ToolTier::GOLD;
+		return ToolTier::TIER_GOLD;
 	}
 
 }

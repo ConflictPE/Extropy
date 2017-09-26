@@ -53,7 +53,7 @@ class Obsidian extends Solid {
 	}
 
 	public function getDrops(Item $item) : array {
-		if($item instanceof Pickaxe and $item->getTier() >= ToolTier::DIAMOND) {
+		if($item instanceof Pickaxe and $item->getTier() >= ToolTier::TIER_DIAMOND) {
 			return parent::getDrops($item);
 		}
 		return [];

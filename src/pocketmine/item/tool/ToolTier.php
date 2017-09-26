@@ -23,11 +23,11 @@ namespace pocketmine\item\tool;
 
 interface ToolTier {
 
-	const WOODEN = 1;
-	const GOLD = 2;
-	const STONE = 3;
-	const IRON = 4;
-	const DIAMOND = 5;
+	const TIER_WOODEN = 1;
+	const TIER_GOLD = 2;
+	const TIER_STONE = 3;
+	const TIER_IRON = 4;
+	const TIER_DIAMOND = 5;
 
 	/**
 	 * Get the tier level of a tool

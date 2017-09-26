@@ -382,19 +382,19 @@ class Block extends Position implements BlockIds, Metadatable {
 				($item instanceof Shovel)
 			) {
 				switch($item->getTier()) {
-					case ToolTier::WOODEN:
+					case ToolTier::TIER_WOODEN:
 						$base /= 2;
 						break;
-					case ToolTier::STONE:
+					case ToolTier::TIER_STONE:
 						$base /= 4;
 						break;
-					case ToolTier::IRON:
+					case ToolTier::TIER_IRON:
 						$base /= 6;
 						break;
-					case ToolTier::DIAMOND:
+					case ToolTier::TIER_DIAMOND:
 						$base /= 8;
 						break;
-					case ToolTier::GOLD:
+					case ToolTier::TIER_GOLD:
 						$base /= 12;
 						break;
 				}

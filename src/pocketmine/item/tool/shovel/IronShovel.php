@@ -34,7 +34,7 @@ class IronShovel extends Shovel {
 	}
 
 	public function getTier() : int {
-		return ToolTier::IRON;
+		return ToolTier::TIER_IRON;
 	}
 
 }

@@ -55,7 +55,7 @@ class NetherReactor extends Solid {
 	}
 
 	public function getDrops(Item $item) : array {
-		if($item instanceof Pickaxe and $item->getTier() >= ToolTier::WOODEN) {
+		if($item instanceof Pickaxe and $item->getTier() >= ToolTier::TIER_WOODEN) {
 			return [
 				ItemFactory::get(Item::IRON_INGOT, 0, 6),
 				ItemFactory::get(Item::DIAMOND, 0, 3),

@@ -34,7 +34,7 @@ class IronPickaxe extends Pickaxe {
 	}
 
 	public function getTier() : int {
-		return ToolTier::IRON;
+		return ToolTier::TIER_IRON;
 	}
 
 }

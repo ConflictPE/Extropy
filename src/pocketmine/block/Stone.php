@@ -67,7 +67,7 @@ class Stone extends Solid {
 	}
 
 	public function getDrops(Item $item) : array {
-		if($item instanceof Pickaxe and $item->getTier() >= ToolTier::WOODEN) {
+		if($item instanceof Pickaxe and $item->getTier() >= ToolTier::TIER_WOODEN) {
 			if($this->getDamage() === self::NORMAL) {
 				return [
 					ItemFactory::get(Item::COBBLESTONE, $this->getDamage(), 1),

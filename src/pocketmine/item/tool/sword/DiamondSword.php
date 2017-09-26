@@ -33,7 +33,7 @@ class DiamondSword extends Sword {
 	}
 
 	public function getTier() : int {
-		return ToolTier::DIAMOND;
+		return ToolTier::TIER_DIAMOND;
 	}
 
 }
