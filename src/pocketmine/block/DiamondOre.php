@@ -25,7 +25,9 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
+use pocketmine\item\tool\pickaxe\Pickaxe;
 use pocketmine\item\tool\Tool;
+use pocketmine\item\tool\ToolTier;
 
 class DiamondOre extends Solid {
 
@@ -48,7 +50,7 @@ class DiamondOre extends Solid {
 	}
 
 	public function getDrops(Item $item) : array {
-		if($item->isPickaxe() >= Tool::TIER_IRON) {
+		if($item instanceof Pickaxe and $item->getTier() >= ToolTier::IRON) {
 			return [
 				ItemFactory::get(Item::DIAMOND, 0, 1),
 			];

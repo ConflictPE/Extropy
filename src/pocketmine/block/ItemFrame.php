@@ -24,15 +24,9 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
-use pocketmine\nbt\tag\{
-	ByteTag, Compound, FloatTag, IntTag, StringTag
-};
 use pocketmine\Player;
-use pocketmine\tile\ItemFrame as TileItemFrame;
-use pocketmine\tile\Tile;
 
 class ItemFrame extends Flowable {
 

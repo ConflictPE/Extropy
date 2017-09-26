@@ -23,7 +23,6 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\inventory\BigCraftingGrid;
 use pocketmine\item\Item;
 use pocketmine\item\tool\Tool;
 use pocketmine\Player;
