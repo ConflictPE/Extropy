@@ -903,54 +903,13 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 			$this->teleport($pos);
 
-			if($this->getHealth() <= 0) { // if the player died and left the server we'll automatically respawn them like a new player
-				if($this->server->isHardcore()) {
-					$this->setBanned(true);
-					return;
-				}
-
-				$this->craftingType = self::CRAFTING_DEFAULT;
-
-				$this->server->getPluginManager()->callEvent($ev = new PlayerRespawnEvent($this, $this->getSpawn()));
-
-				$this->teleport($ev->getRespawnPosition());
-
-				$this->setSprinting(false, true);
-				$this->setSneaking(false);
-
-				$this->extinguish();
-
-				$this->dataProperties[self::DATA_AIR] = [self::DATA_TYPE_SHORT, 300];
-				$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_NOT_IN_WATER, true, self::DATA_TYPE_LONG, false);
-
-				$this->deadTicks = 0;
-				$this->dead = false;
-				$this->noDamageTicks = 60;
-
-				$this->despawnFromAll();
-
-				$this->setHealth($this->getMaxHealth());
-				$this->setFood(self::MAX_FOOD);
-
-				$this->setSaturation(self::MAX_SATURATION);
-				$this->setExhaustion(self::MIN_EXHAUSTION);
-				$this->foodTickTimer = 0;
-				$this->lastSentVitals = 10;
-
-				$this->removeAllEffects();
-
-				$this->sendSelfData();
-
-				$this->sendSettings();
-
-				$this->inventory->sendContents($this);
-				$this->inventory->sendArmorContents($this);
-
-				$this->blocked = false;
-
-				$this->scheduleUpdate();
-
-				$this->server->getPluginManager()->callEvent(new PlayerRespawnAfterEvent($this));
+			if($this->getHealth() <= 0) { // if the player died and left the server
+				$pk = new RespawnPacket();
+				$pos = $this->getSpawn();
+				$pk->x = $pos->x;
+				$pk->y = $pos->y;
+				$pk->z = $pos->z;
+				$this->dataPacket($pk);
 			}
 			$this->server->getPluginManager()->callEvent($ev = new PlayerJoinEvent($this, ""));
 		}
@@ -1310,15 +1269,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	public function addEntityMovement($entityId, $x, $y, $z, $yaw, $pitch, $headYaw = null){
 
 	}
-
-//	public function setDataProperty($id, $type, $value){
-//		if(parent::setDataProperty($id, $type, $value)){
-//			$this->sendData([$this], [$id => $this->dataProperties[$id]]);
-//			return true;
-//		}
-//
-//		return false;
-//	}
 
 	protected function checkGroundState($movX, $movY, $movZ, $dx, $dy, $dz){
 		/*
@@ -1886,13 +1836,12 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						$this->setSneaking(false);
 
 						$this->extinguish();
-						$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, 400);
+						$this->setAirTick(400);
 						$this->deadTicks = 0;
 						$this->dead = false;
 						$this->noDamageTicks = 60;
 
 						$this->removeAllEffects();
-						$this->sendSelfData();
 
 						$this->setHealth($this->getMaxHealth());
 						$this->setFood(self::MAX_FOOD);
@@ -3367,10 +3316,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 		$this->server->sendRecipeList($this);
 
-		$this->sendSelfData();
 		$this->updateSpeed(self::DEFAULT_SPEED);
-		$this->setMayMove(false);
-//		$this->updateAttribute(UpdateAttributesPacket::EXPERIENCE_LEVEL, 100, 0, 1024, 100);
 
 		if($this->getHealth() <= 0) {
 			$this->dead = true;
@@ -3385,13 +3331,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$pk = new TransferPacket();
 		$pk->ip = $address;
 		$pk->port = ($port === false ? 19132 : $port);
-		$this->dataPacket($pk);
-	}
-
-	public function sendSelfData() {
-		$pk = new SetEntityDataPacket();
-		$pk->eid = $this->id;
-		$pk->metadata = $this->dataProperties;
 		$this->dataPacket($pk);
 	}
 
@@ -4177,9 +4116,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->dataPacket($pk);
 	}
 
-	private function setMayMove($state) {
-		if ($this->protocol >= ProtocolInfo::PROTOCOL_120) {
-			$this->setDataFlag(self::DATA_FLAGS, 46, $state);
+	private function setMayMove(bool $state) {
+		if($this->protocol >= ProtocolInfo::PROTOCOL_120) {
+			$this->setImmobile(!$state);
 			$this->isMayMove = $state;
 		} else {
 			$this->isMayMove = true;

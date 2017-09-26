@@ -130,7 +130,7 @@ class FishingHook extends Projectile{
 		$this->damageRod = false;
 
 		if($this->shootingEntity instanceof Player && $this->coughtTimer > 0){
-			$fishes = [ItemItem::RAW_FISH, ItemItem::RAW_SALMON, ItemItem::CLOWN_FISH, ItemItem::PUFFER_FISH];
+			$fishes = [ItemItem::FISH];
 			$fish = array_rand($fishes, 1);
 			$item = ItemItem::get($fishes[$fish]);
 			$this->getLevel()->getServer()->getPluginManager()->callEvent($ev = new PlayerFishEvent($this->shootingEntity, $item, $this));

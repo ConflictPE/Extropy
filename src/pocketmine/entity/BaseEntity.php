@@ -93,7 +93,7 @@ abstract class BaseEntity extends Creature{
 		if(isset($this->namedtag->WallCheck)){
 			$this->setWallCheck($this->namedtag["WallCheck"]);
 		}
-		$this->dataProperties[self::DATA_NO_AI] = [self::DATA_TYPE_BYTE, 1];
+		$this->dataProperties[self::DATA_FLAG_IMMOBILE] = [self::DATA_TYPE_BYTE, 1];
 	}
 
 	public function saveNBT(){

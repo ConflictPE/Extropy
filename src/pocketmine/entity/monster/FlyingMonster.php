@@ -134,7 +134,7 @@ abstract class FlyingMonster extends FlyingEntity implements Monster{
 			}
 			$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, $airTicks);
 		}else{
-			$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, 300);
+			$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, 400);
 		}
 
 		//Timings::$timerEntityBaseTick->stopTiming();

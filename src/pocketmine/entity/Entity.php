@@ -92,87 +92,135 @@ abstract class Entity extends Location implements Metadatable{
 	const DATA_TYPE_LONG = 7;
 	const DATA_TYPE_VECTOR3 = 8;
 
-	const DATA_FLAGS = 0; //is entity burning or not
-	const DATA_ANIMAL_VARIANT = 2; // type: int
-	const DATA_COLOR = 3; // type: byte
-	const DATA_NAMETAG = 4; // type: string
-	const DATA_AIR = 7; //air under water type: short
-	const DATA_POTION_COLOR = 8; // type: int data: rgb
-	const DATA_POTION_AMBIENT = 9; //is potion ambient or not
-	const DATA_JUMP_DURATION = 10; // type: long
-	const DATA_HORSE_FLAGS = 16; // type: int
-	const DATA_HORSE_TYPE = 19; // type: byte
-	const DATA_ENDERMAN_BLOCK_ID = 23; // type: short
-	const DATA_ENDERMAN_BLOCK_META = 24; // type:short
-	const DATA_PLAYER_FLAGS = 27;
-	const DATA_PLAYER_BED_POSITION = 29;
-	const DATA_LEAD_HOLDER = 38; // type: long
-	const DATA_SCALE = 39; // type: float
-	const DATA_BUTTON_TEXT = 40; // type: string !IMPORTANT! Send to player
-	const DATA_MAX_AIR = 44; // type: short
-	const DATA_BOUNDING_BOX_WIDTH = 54; //float
-	const DATA_BOUNDING_BOX_HEIGHT = 55; //float
-	const DATA_SEAT_RIDER_OFFSET = 57; // type: vector3
+	const DATA_FLAGS = "DATA_FLAGS";
+	const DATA_HEALTH = "DATA_HEALTH"; //int (minecart/boat)
+	const DATA_VARIANT = "DATA_VARIANT"; //int
+	const DATA_COLOR = "DATA_COLOR", DATA_COLOUR = "DATA_COLOR"; //byte
+	const DATA_NAMETAG = "DATA_NAMETAG"; //string
+	const DATA_OWNER_EID = "DATA_OWNER_EID"; //long
+	const DATA_TARGET_EID = "DATA_TARGET_EID"; //long
+	const DATA_AIR = "DATA_AIR"; //short
+	const DATA_POTION_COLOR = "DATA_POTION_COLOR"; //int (ARGB!)
+	const DATA_POTION_AMBIENT = "DATA_POTION_AMBIENT"; //byte
+	/* 10 (byte) */
+	const DATA_HURT_TIME = "DATA_HURT_TIME"; //int (minecart/boat)
+	const DATA_HURT_DIRECTION = "DATA_HURT_DIRECTION"; //int (minecart/boat)
+	const DATA_PADDLE_TIME_LEFT = "DATA_PADDLE_TIME_LEFT"; //float
+	const DATA_PADDLE_TIME_RIGHT = "DATA_PADDLE_TIME_RIGHT"; //float
+	const DATA_EXPERIENCE_VALUE = "DATA_EXPERIENCE_VALUE"; //int (xp orb)
+	const DATA_MINECART_DISPLAY_BLOCK = "DATA_MINECART_DISPLAY_BLOCK"; //int (id | (data << 16))
+	const DATA_MINECART_DISPLAY_OFFSET = "DATA_MINECART_DISPLAY_OFFSET"; //int
+	const DATA_MINECART_HAS_DISPLAY = "DATA_MINECART_HAS_DISPLAY"; //byte (must be 1 for minecart to show block inside)
 
-	const DATA_EXPLODE_TIMER = 56;
+	//TODO: add more properties
 
-	const DATA_SILENT = 4;
-	const DATA_LEAD = 24; //remove
+	const DATA_ENDERMAN_HELD_ITEM_ID = "DATA_ENDERMAN_HELD_ITEM"; //short
+	const DATA_ENDERMAN_HELD_ITEM_DAMAGE = "DATA_ENDERMAN_HELD_ITEM_DAMAGE"; //short
+	const DATA_ENTITY_AGE = "DATA_ENTITY_AGE"; //short
 
-	const DATA_NO_AI = 231321;
+	/* 27 (byte) player-specific flags
+	 * 28 (int) player "index"?
+	 * 29 (block coords) bed position */
+	const DATA_FIREBALL_POWER_X = "DATA_FIREBALL_POWER_X"; //float
+	const DATA_FIREBALL_POWER_Y = "DATA_FIREBALL_POWER_Y";
+	const DATA_FIREBALL_POWER_Z = "DATA_FIREBALL_POWER_Z";
+	/* 33 (unknown)
+	 * 34 (float) fishing bobber
+	 * 35 (float) fishing bobber
+	 * 36 (float) fishing bobber */
+	const DATA_POTION_AUX_VALUE = "DATA_POTION_AUX_VALUE"; //short
+	const DATA_LEAD_HOLDER_EID = "DATA_LEAD_OLDER_EID"; //long
+	const DATA_SCALE = "DATA_SCALE"; //float
+	const DATA_INTERACTIVE_TAG = "DATA_INTERACTIVE_TAG"; //string (button text)
+	const DATA_NPC_SKIN_ID = "DATA_NPC_SKIN_ID"; //string
+	const DATA_URL_TAG = "DATA_URL_TAG"; //string
+	const DATA_MAX_AIR = "DATA_MAX_AIR"; //short
+	const DATA_MARK_VARIANT = "DATA_MARK_VARIANT"; //int
+	/* 45 (byte) container stuff
+	 * 46 (int) container stuff
+	 * 47 (int) container stuff */
+	const DATA_BLOCK_TARGET = "DATA_BLOCK_TARGET"; //block coords (ender crystal)
+	const DATA_WITHER_INVULNERABLE_TICKS = "DATA_WITHER_INVULNERABLE_TICKS"; //int
+	const DATA_WITHER_TARGET_1 = "DATA_WITHER_TARGET_1"; //long
+	const DATA_WITHER_TARGET_2 = "DATA_WITHER_TARGET_2"; //long
+	const DATA_WITHER_TARGET_3 = "DATA_WITHER_TARGET_3"; //long
+	/* 53 (short) */
+	const DATA_BOUNDING_BOX_WIDTH = "DATA_BOUNDING_BOX_WIDTH"; //float
+	const DATA_BOUNDING_BOX_HEIGHT = "DATA_BOUNDING_BOX_HEIGHT"; //float
+	const DATA_FUSE_LENGTH = "DATA_FUSE_LENGTH"; //int
+	const DATA_RIDER_SEAT_POSITION = "DATA_RIDER_SEAT_POSITION"; //vector3f
+	const DATA_RIDER_ROTATION_LOCKED = "DATA_RIDER_ROTATION_LOCKED"; //byte
+	const DATA_RIDER_MAX_ROTATION = "DATA_RIDER_MAX_ROTATION"; //float
+	const DATA_RIDER_MIN_ROTATION = "DATA_RIDER_MIN_ROTATION"; //float
+	const DATA_AREA_EFFECT_CLOUD_RADIUS = "DATA_AREA_EFFECT_CLOUD_RADIUS"; //float
+	const DATA_AREA_EFFECT_CLOUD_WAITING = "DATA_AREA_EFFECT_CLOUD_RADIUS"; //int
+	const DATA_AREA_EFFECT_CLOUD_PARTICLE_ID = "DATA_AREA_EFFECT_CLOUD_PARTICLE_ID"; //int
+	/* 64 (int) shulker-related */
+	const DATA_SHULKER_ATTACH_FACE = "DATA_SHULKER_ATTACH_FACE"; //byte
+	/* 66 (short) shulker-related */
+	const DATA_SHULKER_ATTACH_POS = "DATA_SHULKER_ATTACH_POS"; //block coords
+	const DATA_TRADING_PLAYER_EID = "DATA_TRADING_PLAYER_EID"; //long
 
-	//other dataProperty values:
-	//14 - age (0 - baby, 130000 - parent)
-	//16 - sheep color (the same as wool meta)
-	//17 - shooter id (for throwable entities)
-	//19 - charge value for creaper
-	//20 - boat color
-	//21 - in love (for those who can breed)
+	/* 70 (byte) command-block */
+	const DATA_COMMAND_BLOCK_COMMAND = "DATA_COMMAND_BLOCK_COMMAND"; //string
+	const DATA_COMMAND_BLOCK_LAST_OUTPUT = "DATA_COMMAND_BLOCK_LAST_OUTPUT"; //string
+	const DATA_COMMAND_BLOCK_TRACK_OUTPUT = "DATA_COMMAND_BLOCK_TRACK_OUTPUT"; //byte
+	const DATA_CONTROLLING_RIDER_SEAT_NUMBER = "DATA_CONTROLLING_RIDER_SEAT_NUMBER"; //byte
+	const DATA_STRENGTH = "DATA_STRENGTH"; //int
+	const DATA_MAX_STRENGTH = "DATA_MAX_STRENGTH"; //int
+	/* 77 (int)
+	 * 78 (int) */
 
 
-	const DATA_FLAG_ONFIRE = 0;
-	const DATA_FLAG_SNEAKING = 1;
-	const DATA_FLAG_RIDING = 2;
-	const DATA_FLAG_SPRINTING = 3;
-	const DATA_FLAG_ACTION = 4;
-	const DATA_FLAG_INVISIBLE = 5;
-	const DATA_FLAG_TEMPTED = 6;
-	const DATA_FLAG_INLOVE = 7;
-	const DATA_FLAG_SADDLE = 8;
-	const DATA_FLAG_POWERED = 9;
-	const DATA_FLAG_IGNITED = 10;
-	const DATA_FLAG_IS_BABY = 11; // disable head scaling
-	const DATA_FLAG_CONVERTING = 12;
-	const DATA_FLAG_CRITICAL = 13;
-	const DATA_FLAG_SHOW_NAMETAG = 14;
-	const DATA_FLAG_ALWAYS_SHOW_NAMETAG = 15;
-	const DATA_FLAG_NOT_MOVE = 16;
-	const DATA_FLAG_NO_AI = 16;
-	const DATA_FLAG_SILENT = 17;
-	const DATA_FLAG_IS_CLIMBING = 18;
-	const DATA_FLAG_RESTING_BAT = 19;
-	const DATA_FLAG_ANIMAL_SIT = 20;
-	const DATA_FLAG_ANGRY_WOLF = 21;
-	const DATA_FLAG_INTERESTED = 22; //for mobs following players with food?
-	const DATA_FLAG_ANGRY_BLAZE = 23;
-	const DATA_FLAG_TAME_WOLF = 24; //works with DATA_COLOR
-	const DATA_FLAG_LEASHED = 25;
-	const DATA_FLAG_SHAVED_SHIP = 26;
-	const DATA_FLAG_FALL_FLYING = 27;
-	const DATA_FLAG_ELDER_GUARDIAN = 28;
-	const DATA_FLAG_MOVING = 29; // ???
-	const DATA_FLAG_NOT_IN_WATER = 30;
-	const DATA_FLAG_CHESTED_MOUNT = 31;
-	const DATA_FLAG_STACKABLE = 32; //???
-
-	/* 1.1.0 new flags
-	const DATA_FLAG_CAN_CLIMBING = 19;
-	const DATA_FLAG_IS_SWIMMER = 20;
-	const DATA_FLAG_CAN_FLY = 21;
-	const DATA_FLAG_IS_STAING = 37;
-	const DATA_FLAG_IS_WASD_CONTROLLED = 43;
-	const DATA_FLAG_CAN_POWER_JUMP = 44;
-	 */
+	const DATA_FLAG_ONFIRE = "DATA_FLAG_ONFIRE";
+	const DATA_FLAG_SNEAKING = "DATA_FLAG_SNEAKING";
+	const DATA_FLAG_RIDING = "DATA_FLAG_RIDING";
+	const DATA_FLAG_SPRINTING = "DATA_FLAG_SPRINTING";
+	const DATA_FLAG_ACTION = "DATA_FLAG_ACTION";
+	const DATA_FLAG_INVISIBLE = "DATA_FLAG_INVISIBLE";
+	const DATA_FLAG_TEMPTED = "DATA_FLAG_TEMPTED";
+	const DATA_FLAG_INLOVE = "DATA_FLAG_INLOVE";
+	const DATA_FLAG_SADDLED = "DATA_FLAG_SADDLED";
+	const DATA_FLAG_POWERED = "DATA_FLAG_POWERED";
+	const DATA_FLAG_IGNITED = "DATA_FLAG_IGNITED";
+	const DATA_FLAG_BABY = "DATA_FLAG_BABY";
+	const DATA_FLAG_CONVERTING = "DATA_FLAG_CONVERTING";
+	const DATA_FLAG_CRITICAL = "DATA_FLAG_CRITICAL";
+	const DATA_FLAG_CAN_SHOW_NAMETAG = "DATA_FLAG_CAN_SHOW_NAMETAG";
+	const DATA_FLAG_ALWAYS_SHOW_NAMETAG = "DATA_FLAG_ALWAYS_SHOW_NAMETAG";
+	const DATA_FLAG_IMMOBILE = "DATA_FLAG_IMMOBILE", DATA_FLAG_NO_AI = "DATA_FLAG_IMMOBILE";
+	const DATA_FLAG_SILENT = "DATA_FLAG_SILENT";
+	const DATA_FLAG_WALLCLIMBING = "DATA_FLAG_WALLCLIMBING";
+	const DATA_FLAG_CAN_CLIMB = "DATA_FLAG_CAN_CLIMB";
+	const DATA_FLAG_SWIMMER = "DATA_FLAG_SWIMMER";
+	const DATA_FLAG_CAN_FLY = "DATA_FLAG_CAN_FLY";
+	const DATA_FLAG_RESTING = "DATA_FLAG_RESTING";
+	const DATA_FLAG_SITTING = "DATA_FLAG_SITTING";
+	const DATA_FLAG_ANGRY = "DATA_FLAG_ANGRY";
+	const DATA_FLAG_INTERESTED = "DATA_FLAG_INTERESTED";
+	const DATA_FLAG_CHARGED = "DATA_FLAG_CHARGED";
+	const DATA_FLAG_TAMED = "DATA_FLAG_TAMED";
+	const DATA_FLAG_LEASHED = "DATA_FLAG_LEASHED";
+	const DATA_FLAG_SHEARED = "DATA_FLAG_SHEARED";
+	const DATA_FLAG_GLIDING = "DATA_FLAG_GLIDING";
+	const DATA_FLAG_ELDER = "DATA_FLAG_ELDER";
+	const DATA_FLAG_MOVING = "DATA_FLAG_MOVING";
+	const DATA_FLAG_BREATHING = "DATA_FLAG_BREATHING";
+	const DATA_FLAG_CHESTED = "DATA_FLAG_CHESTED";
+	const DATA_FLAG_STACKABLE = "DATA_FLAG_STACKABLE";
+	const DATA_FLAG_SHOWBASE = "DATA_FLAG_SHOWBASE";
+	const DATA_FLAG_REARING = "DATA_FLAG_REARING";
+	const DATA_FLAG_VIBRATING = "DATA_FLAG_VIBRATING";
+	const DATA_FLAG_IDLING = "DATA_FLAG_IDLING";
+	const DATA_FLAG_EVOKER_SPELL = "DATA_FLAG_EVOKER_SPELL";
+	const DATA_FLAG_CHARGE_ATTACK = "DATA_FLAG_CHARGE_ATTACK";
+	const DATA_FLAG_WASD_CONTROLLED = "DATA_FLAG_WASD_CONTROLLED";
+	const DATA_FLAG_CAN_POWER_JUMP = "DATA_FLAG_CAN_POWER_JUMP";
+	const DATA_FLAG_LINGER = "DATA_FLAG_LINGER";
+	const DATA_FLAG_HAS_COLLISION = "DATA_FLAG_HAS_COLLISION";
+	const DATA_FLAG_AFFECTED_BY_GRAVITY = "DATA_FLAG_AFFECTED_BY_GRAVITY";
+	const DATA_FLAG_FIRE_IMMUNE = "DATA_FLAG_FIRE_IMMUNE";
+	const DATA_FLAG_DANCING = "DATA_FLAG_DANCING";
 
 	const DATA_PLAYER_FLAG_SLEEP = 1;
 	const DATA_PLAYER_FLAG_DEAD = 2;
@@ -194,11 +242,11 @@ abstract class Entity extends Location implements Metadatable{
 
 	protected $dataFlags = 0;
 	protected $dataProperties = [
-		self::DATA_FLAGS => [self::DATA_TYPE_LONG, 0],
-		self::DATA_AIR => [self::DATA_TYPE_SHORT, 300],
+		self::DATA_FLAGS => [self::DATA_TYPE_LONG, []],
+		self::DATA_AIR => [self::DATA_TYPE_SHORT, 400],
+		self::DATA_MAX_AIR => [self::DATA_TYPE_SHORT, 400],
 		self::DATA_NAMETAG => [self::DATA_TYPE_STRING, ""],
-		self::DATA_LEAD_HOLDER => [self::DATA_TYPE_LONG, -1],
-		self::DATA_MAX_AIR => [self::DATA_TYPE_SHORT, 300],
+		self::DATA_LEAD_HOLDER_EID => [self::DATA_TYPE_LONG, -1]
 	];
 
 	protected $changedDataProperties = [];
@@ -342,11 +390,11 @@ abstract class Entity extends Location implements Metadatable{
 		if(!isset($this->namedtag->Air)){
 			$this->namedtag->Air = new ShortTag("Air", 300);
 		}
-		$this->dataProperties[self::DATA_AIR] = [self::DATA_TYPE_SHORT, 300];
-		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_NOT_IN_WATER, true, self::DATA_TYPE_LONG, false);
-		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_SHOW_NAMETAG, true, self::DATA_TYPE_LONG, false);
-		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ALWAYS_SHOW_NAMETAG, true, self::DATA_TYPE_LONG, false);
-//		$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, $this->namedtag["Air"]);
+
+		$this->setAirTick($this->namedtag["Air"]);
+
+		$this->setGenericFlag(self::DATA_FLAG_AFFECTED_BY_GRAVITY, true);
+		$this->setGenericFlag(self::DATA_FLAG_HAS_COLLISION, true);
 
 		if(!isset($this->namedtag->OnGround)){
 			$this->namedtag->OnGround = new ByteTag("OnGround", 0);
@@ -381,7 +429,7 @@ abstract class Entity extends Location implements Metadatable{
 	 * @return bool
 	 */
 	public function isNameTagVisible(){
-		return $this->getDataFlag(self::DATA_FLAGS, self::DATA_FLAG_SHOW_NAMETAG);
+		return $this->getDataFlag(self::DATA_FLAGS, self::DATA_FLAG_CAN_SHOW_NAMETAG);
 	}
 
 	/**
@@ -402,7 +450,7 @@ abstract class Entity extends Location implements Metadatable{
 	 * @param bool $value
 	 */
 	public function setNameTagVisible($value = true){
-		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_SHOW_NAMETAG, $value);
+		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_CAN_SHOW_NAMETAG, $value);
 	}
 
 	/**
@@ -460,11 +508,11 @@ abstract class Entity extends Location implements Metadatable{
 	}
 
 	public function isImmobile() : bool{
-		return $this->getDataFlag(self::DATA_FLAGS, self::DATA_FLAG_NOT_MOVE);
+		return $this->getGenericFlag(self::DATA_FLAG_IMMOBILE);
 	}
 
 	public function setImmobile($value = true){
-		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_MOVING, $value);
+		$this->setGenericFlag(self::DATA_FLAG_IMMOBILE, $value);
 	}
 
 	/**
@@ -472,7 +520,7 @@ abstract class Entity extends Location implements Metadatable{
 	 * @return bool
 	 */
 	public function canClimb() : bool{
-		return $this->getDataFlag(self::DATA_FLAGS, self::DATA_FLAG_IS_CLIMBING);
+		return $this->getDataFlag(self::DATA_FLAGS, self::DATA_FLAG_CAN_CLIMB);
 	}
 
 	/**
@@ -480,7 +528,7 @@ abstract class Entity extends Location implements Metadatable{
 	 * @param bool $value
 	 */
 	public function setCanClimb(bool $value){
-		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_IS_CLIMBING, $value);
+		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_CAN_CLIMB, $value);
 	}
 
 	/**
@@ -489,7 +537,7 @@ abstract class Entity extends Location implements Metadatable{
 	 * @return bool
 	 */
 	public function canClimbWalls() : bool{
-		return $this->getDataFlag(self::DATA_FLAGS, self::DATA_FLAG_IS_CLIMBING);
+		return $this->getDataFlag(self::DATA_FLAGS, self::DATA_FLAG_WALLCLIMBING);
 	}
 
 	/**
@@ -498,7 +546,7 @@ abstract class Entity extends Location implements Metadatable{
 	 * @param bool $value
 	 */
 	public function setCanClimbWalls(bool $value = true){
-		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_IS_CLIMBING, $value);
+		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_WALLCLIMBING, $value);
 	}
 
 	/**
@@ -746,24 +794,27 @@ abstract class Entity extends Location implements Metadatable{
 	}
 
 	/**
-	 * @deprecated
-	 */
-	public function sendMetadata($player) {
-		$this->sendData($player);
-	}
-
-	/**
 	 * @param Player[]|Player $player
 	 * @param array $data Properly formatted entity data, defaults to everything
 	 */
 	public function sendData($player, array $data = null) {
-		if (!is_array($player)) {
+		if(!is_array($player)) {
 			$player = [$player];
 		}
 		$pk = new SetEntityDataPacket();
-		$pk->eid = $this->id;
-		$pk->metadata = $data === null ? $this->dataProperties : $data;
-		Server::broadcastPacket($player, $pk);
+		$pk->eid = $this->getId();
+		$pk->metadata = $data ?? $this->dataProperties;
+
+		foreach($player as $p) {
+			if($p === $this) {
+				continue;
+			}
+			$p->dataPacket(clone $pk);
+		}
+
+		if($this instanceof Player) {
+			$this->dataPacket($pk);
+		}
 	}
 
 	/**
@@ -1137,7 +1188,7 @@ abstract class Entity extends Location implements Metadatable{
 	public function extinguish(){
 		$this->fireTicks = 0;
 		$this->fireDamage = 1;
-		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ONFIRE, false);
+		$this->setGenericFlag(self::DATA_FLAG_ONFIRE, false);
 	}
 
 	public function canTriggerWalking(){
@@ -1802,18 +1853,18 @@ abstract class Entity extends Location implements Metadatable{
 	}
 
 	/**
-	 * @param int   $id
+	 * @param string   $name
 	 * @param int   $type
 	 * @param mixed $value
 	 * @param bool  $send
 	 *
 	 * @return bool
 	 */
-	public function setDataProperty(int $id, int $type, $value, bool $send = true) : bool{
-		if($this->getDataProperty($id) !== $value){
-			$this->dataProperties[$id] = [$type, $value];
+	public function setDataProperty(string $name, int $type, $value, bool $send = true) : bool{
+		if($this->getDataProperty($name) !== $value){
+			$this->dataProperties[$name] = [$type, $value];
 			if($send){
-				$this->changedDataProperties[$id] = $this->dataProperties[$id]; //This will be sent on the next tick
+				$this->changedDataProperties[$name] = $this->dataProperties[$name]; //This will be sent on the next tick
 			}
 
 			return true;
@@ -1823,69 +1874,73 @@ abstract class Entity extends Location implements Metadatable{
 	}
 
 	/**
-	 * @param int $id
+	 * @param string $name
 	 *
 	 * @return mixed
 	 */
-	public function getDataProperty(int $id){
-		return isset($this->dataProperties[$id]) ? $this->dataProperties[$id][1] : null;
+	public function getDataProperty(string $name){
+		return isset($this->dataProperties[$name]) ? $this->dataProperties[$name][1] : null;
 	}
 
-	public function removeDataProperty(int $id){
-		unset($this->dataProperties[$id]);
+	public function removeDataProperty(string $name){
+		unset($this->dataProperties[$name]);
 	}
 
 	/**
-	 * @param int $id
+	 * @param string $name
 	 *
 	 * @return int|null
 	 */
-	public function getDataPropertyType(int $id){
-		return isset($this->dataProperties[$id]) ? $this->dataProperties[$id][0] : null;
+	public function getDataPropertyType(string $name){
+		return isset($this->dataProperties[$name]) ? $this->dataProperties[$name][0] : null;
 	}
 
 	/**
-	 * @param int  $propertyId
-	 * @param int  $flagId
+	 * @param string  $propertyName
+	 * @param string  $flagName
 	 * @param bool $value
 	 * @param int  $propertyType
 	 */
-	public function setDataFlag(int $propertyId, int $flagId, bool $value = true, int $propertyType = self::DATA_TYPE_LONG){
-		if($this->getDataFlag($propertyId, $flagId) !== $value){
-			$flags = (int) $this->getDataProperty($propertyId);
-			$flags ^= 1 << $flagId;
-			$this->setDataProperty($propertyId, $propertyType, $flags);
+	public function setDataFlag(string $propertyName, string $flagName, bool $value = true, int $propertyType = self::DATA_TYPE_LONG){
+		if($this->getDataFlag($propertyName, $flagName) !== $value) {
+			$flags = $this->getDataProperty($propertyName);
+			if(!$value and $this->getDataProperty($propertyName)[$flagName]) {
+				unset($flags[$flagName]);
+			} else {
+				$flags[$flagName] = $value;
+			}
+			$this->setDataProperty($propertyName, $propertyType, $flags);
 		}
 	}
 
 	/**
-	 * @param int $propertyId
-	 * @param int $flagId
+	 * @param string $propertyName
+	 * @param string $flagName
 	 *
 	 * @return bool
 	 */
-	public function getDataFlag(int $propertyId, int $flagId) : bool{
-		return (((int) $this->getDataProperty($propertyId)) & (1 << $flagId)) > 0;
+	public function getDataFlag(string $propertyName, string $flagName) : bool{
+		return $this->getDataProperty($propertyName)[$flagName] ?? false;
 	}
 
 	/**
 	 * Wrapper around {@link Entity#getDataFlag} for generic data flag reading.
 	 *
-	 * @param int $flagId
+	 * @param string $flagName
 	 * @return bool
 	 */
-	public function getGenericFlag(int $flagId) : bool {
-		return $this->getDataFlag(self::DATA_FLAGS, $flagId);
+	public function getGenericFlag(string $flagName) : bool {
+		return $this->getDataFlag(self::DATA_FLAGS, $flagName);
 	}
 
 	/**
 	 * Wrapper around {@link Entity#setDataFlag} for generic data flag setting.
 	 *
-	 * @param int  $flagId
+	 * @param string  $flagName
 	 * @param bool $value
 	 */
-	public function setGenericFlag(int $flagId, bool $value = true) {
-		$this->setDataFlag(self::DATA_FLAGS, $flagId, $value, self::DATA_TYPE_LONG);
+	public function setGenericFlag(string $flagName, bool $value = true) {
+		$this->setDataFlag(self::DATA_FLAGS, $flagName, $value, self::DATA_TYPE_LONG);
 	}
 
 	public function __destruct() {
@@ -1913,7 +1968,7 @@ abstract class Entity extends Location implements Metadatable{
 	}
 
 	public function setAirTick($val) {
-		$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, $val, false);
+		$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, $val, true);
 	}
 
 }

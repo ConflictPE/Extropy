@@ -308,7 +308,7 @@ class Effect{
 		switch($this->id) {
 			case Effect::INVISIBILITY:
 				$entity->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_INVISIBLE, true);
-				$entity->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_SHOW_NAMETAG, false);
+				$entity->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_CAN_SHOW_NAMETAG, false);
 				break;
 			case Effect::SPEED:
 				if($isPlayer) {
@@ -345,7 +345,7 @@ class Effect{
 		switch($this->id) {
 			case Effect::INVISIBILITY:
 				$entity->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_INVISIBLE, false);
-				$entity->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_SHOW_NAMETAG, true);
+				$entity->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_CAN_SHOW_NAMETAG, true);
 				break;
 			case Effect::SPEED:
 				if($isPlayer) {

@@ -63,7 +63,7 @@ class Binary {
 	}
 
 	public static function writeMetadata(array $data, $playerProtocol){
-		$data = MetadataConvertor::updateMeta($data, $playerProtocol);
+		$data = MetadataConverter::writeMetadata($data, $playerProtocol);
 		$m = "";
 		$m .= self::writeVarInt(count($data));
 		foreach($data as $bottom => $d){

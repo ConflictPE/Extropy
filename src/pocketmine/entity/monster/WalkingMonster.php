@@ -168,7 +168,7 @@ abstract class WalkingMonster extends WalkingEntity implements Monster{
 				}
 				$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, $airTicks);
 			}else{
-				$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, 300);
+				$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, 400);
 			}
 		}
 

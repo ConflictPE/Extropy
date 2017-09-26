@@ -146,7 +146,7 @@ use pocketmine\entity\monster\walking\Wolf;
 use pocketmine\entity\monster\walking\Zombie;
 use pocketmine\entity\monster\walking\ZombieVillager;
 use pocketmine\entity\projectile\FireBall;
-use pocketmine\utils\MetadataConvertor;
+use pocketmine\utils\MetadataConverter;
 
 /**
  * The class that manages everything
@@ -864,7 +864,7 @@ class Server{
 			]),
 			new FloatTag("FallDistance", 0.0),
 			new ShortTag("Fire", 0),
-			new ShortTag("Air", 300),
+			new ShortTag("Air", 400),
 			new ByteTag("OnGround", 1),
 			new ByteTag("Invulnerable", 0),
 			new StringTag("NameTag", $name),
@@ -1649,7 +1649,6 @@ class Server{
 		ItemFactory::init();
 		Biome::init();
 		TextWrapper::init();
-		MetadataConvertor::init();
 		Effect::init();
 		$this->craftingManager = new CraftingManager();
 
