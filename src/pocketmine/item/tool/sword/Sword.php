@@ -21,12 +21,29 @@
 
 namespace pocketmine\item\tool\sword;
 
+use pocketmine\block\Block;
+use pocketmine\entity\Entity;
 use pocketmine\item\tool\Tool;
 use pocketmine\item\tool\ToolTier;
+use pocketmine\Player;
 
 abstract class Sword extends Tool implements ToolTier {
 
-	public function isSword() : bool {
+	public function onBlockBreak(Player $player, Block $block) : bool {
+		if($this->isUnbreakable() or !$block->willDamageTools()) {
+			return false;
+		}
+		$this->meta += 2;
+
+		return true;
+	}
+
+	public function onEntityAttack(Player $player, Entity $target) : bool {
+		if($this->isUnbreakable()){
+			return false;
+		}
+		$this->meta++;
+
 		return true;
 	}
 

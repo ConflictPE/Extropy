@@ -35,4 +35,8 @@ class RedstoneTorch extends Torch {
 		return 7;
 	}
 
+	public function willDamageTools() : bool {
+		return false;
+	}
+
 }

@@ -21,6 +21,9 @@
 
 namespace pocketmine\item\tool;
 
+use pocketmine\block\Block;
+use pocketmine\Player;
+
 class Shears extends Tool {
 
 	public function __construct(int $meta = 0){
@@ -29,6 +32,15 @@ class Shears extends Tool {
 
 	public function getMaxDurability() : int {
 		return 238;
+	}
+
+	public function onBlockBreak(Player $player, Block $block) : bool {
+		if($this->isUnbreakable() or $block->willDamageTools() or ($block->getId() !== Block::COBWEB and $block->getId() !== Block::LEAVES and $block->getId() !== Block::WOOL and $block->getId() !== Block::VINE)) {
+			return false;
+		}
+		$this->meta++;
+
+		return true;
 	}
 
 }

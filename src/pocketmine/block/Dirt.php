@@ -53,7 +53,6 @@ class Dirt extends Solid {
 
 	public function onActivate(Item $item, Player $player = null) : bool {
 		if($item instanceof Hoe) {
-			$item->onBlockUse($player, $this);
 			if($this->meta === 1) {
 				$this->getLevel()->setBlock($this, BlockFactory::get(Block::DIRT), true);
 			} else {

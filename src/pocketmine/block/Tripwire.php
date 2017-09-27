@@ -35,4 +35,8 @@ class Tripwire extends Flowable {
 		return "Tripwire";
 	}
 
+	public function willDamageTools() : bool {
+		return false;
+	}
+
 }

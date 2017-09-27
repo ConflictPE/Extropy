@@ -741,7 +741,7 @@ class Item implements ItemIds, \JsonSerializable {
 	 * @param Player $player
 	 * @param Vector3 $directionVector
 	 *
-	 * @return bool
+	 * @return bool   Returns true if the item was modified
 	 */
 	public function onClickAir(Player $player, Vector3 $directionVector) : bool {
 		return false;
@@ -753,7 +753,7 @@ class Item implements ItemIds, \JsonSerializable {
 	 *
 	 * @param Player $player
 	 *
-	 * @return bool
+	 * @return bool   Returns true if the item was modified
 	 */
 	public function onReleaseUsing(Player $player) : bool {
 		return false;
@@ -765,7 +765,7 @@ class Item implements ItemIds, \JsonSerializable {
 	 * @param Player $player
 	 * @param Entity $target
 	 *
-	 * @return bool
+	 * @return bool   Returns true if the item was modified
 	 */
 	public function onEntityAttack(Player $player, Entity $target) : bool {
 		return false;
@@ -777,7 +777,7 @@ class Item implements ItemIds, \JsonSerializable {
 	 * @param Player $player
 	 * @param Entity $target
 	 *
-	 * @return bool
+	 * @return bool   Returns true if the item was modified
 	 */
 	public function onEntityInteract(Player $player, Entity $target) : bool {
 		return false;
@@ -789,9 +789,9 @@ class Item implements ItemIds, \JsonSerializable {
 	 * @param Player $player
 	 * @param Entity $entity
 	 *
-	 * @return bool
+	 * @return bool   Returns true if the item was modified
 	 */
-	public function onEntityHover(Player $player, Entity $entity) {
+	public function onEntityHover(Player $player, Entity $entity) : bool {
 		return false;
 	}
 

@@ -57,6 +57,10 @@ class Fire extends Flowable {
 		return false;
 	}
 
+	public function willDamageTools() : bool {
+		return false;
+	}
+
 	public function canBeReplaced() : bool {
 		return true;
 	}

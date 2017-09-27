@@ -105,11 +105,9 @@ class Grass extends Solid {
 			TallGrassObject::growGrass($this->getLevel(), $this, new Random(mt_rand()), 8, 2);
 			return true;
 		} elseif($item instanceof Hoe) {
-			$item->onBlockUse($player, $this);
 			$this->getLevel()->setBlock($this, BlockFactory::get(Block::FARMLAND));
 			return true;
 		} elseif($item instanceof Shovel and $this->getSide(Vector3::SIDE_UP)->getId() === Block::AIR) {
-			$item->onBlockUse($player, $this);
 			$this->getLevel()->setBlock($this, BlockFactory::get(Block::GRASS_PATH));
 			return true;
 		}

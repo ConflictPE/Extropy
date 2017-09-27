@@ -79,6 +79,7 @@ use pocketmine\item\Elytra;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\food\Edible;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\item\tool\Tool;
 use pocketmine\level\Level;
 use pocketmine\level\Location;
@@ -1967,7 +1968,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			case 'MOB_ARMOR_EQUIPMENT_PACKET':
 				break;
 			case 'INTERACT_PACKET':
-				if ($packet->action === InteractPacket::ACTION_DAMAGE) {
+				if($packet->action === InteractPacket::ACTION_DAMAGE) {
 					$this->attackByTargetId($packet->target);
 				} else {
 					$this->customInteract($packet);
@@ -2478,7 +2479,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						$this->normalTransactionLogic($packet);
 						break;
 					case InventoryTransactionPacket::TRANSACTION_TYPE_ITEM_USE_ON_ENTITY:
-						if ($packet->actionType == InventoryTransactionPacket::ITEM_USE_ON_ENTITY_ACTION_ATTACK) {
+						if($packet->actionType == InventoryTransactionPacket::ITEM_USE_ON_ENTITY_ACTION_ATTACK) {
 							$this->attackByTargetId($packet->entityId);
 						}
 						break;
@@ -3737,7 +3738,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
  	}
 
 	public function attackByTargetId($targetId) {
-		if ($this->spawned === false or $this->dead === true or $this->blocked) {
+		if($this->spawned === false or $this->dead === true or $this->blocked) {
 			return;
 		}
 
@@ -3829,7 +3830,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 		$target->attack(($ev = new EntityDamageByEntityEvent($this, $target, EntityDamageEvent::CAUSE_ENTITY_ATTACK, $damage))->getFinalDamage(), $ev);
 		if($ev->isCancelled()) {
-			if($item->isTool() and $this->isSurvival()) {
+			if($item instanceof Tool and $this->isSurvival()) {
 				$this->inventory->sendContents($this);
 			}
 			return;
@@ -3841,12 +3842,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$this->motionZ *= 0.6;
 		}
 
-		if($item->isTool() and $this->isSurvival()) {
-			if($item->useOn($target) and $item->getDamage() >= $item->getMaxDurability()) {
-				$this->inventory->setItemInHand(ProtocolInfo::get(Item::AIR, 0, 1), $this);
-			} elseif($this->inventory->getItemInHand()->getId() == $item->getId()) {
-				$this->inventory->setItemInHand($item, $this);
-			}
+		if($this->isSurvival() and $item->onEntityAttack($this, $target) and $item->getDamage() >= $item->getMaxDurability()) {
+			$this->inventory->setItemInHand(ItemFactory::get(Item::AIR, 0, 1));
+		} elseif(!$this->inventory->getItemInHand()->equalsExact($item)) {
+			$this->inventory->setItemInHand($item);
+			$this->inventory->sendHeldItem($this->getViewers());
 		}
 	}
 
@@ -3901,7 +3901,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					if($this->level->useItemOn($blockPosition, $item, $face, $clickPosition, $this, true)){
 						if(!$item->equalsExact($oldItem)){
 							$this->inventory->setItemInHand($item);
-							$this->inventory->sendHeldItem($this->hasSpawned);
+							$this->inventory->sendHeldItem($this->getViewers());
 						}
 
 						return true;
@@ -3965,11 +3965,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$oldItem = clone $item;
 
 		if($this->canInteract($blockPosition->add(0.5, 0.5, 0.5), $this->isCreative() ? 13 : 6) and $this->level->useBreakOn($blockPosition, $item, $this, true)){
-			if($this->isSurvival()){
-				if(!$item->equalsExact($oldItem)){
-					$this->inventory->setItemInHand($item);
-					$this->inventory->sendHeldItem($this->hasSpawned);
-				}
+			if(!$item->equalsExact($oldItem)){
+				$this->inventory->setItemInHand($item);
+				$this->inventory->sendHeldItem($this->hasSpawned);
 			}
 			//Timings::$timerRemoveBlockPacket->stopTiming();
 			return;

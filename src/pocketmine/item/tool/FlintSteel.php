@@ -22,6 +22,11 @@
 namespace pocketmine\item\tool;
 
 use pocketmine\block\Block;
+use pocketmine\block\BlockFactory;
+use pocketmine\block\Solid;
+use pocketmine\item\ItemFactory;
+use pocketmine\level\Level;
+use pocketmine\math\Vector3;
 use pocketmine\Player;
 
 class FlintSteel extends Tool {
@@ -35,7 +40,20 @@ class FlintSteel extends Tool {
 	}
 
 	public function onBlockUse(Player $player, Block $block) : bool {
+		if($this->isUnbreakable()) {
+			return false;
+		}
+		$this->meta++;
+
 		return true;
+	}
+
+	public function onActivate(Level $level, Player $player, Block $block, Block $target, int $face, Vector3 $facePos) : bool {
+		if($block->getId() === self::AIR and ($target instanceof Solid)) {
+			$level->setBlock($block, BlockFactory::get(Block::FIRE), true);
+			return true;
+		}
+		return false;
 	}
 
 }

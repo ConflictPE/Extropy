@@ -712,17 +712,17 @@ class Level implements ChunkManager, Metadatable{
 	 * @param int      $flags
 	 */
 	public function sendBlocks(array $target, array $blocks, $flags = UpdateBlockPacket::FLAG_ALL) {
-		foreach ($blocks as $b) {
-			if ($b === null) {
+		foreach($blocks as $b) {
+			if($b === null) {
 				continue;
 			}
-			foreach ($target as $player) {
+			foreach($target as $player) {
 				$pk = new UpdateBlockPacket();
-				if ($b instanceof Block) {
+				if($b instanceof Block) {
 					$pk->records[] = [(int) $b->x, (int) $b->z, (int) $b->y, $b->getId(), $b->getDamage(), $flags];
 				} else {
 					$fullBlock = $this->getFullBlock($b->x, $b->y, $b->z);
-					$pk->records[] = [$b->x, $b->z, $b->y, $fullBlock >> 4, $fullBlock & 0xf, $flags];
+					$pk->records[] = [(int) $b->x, (int) $b->z, (int) $b->y, $fullBlock >> 4, $fullBlock & 0xf, $flags];
 				}
 				$player->dataPacket($pk);
 			}
@@ -1269,7 +1269,11 @@ class Level implements ChunkManager, Metadatable{
 					$this->changedBlocks[$index] = [];
 				}
 
-				$this->changedBlocks[$index][$bIndex][] = clone $block;
+				$this->changedBlocks[$index][Level::blockHash($block->x, $block->y, $block->z)] = clone $block;
+			}
+
+			foreach($this->getUsingChunk($pos->x >> 4, $pos->z >> 4) as $player){
+				$this->requestChunk($pos->x >> 4, $pos->z >> 4, $player);
 			}
 
 			if($update === true){
@@ -1347,7 +1351,7 @@ class Level implements ChunkManager, Metadatable{
 		$target = $this->getBlock($vector);
 
 		if($item === null){
-			$item = DroppedItem::get(Item::AIR, 0, 0);
+			$item = BlockFactory::get(Item::AIR, 0, 0);
 		}
 
 		if($player !== null){
@@ -1440,9 +1444,8 @@ class Level implements ChunkManager, Metadatable{
 		}
 
 		if($item !== null){
-			$item->onBlockBreak($player, $target);
-			if($item instanceof Tool and $item->getDamage() >= $item->getMaxDurability()){
-				$item = DroppedItem::get(Item::AIR, 0, 0);
+			if($player->isSurvival() and $item->onBlockBreak($player, $target) and $item->getDamage() >= $item->getMaxDurability()){
+				$item = ItemFactory::get(Item::AIR, 0, 0);
 			}
 		}
 
@@ -1511,7 +1514,10 @@ class Level implements ChunkManager, Metadatable{
 
 			if(!$ev->isCancelled()) {
 				$blockClicked->onUpdate(self::BLOCK_UPDATE_TOUCH);
-				if(!$player->isSneaking() and $blockClicked->onActivate($item, $player) === true){
+				if(!$player->isSneaking() and $blockClicked->onActivate($item, $player) === true) {
+					if($player->isSurvival() and $item->onBlockUse($player, $blockClicked) and $item->getDamage() >= $item->getMaxDurability()) {
+						$item = ItemFactory::get(Item::AIR, 0, 0);
+					}
 					return true;
 				}
 
@@ -1583,7 +1589,7 @@ class Level implements ChunkManager, Metadatable{
 
 		$item->setCount($item->getCount() - 1);
 		if($item->getCount() <= 0){
-			$item = DroppedItem::get(Item::AIR, 0, 0);
+			$item = ItemFactory::get(Item::AIR, 0, 0);
 		}
 
 		return true;
@@ -1759,6 +1765,14 @@ class Level implements ChunkManager, Metadatable{
 	public function setBlockIdAt($x, $y, $z, $id){
 		unset($this->blockCache[self::blockHash($x, $y, $z)]);
 		$this->getChunk($x >> 4, $z >> 4, true)->setBlockId($x & 0x0f, $y & $this->getYMask(), $z & 0x0f, $id & 0xff);
+
+		if(!isset($this->changedBlocks[$index = Level::chunkHash($x >> 4, $z >> 4)])){
+			$this->changedBlocks[$index] = [];
+		}
+		$this->changedBlocks[$index][Level::blockHash($x, $y, $z)] = $v = new Vector3($x, $y, $z);
+		foreach($this->getUsingChunk($x >> 4, $z >> 4) as $player){
+			$this->requestChunk($x >> 4, $z >> 4, $player);
+		}
 	}
 
 	/**
@@ -1785,6 +1799,14 @@ class Level implements ChunkManager, Metadatable{
 	public function setBlockDataAt($x, $y, $z, $data){
 		unset($this->blockCache[self::blockHash($x, $y, $z)]);
 		$this->getChunk($x >> 4, $z >> 4, true)->setBlockData($x & 0x0f, $y & $this->getYMask(), $z & 0x0f, $data & 0x0f);
+
+		if(!isset($this->changedBlocks[$index = Level::chunkHash($x >> 4, $z >> 4)])){
+			$this->changedBlocks[$index] = [];
+		}
+		$this->changedBlocks[$index][Level::blockHash($x, $y, $z)] = $v = new Vector3($x, $y, $z);
+		foreach($this->getUsingChunk($x >> 4, $z >> 4) as $player){
+			$this->requestChunk($x >> 4, $z >> 4, $player);
+		}
 	}
 
 	/**

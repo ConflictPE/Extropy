@@ -365,6 +365,15 @@ class Block extends Position implements BlockIds, Metadatable {
 	}
 
 	/**
+	 * Returns false if this block breaks instantly and doesn't damage tools
+	 *
+	 * @return bool
+	 */
+	public function willDamageTools() : bool {
+		return true;
+	}
+
+	/**
 	 * Returns the seconds that this block takes to be broken using an specific Item
 	 *
 	 * @param Item $item

@@ -44,6 +44,10 @@ class Torch extends Flowable {
 		return "Torch";
 	}
 
+	public function willDamageTools() : bool {
+		return false;
+	}
+
 	public function onUpdate(int $type) {
 		if($type === Level::BLOCK_UPDATE_NORMAL) {
 			$below = $this->getSide(Vector3::SIDE_DOWN);

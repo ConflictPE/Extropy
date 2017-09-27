@@ -35,4 +35,8 @@ class RedstoneTorchUnlit extends Torch {
 		return 0;
 	}
 
+	public function willDamageTools() : bool {
+		return false;
+	}
+
 }

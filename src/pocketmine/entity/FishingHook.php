@@ -23,8 +23,9 @@ namespace pocketmine\entity;
 
 use pocketmine\event\player\PlayerFishEvent;
 use pocketmine\item\Item as ItemItem;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\format\FullChunk;
-use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\Compound;
 use pocketmine\network\protocol\AddEntityPacket;
 use pocketmine\network\protocol\EntityEventPacket;
 use pocketmine\Player;
@@ -55,7 +56,7 @@ class FishingHook extends Projectile{
 		// $this->setDataProperty(FallingSand::DATA_BLOCK_INFO, self::DATA_TYPE_INT, $this->getData());
 	}
 
-	public function __construct(FullChunk $chunk, CompoundTag $nbt, Entity $shootingEntity = null){
+	public function __construct(FullChunk $chunk, Compound $nbt, Entity $shootingEntity = null){
 		parent::__construct($chunk, $nbt, $shootingEntity);
 	}
 
@@ -132,7 +133,7 @@ class FishingHook extends Projectile{
 		if($this->shootingEntity instanceof Player && $this->coughtTimer > 0){
 			$fishes = [ItemItem::FISH];
 			$fish = array_rand($fishes, 1);
-			$item = ItemItem::get($fishes[$fish]);
+			$item = ItemFactory::get($fishes[$fish]);
 			$this->getLevel()->getServer()->getPluginManager()->callEvent($ev = new PlayerFishEvent($this->shootingEntity, $item, $this));
 			if(!$ev->isCancelled()){
 				$this->shootingEntity->getInventory()->addItem($item);

@@ -396,7 +396,7 @@ class CraftingManager{
 		$this->registerRecipe(new FurnaceRecipe(ItemFactory::get(Item::GOLD_INGOT, 0, 1), ItemFactory::get(Item::GOLD_ORE, 0, 1)));
 		$this->registerRecipe(new FurnaceRecipe(ItemFactory::get(Item::GLASS, 0, 1), ItemFactory::get(Item::SAND, 0, 1)));
 		$this->registerRecipe(new FurnaceRecipe(ItemFactory::get(Item::GLASS, 0, 1), ItemFactory::get(Item::SAND, 1, 1))); // red sand
-//		$this->registerRecipe(new FurnaceRecipe(Item::get(Item::STONE, 0, 1), Item::get(Item::COBBLESTONE, 0, 1)));
+//		$this->registerRecipe(new FurnaceRecipe(ItemFactory::get(Item::STONE, 0, 1), ItemFactory::get(Item::COBBLESTONE, 0, 1)));
 		$this->registerRecipe(new FurnaceRecipe(ItemFactory::get(Item::BRICK, 0, 1), ItemFactory::get(Item::CLAY, 0, 1)));
 		$this->registerRecipe(new FurnaceRecipe(ItemFactory::get(Item::NETHER_BRICK, 0, 1), ItemFactory::get(Item::NETHERRACK, 0, 1)));
 		$this->registerRecipe(new FurnaceRecipe(ItemFactory::get(Item::HARDENED_CLAY, 0, 1), ItemFactory::get(Item::CLAY_BLOCK, 0, 1)));

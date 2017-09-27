@@ -45,13 +45,16 @@ class TNT extends Solid {
 		return "TNT";
 	}
 
+	public function willDamageTools() : bool {
+		return false;
+	}
+
 	public function getHardness() : float {
 		return 0;
 	}
 
 	public function onActivate(Item $item, Player $player = null) : bool {
 		if($item->getId() === Item::FLINT_STEEL) {
-			$item->onBlockUse($player, $this);
 			$this->ignite();
 			return true;
 		}

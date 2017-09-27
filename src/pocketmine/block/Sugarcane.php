@@ -43,6 +43,10 @@ class Sugarcane extends Flowable {
 		return "Sugarcane";
 	}
 
+	public function willDamageTools() : bool {
+		return false;
+	}
+
 	//public function ticksRandomly() : bool {
 	//	return true;
 	//}

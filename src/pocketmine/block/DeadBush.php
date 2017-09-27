@@ -38,6 +38,10 @@ class DeadBush extends Flowable {
 		return "Dead Bush";
 	}
 
+	public function willDamageTools() : bool {
+		return false;
+	}
+
 	public function onUpdate(int $type) {
 		if($type === Level::BLOCK_UPDATE_NORMAL) {
 			if($this->getSide(Vector3::SIDE_DOWN)->isTransparent() === true) {

@@ -38,6 +38,10 @@ class Carrot extends Crops {
 		return "Carrot Block";
 	}
 
+	public function willDamageTools() : bool {
+		return false;
+	}
+
 	public function getDrops(Item $item) : array {
 		return [
 			ItemFactory::get(Item::CARROT, 0, $this->meta >= 0x07 ? mt_rand(1, 4) : 1),

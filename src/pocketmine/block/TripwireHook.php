@@ -35,7 +35,12 @@ class TripwireHook extends Flowable { // TODO
 		return "Tripwire Hook";
 	}
 
+	public function willDamageTools() : bool {
+		return false;
+	}
+
 	public function getVariantBitmask() : int {
 		return 0;
 	}
+
 }

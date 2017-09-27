@@ -38,6 +38,10 @@ class MelonStem extends Crops {
 		$this->meta = $meta;
 	}
 
+	public function willDamageTools() : bool {
+		return false;
+	}
+
 	public function onUpdate(int $type) {
 		//if($type === Level::BLOCK_UPDATE_NORMAL) {
 		//	if($this->getSide(Vector3::SIDE_DOWN)->getId() !== Block::FARMLAND) {

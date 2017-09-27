@@ -38,6 +38,10 @@ class Wheat extends Crops {
 		return "Wheat Block";
 	}
 
+	public function willDamageTools() : bool {
+		return false;
+	}
+
 	public function getDrops(Item $item) : array {
 		if($this->meta >= 0x07) {
 			return [

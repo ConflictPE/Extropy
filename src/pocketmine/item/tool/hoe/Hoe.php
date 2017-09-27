@@ -21,9 +21,30 @@
 
 namespace pocketmine\item\tool\hoe;
 
+use pocketmine\block\Block;
+use pocketmine\entity\Entity;
 use pocketmine\item\tool\Tool;
 use pocketmine\item\tool\ToolTier;
+use pocketmine\Player;
 
 abstract class Hoe extends Tool implements ToolTier {
+
+	public function onBlockUse(Player $player, Block $block) : bool {
+		if($this->isUnbreakable() or ($block->getId() !== Block::GRASS and $block->getId() !== Block::DIRT)) {
+			return false;
+		}
+		$this->meta++;
+
+		return true;
+	}
+
+	public function onEntityAttack(Player $player, Entity $target) : bool {
+		if($this->isUnbreakable()){
+			return false;
+		}
+		$this->meta++;
+
+		return true;
+	}
 
 }

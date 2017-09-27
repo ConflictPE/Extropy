@@ -57,6 +57,10 @@ class Sapling extends Flowable {
 		return $names[$this->meta & 0x07] ?? "Unknown";
 	}
 
+	public function willDamageTools() : bool {
+		return false;
+	}
+
 	//public function ticksRandomly() : bool {
 	//	return true;
 	//}
