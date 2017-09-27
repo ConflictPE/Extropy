@@ -110,6 +110,10 @@ class Potion extends Item implements Edible {
 		parent::__construct(self::POTION, $meta, self::getNameByMeta($meta));
 	}
 
+	public function getName() : string {
+		return self::getNameByMeta($this->meta);
+	}
+
 	public function getMaxStackSize() : int {
 		return 1;
 	}
@@ -120,7 +124,7 @@ class Potion extends Item implements Edible {
 
 	public function onConsume(Entity $entity) {
 		$pk = new EntityEventPacket();
-		$pk->entityRuntimeId = $entity->getId();
+		$pk->eid = $entity->getId();
 		$pk->event = EntityEventPacket::USE_ITEM;
 		if($entity instanceof Player) {
 			$entity->dataPacket($pk);

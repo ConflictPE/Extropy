@@ -610,7 +610,7 @@ class Item implements ItemIds, \JsonSerializable {
 	 *
 	 * @return string
 	 */
-	final public function getName() : string {
+	public function getName() : string {
 		return $this->hasCustomName() ? $this->getCustomName() : $this->name;
 	}
 

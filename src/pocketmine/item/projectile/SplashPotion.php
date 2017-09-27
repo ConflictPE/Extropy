@@ -21,6 +21,7 @@
 
 namespace pocketmine\item\projectile;
 
+use pocketmine\item\food\Potion;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\DoubleTag;
@@ -31,12 +32,20 @@ use pocketmine\Player;
 
 class SplashPotion extends ProjectileItem {
 
-	public function __construct($meta = 0, $count = 1){
-		parent::__construct(self::SPLASH_POTION, 0, "Splash Potion");
+	public function __construct($meta = 0){
+		parent::__construct(self::SPLASH_POTION, 0, $this->getNameByMeta($meta));
+	}
+
+	public function getName() : string {
+		return self::getNameByMeta($this->meta);
+	}
+
+	public function getNameByMeta(int $meta) {
+		return "Splash " . Potion::getNameByMeta($meta);
 	}
 
 	public function getMaxStackSize() : int {
-		return 16;
+		return 1;
 	}
 
 	/**

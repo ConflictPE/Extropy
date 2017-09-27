@@ -37,11 +37,19 @@ class Arrow extends Projectile{
 	protected $gravity = 0.03;
 	protected $drag = 0.01;
 	protected $damage = 2;
-	protected $isCritical;
 
 	public function __construct(FullChunk $chunk, Compound $nbt, Entity $shootingEntity = null, $critical = false){
 		$this->isCritical = (bool) $critical;
 		parent::__construct($chunk, $nbt, $shootingEntity);
+		$this->setCritical($critical);
+	}
+
+	public function isCritical() : bool{
+		return $this->getGenericFlag(self::DATA_FLAG_CRITICAL);
+	}
+
+	public function setCritical(bool $value = true){
+		$this->setGenericFlag(self::DATA_FLAG_CRITICAL, $value);
 	}
 
 	public function onUpdate($currentTick){
@@ -50,21 +58,17 @@ class Arrow extends Projectile{
 		}
 
 		$hasUpdate = parent::onUpdate($currentTick);
-		if(!$this->hadCollision and $this->isCritical){
-			$this->level->addParticle(new CriticalParticle($this->add(
-				$this->width / 2 + mt_rand(-100, 100) / 500,
-				$this->height / 2 + mt_rand(-100, 100) / 500,
-				$this->width / 2 + mt_rand(-100, 100) / 500)));
-		}elseif($this->onGround){
-			$this->isCritical = false;
+
+		if($this->hadCollision and $this->isCritical()){
+			$this->setCritical(false);
+			$hasUpdate = true; // send the changed data flag to players
 		}
+
 		if($this->age > 1200){
 			$this->kill();
 			$hasUpdate = true;
-		} elseif ($this->y < 1) {
-			$this->kill();
-			$hasUpdate = true;
 		}
+
 		return $hasUpdate;
 	}
 
@@ -75,7 +79,7 @@ class Arrow extends Projectile{
 	 * @param int $damage
 	 */
 	public function onEntityCollide(Entity $with, int $damage) {
-		if($this->isCritical) {
+		if($this->isCritical()) {
 			$damage += mt_rand(0, (int) ($damage / 2) + 1);
 		}
 

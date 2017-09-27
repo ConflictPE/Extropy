@@ -154,7 +154,7 @@ abstract class Projectile extends Entity{
 
 			$this->move($this->motionX, $this->motionY, $this->motionZ);
 
-			if($this->isCollided and !$this->hadCollision) {
+			if($this->isCollided and !$this->hadCollision) { // Collided with a block
 				$this->hadCollision = true;
 
 				$this->motionX = 0;
@@ -162,7 +162,7 @@ abstract class Projectile extends Entity{
 				$this->motionZ = 0;
 
 				$this->server->getPluginManager()->callEvent(new ProjectileHitEvent($this));
-			} elseif(!$this->isCollided and $this->hadCollision) {
+			} elseif(!$this->isCollided and $this->hadCollision) { // Previously collided with block, but block later removed
 				$this->hadCollision = false;
 			}
 
