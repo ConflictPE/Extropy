@@ -23,7 +23,6 @@ namespace pocketmine\command\defaults;
 
 use pocketmine\command\CommandSender;
 
-
 class BanListCommand extends VanillaCommand{
 
 	public function __construct($name){

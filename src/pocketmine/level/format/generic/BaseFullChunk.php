@@ -29,7 +29,6 @@ use pocketmine\nbt\tag\Compound;
 use pocketmine\Player;
 use pocketmine\tile\Spawnable;
 use pocketmine\tile\Tile;
-use pocketmine\block\Block;
 
 abstract class BaseFullChunk implements FullChunk{
 

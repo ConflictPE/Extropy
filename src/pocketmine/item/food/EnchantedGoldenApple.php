@@ -22,11 +22,12 @@
 namespace pocketmine\item\food;
 
 use pocketmine\entity\Effect;
+use pocketmine\item\Item;
 
 class EnchantedGoldenApple extends GoldenApple {
 
 	public function __construct(int $meta = 0) {
-		FoodItem::__construct(self::ENCHANTED_GOLDEN_APPLE, $meta, "Enchanted Golden Apple");
+		Item::__construct(self::ENCHANTED_GOLDEN_APPLE, $meta, "Enchanted Golden Apple");
 	}
 
 	public function getAdditionalEffects() : array {

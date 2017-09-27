@@ -2,12 +2,13 @@
 
 namespace pocketmine\entity\monster\walking;
 
-use pocketmine\entity\monster\WalkingMonster;
 use pocketmine\entity\Creature;
 use pocketmine\entity\Entity;
+use pocketmine\entity\monster\WalkingMonster;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\math\Math;
 use pocketmine\math\Vector2;
 use pocketmine\math\Vector3;
@@ -110,7 +111,7 @@ class Spider extends WalkingMonster{
 		$this->move($dx, $dy, $dz);
 		$be = new Vector2($this->x + $dx, $this->z + $dz);
 		$af = new Vector2($this->x, $this->z);
-	
+
 
 		if($be->x != $af->x || $be->y != $af->y){
 			$x = 0;
@@ -175,7 +176,7 @@ class Spider extends WalkingMonster{
 	}
 
 	public function getDrops(){
-		return $this->lastDamageCause instanceof EntityDamageByEntityEvent ? [Item::get(Item::STRING, 0, mt_rand(0, 3))] : [];
+		return $this->lastDamageCause instanceof EntityDamageByEntityEvent ? [ItemFactory::get(Item::STRING, 0, mt_rand(0, 3))] : [];
 	}
 
 }

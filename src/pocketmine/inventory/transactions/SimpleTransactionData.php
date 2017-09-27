@@ -5,6 +5,7 @@ namespace pocketmine\inventory\transactions;
 use pocketmine\inventory\BaseTransaction;
 use pocketmine\inventory\PlayerInventory120;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\network\protocol\v120\InventoryTransactionPacket;
 use pocketmine\network\protocol\v120\Protocol120;
 use pocketmine\Player;
@@ -42,8 +43,8 @@ class SimpleTransactionData {
 	public $flags = 0;
 
 	public function __construct() {
-		$this->oldItem = Item::get(Item::AIR);
-		$this->newItem = Item::get(Item::AIR);
+		$this->oldItem = ItemFactory::get(Item::AIR);
+		$this->newItem = ItemFactory::get(Item::AIR);
 	}
 
 	public function __toString() {

@@ -27,7 +27,6 @@ use pocketmine\level\Level;
 use pocketmine\level\Position;
 use pocketmine\nbt\tag\Enum;
 use pocketmine\network\protocol\LevelSoundEventPacket;
-use pocketmine\nbt\NBT;
 use pocketmine\network\protocol\TileEventPacket;
 use pocketmine\Player;
 use pocketmine\Server;

@@ -27,7 +27,6 @@ namespace pocketmine\network\protocol;
 
 
 #ifndef COMPILE
-use pocketmine\item\Item;
 use pocketmine\utils\Binary;
 
 #endif

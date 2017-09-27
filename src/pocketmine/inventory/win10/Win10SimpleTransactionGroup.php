@@ -3,8 +3,8 @@
 namespace pocketmine\inventory\win10;
 
 use pocketmine\inventory\SimpleTransactionGroup;
-use pocketmine\item\Item;
 use pocketmine\inventory\Transaction;
+use pocketmine\item\Item;
 
 class Win10SimpleTransactionGroup extends SimpleTransactionGroup {
 
@@ -47,8 +47,8 @@ class Win10SimpleTransactionGroup extends SimpleTransactionGroup {
 
 		return true;
 	}
-	
-	
+
+
 	public function addTransaction(Transaction $transaction) {
 		if (isset($this->transactions[spl_object_hash($transaction)])) {
 			return;
@@ -56,5 +56,5 @@ class Win10SimpleTransactionGroup extends SimpleTransactionGroup {
 		$this->transactions[spl_object_hash($transaction)] = $transaction;
 		$this->inventories[spl_object_hash($transaction->getInventory())] = $transaction->getInventory();
 	}
-	
+
 }

@@ -28,6 +28,7 @@ namespace pocketmine\network\protocol;
 
 use pocketmine\entity\Entity;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\utils\BinaryStream;
 use pocketmine\utils\Utils;
 
@@ -187,7 +188,7 @@ abstract class DataPacket extends BinaryStream {
 					break;
 				case Entity::DATA_TYPE_SLOT:
 					//TODO: change this implementation (use objects)
-					$this->putSlot(Item::get($d[1][0], $d[1][2], $d[1][1]), $playerProtocol); //ID, damage, count
+					$this->putSlot(ItemFactory::get($d[1][0], $d[1][2], $d[1][1]), $playerProtocol); //ID, damage, count
 					break;
 				case Entity::DATA_TYPE_POS:
 					//TODO: change this implementation (use objects)

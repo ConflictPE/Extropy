@@ -21,7 +21,6 @@
 
 namespace pocketmine\player;
 
-use pocketmine\network\protocol\TextPacket;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 

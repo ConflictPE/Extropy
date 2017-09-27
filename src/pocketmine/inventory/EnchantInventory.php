@@ -21,11 +21,11 @@
 
 namespace pocketmine\inventory;
 
-use pocketmine\inventory\InventoryType;
+use pocketmine\block\Block;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\Position;
 use pocketmine\Player;
-use pocketmine\block\Block;
 
 class EnchantInventory extends ContainerInventory {
 
@@ -82,26 +82,26 @@ class EnchantInventory extends ContainerInventory {
 		}
 		return $count;
 	}
-	
+
 	public function setEnchantingLevel($level) {
 		$this->enchantingLevel = $level;
 	}
-	
+
 	public function getEnchantingLevel() {
 		return $this->enchantingLevel;
 	}
-	
+
 	public function isItemWasEnchant() {
 		return $this->enchantingLevel > 0;
 	}
-	
+
 	public function updateResultItem(Item $item) {
 		if ($this->enchantingLevel !== 0 && !is_null($this->slots[1])) {
 			$catalystCount = $this->slots[1]->getCount();
 			if ($catalystCount > $this->enchantingLevel) {
 				$this->slots[1]->setCount($catalystCount - $this->enchantingLevel);
 			} else if ($catalystCount === $this->enchantingLevel) {
-				$this->slots[1] = Item::get(Item::AIR);
+				$this->slots[1] = ItemFactory::get(Item::AIR);
 			} else {
 				echo '[Enchant]: Catalyst count problem'.PHP_EOL;
 				return false;

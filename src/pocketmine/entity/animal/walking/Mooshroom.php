@@ -3,10 +3,11 @@
 namespace pocketmine\entity\animal\walking;
 
 use pocketmine\entity\animal\WalkingAnimal;
-use pocketmine\item\Item;
-use pocketmine\Player;
-use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\entity\Creature;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
+use pocketmine\Player;
 
 class Mooshroom extends WalkingAnimal{
 	const NETWORK_ID = 16;
@@ -34,7 +35,7 @@ class Mooshroom extends WalkingAnimal{
 	public function getDrops(){
 		$drops = [];
 		if($this->lastDamageCause instanceof EntityDamageByEntityEvent){
-			  $drops[] = Item::get(Item::MUSHROOM_STEW, 0, 1);
+			  $drops[] = ItemFactory::get(Item::MUSHROOM_STEW, 0, 1);
 		}
 		return $drops;
 	}

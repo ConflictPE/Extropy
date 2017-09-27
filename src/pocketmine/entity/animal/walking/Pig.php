@@ -3,11 +3,12 @@
 namespace pocketmine\entity\animal\walking;
 
 use pocketmine\entity\animal\WalkingAnimal;
-use pocketmine\entity\Rideable;
-use pocketmine\item\Item;
-use pocketmine\Player;
-use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\entity\Creature;
+use pocketmine\entity\Rideable;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
+use pocketmine\Player;
 
 class Pig extends WalkingAnimal implements Rideable{
 	const NETWORK_ID = 12;
@@ -34,7 +35,7 @@ class Pig extends WalkingAnimal implements Rideable{
 
 	public function getDrops(){
 		if($this->lastDamageCause instanceof EntityDamageByEntityEvent){
-			return [Item::get(Item::RAW_PORKCHOP, 0, 1)];
+			return [ItemFactory::get(Item::RAW_PORKCHOP, 0, 1)];
 		}
 		return [];
 	}

@@ -30,8 +30,8 @@ namespace pocketmine\utils;
 #endif
 
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\network\protocol\Info;
-
 
 class BinaryStream extends \stdClass{
 
@@ -223,7 +223,7 @@ class BinaryStream extends \stdClass{
 	public function getSlot(int $playerProtocol) {
 		$id = $this->getSignedVarInt();
 		if($id <= 0) {
-			return Item::get(Item::AIR, 0, 0);
+			return ItemFactory::get(Item::AIR, 0, 0);
 		}
 
 		$aux = $this->getSignedVarInt();
@@ -254,7 +254,7 @@ class BinaryStream extends \stdClass{
 			}
 		}
 
-		return Item::get(
+		return ItemFactory::get(
 			$id,
 			$meta,
 			$count,

@@ -21,10 +21,10 @@
 
 namespace pocketmine\command\defaults;
 
-use pocketmine\block\Block;
 use pocketmine\block\BlockFactory;
 use pocketmine\command\CommandSender;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\particle\BubbleParticle;
 use pocketmine\level\particle\CriticalParticle;
 use pocketmine\level\particle\DustParticle;
@@ -48,7 +48,6 @@ use pocketmine\level\particle\WaterParticle;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
 use pocketmine\utils\Random;
-use pocketmine\utils\TextFormat;
 
 class ParticleCommand extends VanillaCommand{
 
@@ -146,7 +145,7 @@ class ParticleCommand extends VanillaCommand{
 			case "reddust":
 				return new RedstoneParticle($pos, $data !== null ? $data : 1);
 			case "snowballpoof":
-				return new ItemBreakParticle($pos, Item::get(Item::SNOWBALL));
+				return new ItemBreakParticle($pos, ItemFactory::get(Item::SNOWBALL));
 			case "itembreak":
 				if($data !== null and $data !== 0){
 					return new ItemBreakParticle($pos, $data);
@@ -167,7 +166,7 @@ class ParticleCommand extends VanillaCommand{
 		if(substr($name, 0, 10) === "iconcrack_"){
 			$d = explode("_", $name);
 			if(count($d) === 3){
-				return new ItemBreakParticle($pos, Item::get((int) $d[1], (int) $d[2]));
+				return new ItemBreakParticle($pos, ItemFactory::get((int) $d[1], (int) $d[2]));
 			}
 		}elseif(substr($name, 0, 11) === "blockcrack_"){
 			$d = explode("_", $name);

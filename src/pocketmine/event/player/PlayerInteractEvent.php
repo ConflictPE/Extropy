@@ -25,10 +25,10 @@ use pocketmine\block\Block;
 use pocketmine\block\BlockFactory;
 use pocketmine\event\Cancellable;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\Position;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
-use pocketmine\item\Armor;
 
 /**
  * Called when a player interacts or touches a block (including air?)
@@ -71,7 +71,7 @@ class PlayerInteractEvent extends PlayerEvent implements Cancellable{
 		$this->action = (int) $action;
 		if($item instanceof Armor){
 			if($player->getInventory()->getArmorItem($item::SLOT_NUMBER)->getId() == Item::AIR){
-				$player->getInventory()->setItem($player->getInventory()->getHeldItemSlot(), Item::get(Item::AIR));
+				$player->getInventory()->setItem($player->getInventory()->getHeldItemSlot(), ItemFactory::get(Item::AIR));
 				$player->getInventory()->setArmorItem($item::SLOT_NUMBER, $item);
 				$player->getInventory()->sendArmorContents($player);
 				$player->getInventory()->sendContents($player);

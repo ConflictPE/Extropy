@@ -5,10 +5,8 @@ namespace pocketmine\inventory;
 use pocketmine\entity\Human;
 use pocketmine\event\entity\EntityArmorChangeEvent;
 use pocketmine\event\entity\EntityInventoryChangeEvent;
-use pocketmine\inventory\PlayerInventory;
 use pocketmine\item\Item;
-use pocketmine\network\protocol\ContainerSetContentPacket;
-use pocketmine\network\protocol\ContainerSetSlotPacket;
+use pocketmine\item\ItemFactory;
 use pocketmine\network\protocol\MobArmorEquipmentPacket;
 use pocketmine\network\protocol\v120\InventoryContentPacket;
 use pocketmine\network\protocol\v120\InventorySlotPacket;
@@ -40,7 +38,7 @@ class PlayerInventory120 extends PlayerInventory {
 
 	public function __construct(Human $player) {
 		parent::__construct($player);
-		$this->cursor = Item::get(Item::AIR, 0, 0);
+		$this->cursor = ItemFactory::get(Item::AIR, 0, 0);
 	}
 
 	public function setItem($index, Item $item, $sendPacket = true) {
@@ -71,7 +69,7 @@ class PlayerInventory120 extends PlayerInventory {
 					$pk = new InventorySlotPacket();
 					$pk->containerId = Protocol120::CONTAINER_ID_NONE;
 					$pk->slot = 0;
-					$pk->item = Item::get(Item::WOOL, 10);
+					$pk->item = ItemFactory::get(Item::WOOL, 10);
 					$this->holder->dataPacket($pk);
 				}
 				break;

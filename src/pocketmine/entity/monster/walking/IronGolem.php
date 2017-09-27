@@ -2,13 +2,14 @@
 
 namespace pocketmine\entity\monster\walking;
 
-use pocketmine\entity\monster\WalkingMonster;
+use pocketmine\entity\Creature;
 use pocketmine\entity\Entity;
+use pocketmine\entity\monster\WalkingMonster;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
-use pocketmine\entity\Creature;
 use pocketmine\Player;
 
 class IronGolem extends WalkingMonster{
@@ -55,11 +56,11 @@ class IronGolem extends WalkingMonster{
 		if($this->lastDamageCause instanceof EntityDamageByEntityEvent){
 			switch(mt_rand(0, 2)){
 				case 0:
-					return [Item::get(Item::FEATHER, 0, 1)];
+					return [ItemFactory::get(Item::FEATHER, 0, 1)];
 				case 1:
-					return [Item::get(Item::CARROT, 0, 1)];
+					return [ItemFactory::get(Item::CARROT, 0, 1)];
 				case 2:
-					return [Item::get(Item::POTATO, 0, 1)];
+					return [ItemFactory::get(Item::POTATO, 0, 1)];
 			}
 		}
 		return [];

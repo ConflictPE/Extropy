@@ -26,13 +26,14 @@ use pocketmine\event\entity\EntityArmorChangeEvent;
 use pocketmine\event\entity\EntityInventoryChangeEvent;
 use pocketmine\event\player\PlayerItemHeldEvent;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\network\protocol\ContainerSetContentPacket;
 use pocketmine\network\protocol\ContainerSetSlotPacket;
+use pocketmine\network\protocol\Info;
 use pocketmine\network\protocol\MobArmorEquipmentPacket;
 use pocketmine\network\protocol\MobEquipmentPacket;
 use pocketmine\Player;
 use pocketmine\Server;
-use pocketmine\network\protocol\Info;
 
 class PlayerInventory extends BaseInventory{
 
@@ -77,7 +78,7 @@ class PlayerInventory extends BaseInventory{
 		}
 
 		if($inventorySlot === -1) {
-			$item = Item::get(Item::AIR);
+			$item = ItemFactory::get(Item::AIR);
 		} else {
 			$item = $this->getItem($inventorySlot);
 		}

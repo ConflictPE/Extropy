@@ -21,6 +21,7 @@
 
 namespace pocketmine\level;
 
+use pocketmine\block\Air;
 use pocketmine\block\Block;
 use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityDamageByBlockEvent;
@@ -28,6 +29,8 @@ use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityExplodeEvent;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
+use pocketmine\level\particle\HugeExplodeParticle;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Math;
 use pocketmine\math\Vector3;
@@ -36,13 +39,10 @@ use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\DoubleTag;
 use pocketmine\nbt\tag\Enum;
 use pocketmine\nbt\tag\FloatTag;
-use pocketmine\network\Network;
 use pocketmine\network\protocol\ExplodePacket;
+use pocketmine\network\protocol\LevelSoundEventPacket;
 use pocketmine\Server;
 use pocketmine\utils\Random;
-use pocketmine\block\Air;
-use pocketmine\level\particle\HugeExplodeParticle;
-use pocketmine\network\protocol\LevelSoundEventPacket;
 
 class Explosion{
 
@@ -180,7 +180,7 @@ class Explosion{
 		}
 
 
-		$air = Item::get(Item::AIR);
+		$air = ItemFactory::get(Item::AIR);
 
 		foreach($this->affectedBlocks as $block){
 			if($block->getId() === Block::TNT){
@@ -205,7 +205,7 @@ class Explosion{
 				$tnt->spawnToAll();
 			}elseif(mt_rand(0, 100) < $yield){
 				foreach($block->getDrops($air) as $drop){
-					$this->level->dropItem($block->add(0.5, 0.5, 0.5), Item::get(...$drop));
+					$this->level->dropItem($block->add(0.5, 0.5, 0.5), ItemFactory::get(...$drop));
 				}
 			}
 			$this->level->setBlock(new Vector3($block->x, $block->y, $block->z), new Air());

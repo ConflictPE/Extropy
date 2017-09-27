@@ -27,21 +27,15 @@ use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\customUI\CustomUI;
 use pocketmine\entity\Arrow;
-use pocketmine\entity\Effect;
 use pocketmine\entity\Egg;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Human;
 use pocketmine\entity\Item as DroppedItem;
 use pocketmine\entity\Living;
-use pocketmine\entity\Projectile;
 use pocketmine\entity\Snowball;
-use pocketmine\entity\ThrownPotion;
 use pocketmine\event\block\SignChangeEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\entity\EntityRegainHealthEvent;
-use pocketmine\event\entity\EntityShootBowEvent;
-use pocketmine\event\entity\ProjectileLaunchEvent;
 use pocketmine\event\inventory\CraftItemEvent;
 use pocketmine\event\inventory\InventoryCloseEvent;
 use pocketmine\event\inventory\InventoryPickupArrowEvent;
@@ -56,7 +50,6 @@ use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerGameModeChangeEvent;
 use pocketmine\event\player\PlayerInteractEvent;
-use pocketmine\event\player\PlayerItemConsumeEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerKickEvent;
 use pocketmine\event\player\PlayerLoginEvent;
@@ -70,7 +63,6 @@ use pocketmine\event\player\PlayerToggleSneakEvent;
 use pocketmine\event\player\PlayerToggleSprintEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
-use pocketmine\event\TextContainer;
 use pocketmine\inventory\BaseTransaction;
 use pocketmine\inventory\BigShapedRecipe;
 use pocketmine\inventory\BigShapelessRecipe;
@@ -83,32 +75,24 @@ use pocketmine\inventory\ShapedRecipe;
 use pocketmine\inventory\ShapelessRecipe;
 use pocketmine\inventory\SimpleTransactionGroup;
 use pocketmine\inventory\win10\Win10InvLogic;
-use pocketmine\item\Armor;
 use pocketmine\item\Elytra;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\food\Edible;
-use pocketmine\item\food\FoodItem;
 use pocketmine\item\Item;
 use pocketmine\item\tool\Tool;
 use pocketmine\level\Level;
 use pocketmine\level\Location;
 use pocketmine\level\Position;
-use pocketmine\level\sound\LaunchSound;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector2;
 use pocketmine\math\Vector3;
 use pocketmine\metadata\MetadataValue;
 use pocketmine\nbt\NBT;
 use pocketmine\nbt\tag\Compound;
-use pocketmine\nbt\tag\DoubleTag;
-use pocketmine\nbt\tag\Enum;
-use pocketmine\nbt\tag\FloatTag;
 use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\LongTag;
-use pocketmine\nbt\tag\ShortTag;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\network\multiversion\Multiversion;
-use pocketmine\network\multiversion\MultiversionEnums;
 use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\AdventureSettingsPacket;
 use pocketmine\network\protocol\AnimatePacket;
@@ -135,7 +119,6 @@ use pocketmine\network\protocol\ResourcePacksInfoPacket;
 use pocketmine\network\protocol\ResourcePackStackPacket;
 use pocketmine\network\protocol\RespawnPacket;
 use pocketmine\network\protocol\SetDifficultyPacket;
-use pocketmine\network\protocol\SetEntityDataPacket;
 use pocketmine\network\protocol\SetEntityMotionPacket;
 use pocketmine\network\protocol\SetPlayerGameTypePacket;
 use pocketmine\network\protocol\SetSpawnPositionPacket;
@@ -1355,7 +1338,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			}
 
 			if($entity instanceof Arrow and $entity->hadCollision){
-				$item = Item::get(Item::ARROW, 0, 1);
+				$item = ProtocolInfo::get(Item::ARROW, 0, 1);
 				if($this->isSurvival() and !$this->inventory->canAddItem($item)){
 					continue;
 				}
@@ -2041,7 +2024,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 									}
 								}
 							}
-							$this->currentWindow->setItem(0, Item::get(Item::AIR));
+							$this->currentWindow->setItem(0, ProtocolInfo::get(Item::AIR));
 							$this->currentWindow->setEnchantingLevel(0);
 							$this->currentWindow->sendContents($this);
 							$this->inventory->sendContents($this);
@@ -2260,7 +2243,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						$newItem = clone $item;
 						$newItem->setCount($item->getCount() - $count);
 					}else{
-						$newItem = Item::get(Item::AIR, 0, 0);
+						$newItem = ProtocolInfo::get(Item::AIR, 0, 0);
 					}
 
 					$this->inventory->setItem($slot, $newItem);
@@ -3432,7 +3415,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			if (!$oldItem->deepEquals($newItem) && $oldItem->getId() !== Item::AIR && $inventory === $transaction->getInventory()) { // for swap
 				$targetItem = clone $oldItem;
 			} else if ($newItem->count === $items[$targetSlot]->count) {
-				$targetItem = Item::get(Item::AIR);
+				$targetItem = ProtocolInfo::get(Item::AIR);
 			} else {
 				$targetItem = clone $items[$targetSlot];
 				$targetItem->count -= $newItem->count;
@@ -3472,7 +3455,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 			if ($enchantInv->isItemWasEnchant() && $newItem->deepEquals($source, true, false)) {
 				// reset enchanting data
-				$enchantInv->setItem(0, Item::get(Item::AIR));
+				$enchantInv->setItem(0, ProtocolInfo::get(Item::AIR));
 				$enchantInv->setEnchantingLevel(0);
 
 				$playerItems = $this->inventory->getContents();
@@ -3491,11 +3474,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						$playerItems[$dyeSlot]->count -= $enchantingLevel;
 						$this->inventory->setItem($dyeSlot, $playerItems[$dyeSlot]);
 					} else {
-						$this->inventory->setItem($dyeSlot, Item::get(Item::AIR));
+						$this->inventory->setItem($dyeSlot, ProtocolInfo::get(Item::AIR));
 					}
 				}
 			} else if (!$enchantInv->isItemWasEnchant()) {
-				$enchantInv->setItem(0, Item::get(Item::AIR));
+				$enchantInv->setItem(0, ProtocolInfo::get(Item::AIR));
 			}
 			$enchantInv->sendContents($this);
 			$this->inventory->sendContents($this);
@@ -3860,7 +3843,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 		if($item->isTool() and $this->isSurvival()) {
 			if($item->useOn($target) and $item->getDamage() >= $item->getMaxDurability()) {
-				$this->inventory->setItemInHand(Item::get(Item::AIR, 0, 1), $this);
+				$this->inventory->setItemInHand(ProtocolInfo::get(Item::AIR, 0, 1), $this);
 			} elseif($this->inventory->getItemInHand()->getId() == $item->getId()) {
 				$this->inventory->setItemInHand($item, $this);
 			}
@@ -4078,7 +4061,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		}
 		// finalizing drop item process
 		if ($item->count == $dropItem->count) {
-			$item = Item::get(Item::AIR, 0, 0);
+			$item = ProtocolInfo::get(Item::AIR, 0, 0);
 		} else {
 			$item->count -= $dropItem->count;
 		}
@@ -4129,7 +4112,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$item->count -= $ingredient->count;
 				if ($item->count == 0) {
 					/** @important count = 0 is important */
-					$item = Item::get(Item::AIR, 0, 0);
+					$item = ProtocolInfo::get(Item::AIR, 0, 0);
 				}
 				break;
 			}

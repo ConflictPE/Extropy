@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\item\tool\Tool;
 
 class RedMushroomBlock extends Solid {
@@ -48,7 +49,7 @@ class RedMushroomBlock extends Solid {
 
 	public function getDrops(Item $item) : array {
 		return [
-			Item::get(Item::RED_MUSHROOM, 0, mt_rand(0, 2)),
+			ItemFactory::get(Item::RED_MUSHROOM, 0, mt_rand(0, 2)),
 		];
 	}
 

@@ -26,6 +26,7 @@ use pocketmine\entity\Entity;
 use pocketmine\entity\Human;
 use pocketmine\event\entity\EntityDrinkPotionEvent;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\network\protocol\EntityEventPacket;
 use pocketmine\Player;
 
@@ -141,7 +142,7 @@ class Potion extends Item implements Edible {
 					return;
 				}
 			}
-			$entity->getInventory()->setItemInHand(Item::get(self::GLASS_BOTTLE));
+			$entity->getInventory()->setItemInHand(ItemFactory::get(self::GLASS_BOTTLE));
 		}
 	}
 

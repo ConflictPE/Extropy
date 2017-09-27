@@ -26,8 +26,8 @@ namespace pocketmine\network\protocol;
 #include <rules/DataPacket.h>
 
 
-use pocketmine\utils\UUID;
 use pocketmine\utils\Binary;
+use pocketmine\utils\UUID;
 
 class LoginPacket extends PEPacket {
 

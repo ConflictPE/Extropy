@@ -2,11 +2,12 @@
 
 namespace pocketmine\entity\monster\walking;
 
-use pocketmine\entity\monster\WalkingMonster;
 use pocketmine\entity\Entity;
+use pocketmine\entity\monster\WalkingMonster;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 
 class ZombieVillager extends WalkingMonster{
 	const NETWORK_ID = 44;
@@ -40,11 +41,11 @@ class ZombieVillager extends WalkingMonster{
 		if($this->lastDamageCause instanceof EntityDamageByEntityEvent){
 			switch(mt_rand(0, 2)){
 				case 0:
-					return [Item::get(Item::FEATHER, 0, 1)];
+					return [ItemFactory::get(Item::FEATHER, 0, 1)];
 				case 1:
-					return [Item::get(Item::CARROT, 0, 1)];
+					return [ItemFactory::get(Item::CARROT, 0, 1)];
 				case 2:
-					return [Item::get(Item::POTATO, 0, 1)];
+					return [ItemFactory::get(Item::POTATO, 0, 1)];
 			}
 		}
 		return [];

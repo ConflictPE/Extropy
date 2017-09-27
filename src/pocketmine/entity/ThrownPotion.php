@@ -28,7 +28,6 @@ use pocketmine\level\particle\SpellParticle;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\ShortTag;
 use pocketmine\network\protocol\AddEntityPacket;
-use pocketmine\network\protocol\LevelSoundEventPacket;
 use pocketmine\Player;
 
 class ThrownPotion extends Projectile {

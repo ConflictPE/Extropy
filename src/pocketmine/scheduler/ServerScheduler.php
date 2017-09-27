@@ -26,7 +26,6 @@ namespace pocketmine\scheduler;
 
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
-use pocketmine\utils\MainLogger;
 use pocketmine\utils\PluginException;
 use pocketmine\utils\ReversePriorityQueue;
 
@@ -118,11 +117,11 @@ class ServerScheduler{
 			unset($this->tasks[$taskId]);
 		}
 	}
-	
+
 	public function getAsyncTaskPoolSize(){
 		return $this->asyncPool->getSize();
 	}
-	
+
 	public function scheduleAsyncTaskToWorker(AsyncTask $task, $worker){
 		$id = $this->nextId();
 		$task->setTaskId($id);

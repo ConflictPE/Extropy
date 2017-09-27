@@ -2,12 +2,11 @@
 
 namespace pocketmine\inventory\win10;
 
-use pocketmine\entity\Entity;
-use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\inventory\BaseTransaction;
 use pocketmine\inventory\Inventory;
 use pocketmine\inventory\PlayerInventory;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\Player;
 
 class PlayerInventoryData {
@@ -282,7 +281,7 @@ class PlayerInventoryData {
 		//		var_dump('checking for tmp transaction');
 		// small bad code for transaction bad order issue
 		$countDiff = $newItem->count - $currentItem->count;
-		$searchItem = Item::get($newItem->getId(), $newItem->getDamage(), $countDiff);
+		$searchItem = ItemFactory::get($newItem->getId(), $newItem->getDamage(), $countDiff);
 		//		var_dump('Search item: ' . $searchItem->getId() . ' ' . $newItem->getDamage() . ' ' . $searchItem->count);
 		$player = $this->inventory->getHolder();
 		$window = $player->getCurrentWindow();

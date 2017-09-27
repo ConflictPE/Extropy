@@ -24,31 +24,11 @@
  */
 namespace pocketmine\level;
 
-use pocketmine\block\Air;
-use pocketmine\block\Beetroot;
 use pocketmine\block\Block;
 use pocketmine\block\BlockFactory;
-use pocketmine\block\BrownMushroom;
-use pocketmine\block\Cactus;
-use pocketmine\block\Carrot;
-use pocketmine\block\Farmland;
-use pocketmine\block\Grass;
-use pocketmine\block\Ice;
-use pocketmine\block\Leaves;
-use pocketmine\block\Leaves2;
-use pocketmine\block\MelonStem;
-use pocketmine\block\Mycelium;
-use pocketmine\block\Potato;
-use pocketmine\block\PumpkinStem;
-use pocketmine\block\RedMushroom;
-use pocketmine\block\Sapling;
-use pocketmine\block\SnowLayer;
-use pocketmine\block\Sugarcane;
-use pocketmine\block\Wheat;
 use pocketmine\ChunkMaker;
 use pocketmine\entity\animal\Animal;
 use pocketmine\entity\Arrow;
-use pocketmine\entity\Effect;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Item as DroppedItem;
 use pocketmine\entity\monster\Monster;
@@ -83,7 +63,6 @@ use pocketmine\level\particle\Particle;
 use pocketmine\level\sound\Sound;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Math;
-use pocketmine\math\Vector2;
 use pocketmine\math\Vector3;
 use pocketmine\metadata\BlockMetadataStore;
 use pocketmine\metadata\Metadatable;
@@ -92,7 +71,6 @@ use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\DoubleTag;
 use pocketmine\nbt\tag\Enum;
 use pocketmine\nbt\tag\FloatTag;
-use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\ShortTag;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\network\protocol\DataPacket;
@@ -1369,7 +1347,7 @@ class Level implements ChunkManager, Metadatable{
 		$target = $this->getBlock($vector);
 
 		if($item === null){
-			$item = Item::get(Item::AIR, 0, 0);
+			$item = DroppedItem::get(Item::AIR, 0, 0);
 		}
 
 		if($player !== null){
@@ -1464,7 +1442,7 @@ class Level implements ChunkManager, Metadatable{
 		if($item !== null){
 			$item->onBlockBreak($player, $target);
 			if($item instanceof Tool and $item->getDamage() >= $item->getMaxDurability()){
-				$item = Item::get(Item::AIR, 0, 0);
+				$item = DroppedItem::get(Item::AIR, 0, 0);
 			}
 		}
 
@@ -1605,7 +1583,7 @@ class Level implements ChunkManager, Metadatable{
 
 		$item->setCount($item->getCount() - 1);
 		if($item->getCount() <= 0){
-			$item = Item::get(Item::AIR, 0, 0);
+			$item = DroppedItem::get(Item::AIR, 0, 0);
 		}
 
 		return true;

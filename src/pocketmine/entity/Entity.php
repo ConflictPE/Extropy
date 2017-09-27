@@ -24,11 +24,15 @@
  */
 namespace pocketmine\entity;
 
-use pocketmine\block\Block;
 use pocketmine\block\BlockFactory;
+use pocketmine\block\Cobweb;
+use pocketmine\block\Fire;
+use pocketmine\block\Ladder;
+use pocketmine\block\Liquid;
+use pocketmine\block\Vine;
 use pocketmine\block\Water;
-use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDespawnEvent;
 use pocketmine\event\entity\EntityLevelChangeEvent;
 use pocketmine\event\entity\EntityMotionEvent;
@@ -65,12 +69,6 @@ use pocketmine\plugin\Plugin;
 use pocketmine\Server;
 use pocketmine\utils\Binary;
 use pocketmine\utils\ChunkException;
-use pocketmine\block\Liquid;
-
-use pocketmine\block\Cobweb;
-use pocketmine\block\Fire;
-use pocketmine\block\Ladder;
-use pocketmine\block\Vine;
 
 abstract class Entity extends Location implements Metadatable{
 

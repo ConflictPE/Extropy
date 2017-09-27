@@ -3,9 +3,9 @@
 namespace pocketmine\entity\animal\walking;
 
 use pocketmine\entity\animal\WalkingAnimal;
+use pocketmine\entity\Creature;
 use pocketmine\item\Item;
 use pocketmine\Player;
-use pocketmine\entity\Creature;
 
 class Rabbit extends WalkingAnimal{
 	const NETWORK_ID = 18;
@@ -16,7 +16,7 @@ class Rabbit extends WalkingAnimal{
 	public function getSpeed(){
 		return 1.2;
 	}
-	
+
 	public function getName(){
 		return "Rabbit";
 	}

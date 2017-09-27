@@ -26,7 +26,6 @@ namespace pocketmine\plugin;
 
 use pocketmine\command\CommandExecutor;
 
-
 /**
  * It is recommended to use PluginBase for the actual plugin
  *
@@ -110,7 +109,7 @@ interface Plugin extends CommandExecutor{
 	 * @return PluginLoader
 	 */
 	public function getPluginLoader();
-	
+
 	/**
 	 * @return array
 	 */
