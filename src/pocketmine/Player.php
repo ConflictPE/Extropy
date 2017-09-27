@@ -295,6 +295,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	protected $autoJump = true;
 	protected $lastJumpTime = 0;
 
+	protected $allowInstaBreak = false;
+
 	private $checkMovement;
 	protected $allowFlight = false;
 
@@ -460,6 +462,14 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	public function hasAutoJump(){
 		return $this->autoJump;
+	}
+
+	public function allowInstaBreak() : bool{
+		return $this->allowInstaBreak;
+	}
+
+	public function setAllowInstaBreak(bool $value = false){
+		$this->allowInstaBreak = $value;
 	}
 
 	/**
@@ -1968,7 +1978,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				return true;
 			case 'REMOVE_BLOCK_PACKET':
 				//Timings::$timerRemoveBlockPacket->startTiming();
-				$this->breakBlock([ 'x' => $packet->x, 'y' => $packet->y, 'z' => $packet->z ]);
+				$this->breakBlock(new Vector3($packet->x, $packet->y, $packet->z));
 				//Timings::$timerRemoveBlockPacket->stopTiming();
 				break;
 			case 'MOB_ARMOR_EQUIPMENT_PACKET':
@@ -2490,13 +2500,14 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						}
 						break;
 					case InventoryTransactionPacket::TRANSACTION_TYPE_ITEM_USE:
+						$blockVector = new Vector3($packet->position["x"], $packet->position["y"], $packet->position["z"]);
 						switch ($packet->actionType) {
 							case InventoryTransactionPacket::ITEM_USE_ACTION_PLACE:
 							case InventoryTransactionPacket::ITEM_USE_ACTION_USE:
-								$this->useItem($packet->item, $packet->slot, $packet->face, new Vector3($packet->position["x"], $packet->position["y"], $packet->position["z"]), new Vector3($packet->clickPosition["x"], $packet->clickPosition["y"], $packet->clickPosition["z"]));
+								$this->useItem($packet->item, $packet->slot, $packet->face, $blockVector, $this->getDirectionVector());
 								break;
 							case InventoryTransactionPacket::ITEM_USE_ACTION_DESTROY:
-								$this->breakBlock($packet->position);
+								$this->breakBlock($blockVector);
 								break;
 							default:
 								error_log('Wrong actionType ' . $packet->actionType);
@@ -3959,23 +3970,20 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	/**
-	 *
-	 * @param integer[] $blockPosition
+	 * @param Vector3 $blockPosition
 	 */
-	private function breakBlock($blockPosition) {
-		if($this->spawned === false or $this->blocked === true or $this->dead === true){
-			//Timings::$timerRemoveBlockPacket->stopTiming();
+	private function breakBlock(Vector3 $blockPosition) {
+		if($this->spawned === false or !$this->isAlive()){
 			return;
 		}
 
-		$vector = new Vector3($blockPosition['x'], $blockPosition['y'], $blockPosition['z']);
 		$item = $this->inventory->getItemInHand();
 
 		$oldItem = clone $item;
 
-		if($this->level->useBreakOn($vector, $item, $this) === true){
+		if($this->canInteract($blockPosition->add(0.5, 0.5, 0.5), $this->isCreative() ? 13 : 6) and $this->level->useBreakOn($blockPosition, $item, $this, true)){
 			if($this->isSurvival()){
-				if(!$item->equals($oldItem, true) or $item->getCount() !== $oldItem->getCount()){
+				if(!$item->equalsExact($oldItem)){
 					$this->inventory->setItemInHand($item);
 					$this->inventory->sendHeldItem($this->hasSpawned);
 				}
@@ -3985,8 +3993,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		}
 
 		$this->inventory->sendContents($this);
-		$target = $this->level->getBlock($vector);
-		$tile = $this->level->getTile($vector);
+		$target = $this->level->getBlock($blockPosition);
+		$tile = $this->level->getTile($blockPosition);
 
 		$this->level->sendBlocks([$this], [$target], UpdateBlockPacket::FLAG_ALL_PRIORITY);
 

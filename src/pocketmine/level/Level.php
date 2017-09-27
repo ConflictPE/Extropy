@@ -48,6 +48,7 @@ use pocketmine\block\Wheat;
 use pocketmine\ChunkMaker;
 use pocketmine\entity\animal\Animal;
 use pocketmine\entity\Arrow;
+use pocketmine\entity\Effect;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Item as DroppedItem;
 use pocketmine\entity\monster\Monster;
@@ -1366,35 +1367,37 @@ class Level implements ChunkManager, Metadatable{
 	 */
 	public function useBreakOn(Vector3 $vector, Item &$item = null, Player $player = null, bool $createParticles = false){
 		$target = $this->getBlock($vector);
-		//TODO: Adventure mode checks
 
 		if($item === null){
 			$item = Item::get(Item::AIR, 0, 0);
 		}
-		$drops = $target->getDrops($item);
-		if($player instanceof Player){
+
+		if($player !== null){
 			if($player->isSpectator()){
 				return false;
 			}
-			$ev = new BlockBreakEvent($player, $target, $item, ($player->getGamemode() & 0x01) === 1 ? true : false, $drops);
+			$ev = new BlockBreakEvent($player, $target, $item, $player->isCreative() or $player->allowInstaBreak());
 
-			if($player->isSurvival() and $item instanceof Item and !$target->isBreakable($item)){
+			if(($player->isSurvival() and $item instanceof Item and !$target->isBreakable($item)) or $player->isSpectator()){
 				$ev->setCancelled();
 			}
 
-			if(!$player->isOp() and ($distance = $this->server->getConfigInt("spawn-protection", 16)) > -1){
-				$t = new Vector2($target->x, $target->z);
-				$s = new Vector2($this->getSpawnLocation()->x, $this->getSpawnLocation()->z);
-				if($t->distance($s) <= $distance){ //set it to cancelled so plugins can bypass this
-					$ev->setCancelled();
+			if($player->isAdventure(true) and !$ev->isCancelled()){
+				$tag = $item->getNamedTagEntry("CanDestroy");
+				$canBreak = false;
+				if($tag instanceof Enum){
+					foreach($tag as $v){
+						if($v instanceof StringTag){
+							$entry = ItemFactory::fromString($v->getValue());
+							if($entry->getId() > 0 and $entry->getBlock() !== null and $entry->getBlock()->getId() === $target->getId()){
+								$canBreak = true;
+								break;
+							}
+						}
+					}
 				}
-			}
 
-			$breakTime = $player->isCreative() ? 0.15 : $target->getBreakTime($item);
-			$delta = 0.1;
-
-			if (!$ev->getInstaBreak() && ($player->lastBreak + $breakTime) >= microtime(true) - $delta) {
-				return false;
+				$ev->setCancelled(!$canBreak);
 			}
 
 			$this->server->getPluginManager()->callEvent($ev);
@@ -1402,18 +1405,34 @@ class Level implements ChunkManager, Metadatable{
 				return false;
 			}
 
-			$drops = $ev->getDrops();
-			$player->lastBreak = microtime(true);
+			// TODO: Fix break time calculation
+			//$breakTime = ceil($target->getBreakTime($item) * 20);
+			//
+			//if($player->isCreative() and $breakTime > 3){
+			//	$breakTime = 3;
+			//}
+			//
+			//if($player->hasEffect(Effect::HASTE)){
+			//	$breakTime *= 1 - (0.2 * ($player->getEffect(Effect::HASTE)->getAmplifier() + 1));
+			//}
+			//
+			//if($player->hasEffect(Effect::MINING_FATIGUE)){
+			//	$breakTime *= 1 + (0.3 * ($player->getEffect(Effect::MINING_FATIGUE)->getAmplifier() + 1));
+			//}
+			//
+			//$breakTime -= 1; //1 tick compensation
+			//
+			//if(!$ev->getInstaBreak() and (ceil($player->lastBreak * 20) + $breakTime) > ceil(microtime(true) * 20)){
+			//	return false;
+			//}
 
-			$pos = [ 'x' => $target->x, 'y' => $target->y, 'z' => $target->z ];
-			$blockId = $target->getId();
-			$player->sendSound(LevelSoundEventPacket::SOUND_BREAK, $pos, 1, $blockId);
-			$viewers = $player->getViewers();
-			foreach($viewers as $viewer) {
-				$viewer->sendSound(LevelSoundEventPacket::SOUND_BREAK, $pos, 1, $blockId);
-			}
-		}elseif($item instanceof Item and !$target->isBreakable($item)){
+			$player->lastBreak = PHP_INT_MAX;
+
+			$drops = $ev->getDrops();
+		}elseif($item !== null and !$target->isBreakable($item)){
 			return false;
+		}else{
+			$drops = $target->getDrops($item); //Fixes tile entities being deleted before getting drops
 		}
 
 		$above = $this->getBlock(new Vector3($target->x, $target->y + 1, $target->z));
@@ -1426,6 +1445,7 @@ class Level implements ChunkManager, Metadatable{
 		}
 
 		$target->onBreak($item);
+
 		$tile = $this->getTile($target);
 		if($tile instanceof Tile){
 			if($tile instanceof InventoryHolder){
@@ -1441,17 +1461,17 @@ class Level implements ChunkManager, Metadatable{
 			$tile->close();
 		}
 
-		if($item instanceof Item){
+		if($item !== null){
 			$item->onBlockBreak($player, $target);
 			if($item instanceof Tool and $item->getDamage() >= $item->getMaxDurability()){
 				$item = Item::get(Item::AIR, 0, 0);
 			}
 		}
 
-		if(!($player instanceof Player) or $player->isSurvival()){
+		if($player === null or $player->isSurvival()){
 			foreach($drops as $drop){
-				if($drop[2] > 0){
-					$this->dropItem($vector->add(0.5, 0.5, 0.5), Item::get(...$drop));
+				if($drop->getCount() > 0){
+					$this->dropItem($vector->add(0.5, 0.5, 0.5), $drop);
 				}
 			}
 		}
