@@ -737,6 +737,13 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	/**
+	 * @return Position
+	 */
+	public function getNextPosition() : Position{
+		return $this->newPosition !== null ? Position::fromObject($this->newPosition, $this->level) : $this->getPosition();
+	}
+
+	/**
 	 * @return bool
 	 */
 	public function isSleeping(){
@@ -1232,20 +1239,59 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->dataPacket($pk);
 	}
 
-	public function isSurvival(){
-		return ($this->gamemode & 0x01) === 0;
+	/**
+	 * NOTE: Because Survival and Adventure Mode share some similar behaviour, this method will also return true if the player is
+	 * in Adventure Mode. Supply the $literal parameter as true to force a literal Survival Mode check.
+	 *
+	 * @param bool $literal whether a literal check should be performed
+	 *
+	 * @return bool
+	 */
+	public function isSurvival(bool $literal = false) : bool{
+		if($literal){
+			return $this->gamemode === Player::SURVIVAL;
+		}else{
+			return ($this->gamemode & 0x01) === 0;
+		}
 	}
 
-	public function isCreative(){
-		return ($this->gamemode & 0x01) > 0;
+	/**
+	 * NOTE: Because Creative and Spectator Mode share some similar behaviour, this method will also return true if the player is
+	 * in Spectator Mode. Supply the $literal parameter as true to force a literal Creative Mode check.
+	 *
+	 * @param bool $literal whether a literal check should be performed
+	 *
+	 * @return bool
+	 */
+	public function isCreative(bool $literal = false) : bool{
+		if($literal){
+			return $this->gamemode === Player::CREATIVE;
+		}else{
+			return ($this->gamemode & 0x01) === 1;
+		}
 	}
 
-	public function isSpectator(){
-		return $this->gamemode === 3;
+	/**
+	 * NOTE: Because Adventure and Spectator Mode share some similar behaviour, this method will also return true if the player is
+	 * in Spectator Mode. Supply the $literal parameter as true to force a literal Adventure Mode check.
+	 *
+	 * @param bool $literal whether a literal check should be performed
+	 *
+	 * @return bool
+	 */
+	public function isAdventure(bool $literal = false) : bool{
+		if($literal){
+			return $this->gamemode === Player::ADVENTURE;
+		}else{
+			return ($this->gamemode & 0x02) > 0;
+		}
 	}
 
-	public function isAdventure(){
-		return ($this->gamemode & 0x02) > 0;
+	/**
+	 * @return bool
+	 */
+	public function isSpectator() : bool{
+		return $this->gamemode === Player::SPECTATOR;
 	}
 
 	public function getDrops(){
@@ -3835,7 +3881,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		//No need to do anything here, this data will be set from the login.
 	}
 
-	protected function useItem(Item $item, int $slot, int $face, Vector3 $blockPosition, Vector3 $clickPosition) {
+	protected function useItem(Item $item, int $slot, int $face, Vector3 $blockPosition, Vector3 $clickPosition) : bool {
 		$itemInHand = $this->inventory->getItemInHand();
 
 		switch($face) {
@@ -3851,35 +3897,33 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				if(!$this->canInteract($blockPosition->add(0.5, 0.5, 0.5), 13) or $this->isSpectator()) {
 
 				} elseif($this->isCreative()) {
-					if($this->level->useItemOn($blockPosition, $itemInHand, $face, $clickPosition->x, $clickPosition->y, $clickPosition->z, $this) === true) {
+					if($this->level->useItemOn($blockPosition, $item, $face, $clickPosition, $this, true) === true){
 						return true;
 					}
 				} elseif(!$itemInHand->equals($item)) {
 					$this->inventory->sendHeldItem($this);
 				} else {
 					$oldItem = clone $itemInHand;
-					//TODO: Implement adventure mode checks
-					if($this->level->useItemOn($blockPosition, $itemInHand, $face, $clickPosition->x, $clickPosition->y, $clickPosition->z, $this)) {
-						if(!$itemInHand->equals($oldItem) or $itemInHand->getCount() !== $oldItem->getCount()) {
-							$this->inventory->setItemInHand($itemInHand);
+					if($this->level->useItemOn($blockPosition, $item, $face, $clickPosition, $this, true)){
+						if(!$item->equalsExact($oldItem)){
+							$this->inventory->setItemInHand($item);
 							$this->inventory->sendHeldItem($this->hasSpawned);
 						}
+
 						return true;
 					}
 				}
 
-				/* disable this for now
-				TODO: revert
 				$this->inventory->sendHeldItem($this);
 
-				if($blockVector->distanceSquared($this) > 10000){
-					return;
+				if($blockPosition->distanceSquared($this) > 10000){
+					return true;
 				}
 
-				$target = $this->level->getBlock($blockVector);
+				$target = $this->level->getBlock($blockPosition);
 				$block = $target->getSide($face);
 
-				$this->level->sendBlocks([$this], [$target, $block], UpdateBlockPacket::FLAG_ALL_PRIORITY);*/
+				$this->level->sendBlocks([$this], [$target, $block], UpdateBlockPacket::FLAG_ALL_PRIORITY);
 
 				return true;
 

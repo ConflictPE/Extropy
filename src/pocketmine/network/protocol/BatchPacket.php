@@ -41,7 +41,7 @@ class BatchPacket extends PEPacket {
 		switch($playerProtocol) {
 			case Info::PROTOCOL_120:
 			case Info::PROTOCOL_110:
-				$this->payload = $this->get(true);
+				$this->payload = $this->getRemaining();
 				break;
 			default:
 				$this->payload = $this->getString();
