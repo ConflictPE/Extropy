@@ -843,18 +843,16 @@ abstract class Entity extends Location implements Metadatable{
 		if($source instanceof EntityDamageByEntityEvent) {
 			$damager = $source->getDamager();
 			if($damager instanceof Player) {
-				$weapon = $damager->getInventory()->getItemInHand();
-				if($weapon->getId() !== \pocketmine\item\Item::AIR) {
-					$enchantment = $weapon->getEnchantment(Enchantment::TYPE_WEAPON_FIRE_ASPECT);
-					if(!is_null($enchantment)) {
-						$fireDamage = max(($enchantment->getLevel() * 4) - 1, 1);
-						$this->setOnFire(4, $fireDamage);
-					}
+				$item = $damager->getInventory()->getItemInHand();
+				$enchantment = $item->getEnchantment(Enchantment::TYPE_WEAPON_FIRE_ASPECT);
+				if($enchantment !== null) {
+					$this->setOnFire(4, max(($enchantment->getLevel() * 4) - 1, 1));
 				}
 			}
 		}
 
 		$this->setLastDamageCause($source);
+
 		$this->setHealth($this->getHealth() - $source->getFinalDamage());
 	}
 
@@ -865,9 +863,10 @@ abstract class Entity extends Location implements Metadatable{
 	 */
 	public function heal($amount, EntityRegainHealthEvent $source) {
 		$this->server->getPluginManager()->callEvent($source);
-		if ($source->isCancelled()) {
+		if($source->isCancelled()) {
 			return;
 		}
+
 		$this->setHealth($this->getHealth() + $source->getAmount());
 	}
 

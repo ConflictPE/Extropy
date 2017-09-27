@@ -31,4 +31,8 @@ class DiamondLeggings extends Leggings {
 		return 6;
 	}
 
+	public function getToughnessPoints() : int {
+		return 2;
+	}
+
 }

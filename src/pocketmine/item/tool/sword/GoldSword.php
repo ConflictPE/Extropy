@@ -28,6 +28,10 @@ class GoldSword extends Sword {
 		parent::__construct(self::GOLDEN_SWORD, $meta, "Gold Sword");
 	}
 
+	public function getAttackPoints() : int {
+		return 4;
+	}
+
 	public function getMaxDurability() : int {
 		return 33;
 	}

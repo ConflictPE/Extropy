@@ -29,6 +29,10 @@ class DiamondAxe extends Axe {
 		parent::__construct(self::DIAMOND_AXE, $meta, "Diamond Axe");
 	}
 
+	public function getAttackPoints() : int {
+		return 6;
+	}
+
 	public function getMaxDurability() : int {
 		return 1562;
 	}

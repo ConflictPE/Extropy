@@ -29,6 +29,10 @@ class GoldPickaxe extends Pickaxe {
 		parent::__construct(self::GOLDEN_PICKAXE, $meta, "Gold Pickaxe");
 	}
 
+	public function getAttackPoints() : int {
+		return 2;
+	}
+
 	public function getMaxDurability() : int {
 		return 33;
 	}

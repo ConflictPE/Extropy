@@ -33,4 +33,8 @@ class DiamondChestplate extends Boots {
 		return 8;
 	}
 
+	public function getToughnessPoints() : int {
+		return 2;
+	}
+
 }

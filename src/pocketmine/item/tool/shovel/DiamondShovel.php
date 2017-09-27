@@ -29,6 +29,10 @@ class DiamondShovel extends Shovel {
 		parent::__construct(self::DIAMOND_SHOVEL, $meta, "Diamond Shovel");
 	}
 
+	public function getAttackPoints() : int {
+		return 4;
+	}
+
 	public function getMaxDurability() : int {
 		return 1562;
 	}

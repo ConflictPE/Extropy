@@ -29,6 +29,10 @@ class GoldAxe extends Axe {
 		parent::__construct(self::GOLDEN_AXE, $meta, "Gold Axe");
 	}
 
+	public function getAttackPoints() : int {
+		return 3;
+	}
+
 	public function getMaxDurability() : int {
 		return 33;
 	}

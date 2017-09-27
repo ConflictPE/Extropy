@@ -29,6 +29,10 @@ class DiamondPickaxe extends Pickaxe {
 		parent::__construct(self::DIAMOND_PICKAXE, $meta, "Diamond Pickaxe");
 	}
 
+	public function getAttackPoints() : int {
+		return 5;
+	}
+
 	public function getMaxDurability() : int {
 		return 1562;
 	}

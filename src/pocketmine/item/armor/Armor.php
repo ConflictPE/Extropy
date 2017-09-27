@@ -36,4 +36,13 @@ abstract class Armor extends Item {
 	 */
 	abstract public function getDefensePoints() : int;
 
+	/**
+	 * Returns how much toughness can be gained by wearing this item.
+	 *
+	 * @return int
+	 */
+	public function getToughnessPoints() : int {
+		return 0;
+	}
+
 }

@@ -75,6 +75,7 @@ use pocketmine\inventory\ShapedRecipe;
 use pocketmine\inventory\ShapelessRecipe;
 use pocketmine\inventory\SimpleTransactionGroup;
 use pocketmine\inventory\win10\Win10InvLogic;
+use pocketmine\item\armor\Armor;
 use pocketmine\item\Elytra;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\food\Edible;
@@ -300,10 +301,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	protected static $availableCommands = [];
 
 	protected $movementSpeed = self::DEFAULT_SPEED;
-
-	private static $damegeTimeList = ['0.1' => 0, '0.15' => 0.4, '0.2' => 0.6, '0.25' => 0.8];
-
-	protected $lastDamegeTime = 0;
 
 	protected $lastTeleportTime = 0;
 
@@ -1339,7 +1336,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			}
 
 			if($entity instanceof Arrow and $entity->hadCollision){
-				$item = ProtocolInfo::get(Item::ARROW, 0, 1);
+				$item = ItemFactory::get(Item::ARROW, 0, 1);
 				if($this->isSurvival() and !$this->inventory->canAddItem($item)){
 					continue;
 				}
@@ -3743,11 +3740,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		}
 
 		$target = $this->level->getEntity($targetId);
-		if(!($target instanceof Entity) or $this->isSpectator() or $target->dead) {
-			return;
-		}
 
-		if($target instanceof Player and !($this->server->getConfigBoolean("pvp", true) or ($target->getGamemode() & 0x01) > 0)) {
+		if(!($target instanceof Entity) or $this->getGamemode() === Player::VIEW or $target->dead) {
 			return;
 		}
 
@@ -3757,80 +3751,35 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			return;
 		}
 
-		$item = $this->inventory->getItemInHand();
-		$damageTable = [
-			Item::WOODEN_SWORD => 4,
-			Item::GOLD_SWORD => 4,
-			Item::STONE_SWORD => 5,
-			Item::IRON_SWORD => 6,
-			Item::DIAMOND_SWORD => 7,
-			Item::WOODEN_AXE => 3,
-			Item::GOLD_AXE => 3,
-			Item::STONE_AXE => 3,
-			Item::IRON_AXE => 5,
-			Item::DIAMOND_AXE => 6,
-			Item::WOODEN_PICKAXE => 2,
-			Item::GOLD_PICKAXE => 2,
-			Item::STONE_PICKAXE => 3,
-			Item::IRON_PICKAXE => 4,
-			Item::DIAMOND_PICKAXE => 5,
-			Item::WOODEN_SHOVEL => 1,
-			Item::GOLD_SHOVEL => 1,
-			Item::STONE_SHOVEL => 2,
-			Item::IRON_SHOVEL => 3,
-			Item::DIAMOND_SHOVEL => 4,
-		];
+		$heldItem = $this->inventory->getItemInHand();
 
-		$damage = [
-			EntityDamageEvent::MODIFIER_BASE => isset($damageTable[$item->getId()]) ? $damageTable[$item->getId()] : 1,
-		];
+		$baseDamage = $heldItem->getAttackPoints();
 
 		if($target instanceof Player) {
-			$armorValues = [
-				Item::LEATHER_CAP => 1,
-				Item::LEATHER_TUNIC => 3,
-				Item::LEATHER_PANTS => 2,
-				Item::LEATHER_BOOTS => 1,
-				Item::CHAIN_HELMET => 1,
-				Item::CHAIN_CHESTPLATE => 5,
-				Item::CHAIN_LEGGINGS => 4,
-				Item::CHAIN_BOOTS => 1,
-				Item::GOLD_HELMET => 1,
-				Item::GOLD_CHESTPLATE => 5,
-				Item::GOLD_LEGGINGS => 3,
-				Item::GOLD_BOOTS => 1,
-				Item::IRON_HELMET => 2,
-				Item::IRON_CHESTPLATE => 6,
-				Item::IRON_LEGGINGS => 5,
-				Item::IRON_BOOTS => 2,
-				Item::DIAMOND_HELMET => 3,
-				Item::DIAMOND_CHESTPLATE => 8,
-				Item::DIAMOND_LEGGINGS => 6,
-				Item::DIAMOND_BOOTS => 3,
-			];
+			if(($target->getGamemode() & 0x01) > 0) {
+				return;
+			}
 
 			$points = 0;
-			foreach($target->getInventory()->getArmorContents() as $index => $i) {
-				if(isset($armorValues[$i->getId()])) {
-					$points += $armorValues[$i->getId()];
+			$toughness = 0;
+			foreach($target->getInventory()->getArmorContents() as $armorItem){
+				if($armorItem instanceof Armor) {
+					$points += $armorItem->getDefensePoints();
+					$toughness += $armorItem->getToughnessPoints();
 				}
 			}
 
-			$damage[EntityDamageEvent::MODIFIER_ARMOR] = -floor($damage[EntityDamageEvent::MODIFIER_BASE] * $points * 0.04);
+			$armorReduction = -($baseDamage - ($baseDamage * (1 - min(20, max($points / 5, $points - $baseDamage /(2 + $toughness / 4))) / 25)));
 		}
 
-		$timeDiff = microtime(true) - $this->lastDamegeTime;
-		$this->lastDamegeTime = microtime(true);
-		foreach(self::$damegeTimeList as $time => $koef) {
-			if ($timeDiff <= $time) {
-				$damage[EntityDamageEvent::MODIFIER_BASE] *= $koef;
-				break;
-			}
-		}
+		$ev = new EntityDamageByEntityEvent($this, $target, EntityDamageEvent::CAUSE_ENTITY_ATTACK, [
+			EntityDamageEvent::MODIFIER_BASE => $baseDamage,
+			EntityDamageEvent::MODIFIER_ARMOR => ($armorReduction ?? 0)
+		]);
+		$target->attack($ev->getFinalDamage(), $ev);
 
-		$target->attack(($ev = new EntityDamageByEntityEvent($this, $target, EntityDamageEvent::CAUSE_ENTITY_ATTACK, $damage))->getFinalDamage(), $ev);
 		if($ev->isCancelled()) {
-			if($item instanceof Tool and $this->isSurvival()) {
+			if($heldItem instanceof Tool and $this->isSurvival()) {
 				$this->inventory->sendContents($this);
 			}
 			return;
@@ -3842,11 +3791,10 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$this->motionZ *= 0.6;
 		}
 
-		if($this->isSurvival() and $item->onEntityAttack($this, $target) and $item->getDamage() >= $item->getMaxDurability()) {
+		if($this->isSurvival() and $heldItem->onEntityAttack($this, $target) and $heldItem->getDamage() >= $heldItem->getMaxDurability()) {
 			$this->inventory->setItemInHand(ItemFactory::get(Item::AIR, 0, 1));
-		} elseif(!$this->inventory->getItemInHand()->equalsExact($item)) {
-			$this->inventory->setItemInHand($item);
-			$this->inventory->sendHeldItem($this->getViewers());
+		} else {
+			$this->inventory->setItemInHand($heldItem);
 		}
 	}
 

@@ -31,4 +31,8 @@ class DiamondBoots extends Boots {
 		return 3;
 	}
 
+	public function getToughnessPoints() : int {
+		return 2;
+	}
+
 }

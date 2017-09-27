@@ -30,6 +30,10 @@ class WoodenShovel extends Shovel implements FuelSource {
 		parent::__construct(self::WOODEN_SHOVEL, $meta, "Wooden Shovel");
 	}
 
+	public function getAttackPoints() : int {
+		return 1;
+	}
+
 	public function getMaxDurability() : int {
 		return 60;
 	}

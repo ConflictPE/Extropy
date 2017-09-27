@@ -30,6 +30,10 @@ class WoodenSword extends Sword implements FuelSource {
 		parent::__construct(self::WOODEN_SWORD, $meta, "Wooden Sword");
 	}
 
+	public function getAttackPoints() : int {
+		return 4;
+	}
+
 	public function getMaxDurability() : int {
 		return 60;
 	}

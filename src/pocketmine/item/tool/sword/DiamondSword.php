@@ -28,6 +28,10 @@ class DiamondSword extends Sword {
 		parent::__construct(self::DIAMOND_SWORD, $meta, "Diamond Sword");
 	}
 
+	public function getAttackPoints() : int {
+		return 7;
+	}
+
 	public function getMaxDurability() : int {
 		return 1562;
 	}

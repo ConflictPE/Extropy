@@ -29,6 +29,10 @@ class IronAxe extends Axe {
 		parent::__construct(self::IRON_AXE, $meta, "Iron Axe");
 	}
 
+	public function getAttackPoints() : int {
+		return 5;
+	}
+
 	public function getMaxDurability() : int {
 		return 251;
 	}

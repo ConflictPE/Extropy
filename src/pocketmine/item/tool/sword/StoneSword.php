@@ -29,6 +29,10 @@ class StoneSword extends Sword {
 		parent::__construct(self::STONE_SWORD, $meta, "Stone Sword");
 	}
 
+	public function getAttackPoints() : int {
+		return 5;
+	}
+
 	public function getMaxDurability() : int {
 		return 132;
 	}

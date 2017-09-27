@@ -29,6 +29,10 @@ class StonePickaxe extends Pickaxe {
 		parent::__construct(self::STONE_PICKAXE, $meta, "Stone Pickaxe");
 	}
 
+	public function getAttackPoints() : int {
+		return 3;
+	}
+
 	public function getMaxDurability() : int {
 		return 132;
 	}

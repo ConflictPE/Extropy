@@ -31,4 +31,8 @@ class DiamondHelmet extends Helmet {
 		return 3;
 	}
 
+	public function getToughnessPoints() : int {
+		return 2;
+	}
+
 }

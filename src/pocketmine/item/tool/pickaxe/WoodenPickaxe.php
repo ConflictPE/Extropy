@@ -30,6 +30,10 @@ class WoodenPickaxe extends Pickaxe implements FuelSource {
 		parent::__construct(self::WOODEN_PICKAXE, $meta, "Wooden Pickaxe");
 	}
 
+	public function getAttackPoints() : int {
+		return 2;
+	}
+
 	public function getMaxDurability() : int {
 		return 60;
 	}

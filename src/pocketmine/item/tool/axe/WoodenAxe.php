@@ -30,6 +30,10 @@ class WoodenAxe extends Axe implements FuelSource {
 		parent::__construct(self::WOODEN_AXE, $meta, "Wooden Axe");
 	}
 
+	public function getAttackPoints() : int {
+		return 3;
+	}
+
 	public function getMaxDurability() : int {
 		return 60;
 	}

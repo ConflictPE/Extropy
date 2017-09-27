@@ -29,6 +29,10 @@ class StoneShovel extends Shovel {
 		parent::__construct(self::STONE_SHOVEL, $meta, "Stone Shovel");
 	}
 
+	public function getAttackPoints() : int {
+		return 2;
+	}
+
 	public function getMaxDurability() : int {
 		return 132;
 	}

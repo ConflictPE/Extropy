@@ -29,6 +29,10 @@ class GoldShovel extends Shovel {
 		parent::__construct(self::GOLDEN_SHOVEL, $meta, "Gold Shovel");
 	}
 
+	public function getAttackPoints() : int {
+		return 1;
+	}
+
 	public function getMaxDurability() : int {
 		return 33;
 	}

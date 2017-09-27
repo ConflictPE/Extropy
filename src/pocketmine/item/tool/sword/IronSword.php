@@ -28,6 +28,10 @@ class IronSword extends Sword {
 		parent::__construct(self::IRON_SWORD, $meta, "Iron Sword");
 	}
 
+	public function getAttackPoints() : int {
+		return 6;
+	}
+
 	public function getMaxDurability() : int {
 		return 251;
 	}
