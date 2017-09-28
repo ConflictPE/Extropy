@@ -298,6 +298,8 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 
 		$this->setDataFlag(self::DATA_PLAYER_FLAGS, self::DATA_PLAYER_FLAG_SLEEP, false);
 		$this->setDataProperty(self::DATA_PLAYER_BED_POSITION, self::DATA_TYPE_POS, [0, 0, 0]);
+		$this->setNameTagVisible(true);
+		$this->setNameTagAlwaysVisible(true);
 
 		if($this instanceof Player){
 			$this->inventory = Multiversion::getPlayerInventory($this);
