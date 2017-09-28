@@ -260,7 +260,7 @@ class ItemFactory {
 			self::registerItem(new PoisonousPotato());
 			//TODO: EMPTYMAP
 			self::registerItem(new GoldenCarrot());
-			//self::registerItem(new Skull());
+			self::registerItem(new Skull());
 			//TODO: CARROTONASTICK
 			self::registerItem(new Item(Item::NETHER_STAR, 0, "Nether Star"));
 			self::registerItem(new PumpkinPie());
