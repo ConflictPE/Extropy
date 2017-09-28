@@ -55,8 +55,8 @@ class AsyncWorker extends Worker {
 		$store = [];
 	}
 
-	public function handleException(\Throwable $e){
-		$this->logger->logException($e);
+	public function getLogger() : MainLogger {
+		return $this->logger;
 	}
 
 	public function getThreadName() : string{

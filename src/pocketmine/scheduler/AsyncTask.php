@@ -23,6 +23,7 @@ namespace pocketmine\scheduler;
 
 use pocketmine\Collectable;
 use pocketmine\Server;
+use pocketmine\utils\MainLogger;
 
 /**
  * Class used to run async tasks in other threads.
@@ -46,7 +47,8 @@ abstract class AsyncTask extends Collectable{
 			$this->onRun();
 			$this->isFinished = true;
 		}catch(\Throwable $e){
-			$this->worker->handleException($e);
+			$this->getLogger()->debug("Encountered " . (new \ReflectionObject($e))->getShortName() . " while trying to run async task " . (new \ReflectionObject($this))->getShortName() . " on " . $this->worker->getThreadName() . ".");
+			$this->getLogger()->logException($e);
 		}
 
 		$this->setGarbage();
@@ -153,6 +155,10 @@ abstract class AsyncTask extends Collectable{
 
 	public function getTaskId(){
 		return $this->taskId;
+	}
+
+	public function getLogger() : MainLogger {
+		return $this->worker->getLogger();
 	}
 
 	/**
