@@ -25,6 +25,7 @@ use pocketmine\entity\Entity;
 use pocketmine\entity\Projectile;
 use pocketmine\event\entity\EntityShootBowEvent;
 use pocketmine\event\entity\ProjectileLaunchEvent;
+use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\fuel\FuelSource;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
@@ -100,7 +101,10 @@ class Bow extends Tool implements FuelSource {
 			} else {
 				$entity->setMotion($entity->getMotion()->multiply($ev->getForce()));
 				if($player->isSurvival()) {
-					$player->getInventory()->removeItem(ItemFactory::get(Item::ARROW, 0, 1));
+					if($this->getEnchantment(Enchantment::TYPE_BOW_INFINITY) === null) {
+						$player->getInventory()->removeItem(ItemFactory::get(Item::ARROW, 0, 1));
+					}
+
 					if(!$this->isUnbreakable()) {
 						$this->setDamage($this->getDamage() + 1);
 						if($this->getDamage() >= $this->getMaxDurability()) {
