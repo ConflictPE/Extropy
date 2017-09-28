@@ -410,15 +410,11 @@ class MetadataConverter {
 	 * Convert server-side entity data flags to client readable data
 	 *
 	 * @param array $flagData
-	 * @param int $protocol
+	 * @param int|string $protocol
 	 *
 	 * @return int
 	 */
-	private static function writeDataFlags(array $flagData, int $protocol) : int {
-		if(!isset(self::$entityFlags[$protocol])) {
-			$protocol = "default";
-		}
-
+	private static function writeDataFlags(array $flagData, $protocol) : int {
 		$flags = 0;
 		foreach($flagData as $flagName => $flagValue) {
 			if(isset(self::$entityFlags[$protocol][$flagName])) { // only send the flag to clients which are compatible
