@@ -3892,7 +3892,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					$this->inventory->setItemInHand($item);
 				}
 
-				$this->setUsingItem(true);
+				if($item->getId() === Item::BOW and !$this->inventory->contains(ItemFactory::get(Item::ARROW, 0, 1))) {
+					$this->setUsingItem(false); // attempting to draw a bow with no arrows
+				} else {
+					$this->setUsingItem(true);
+				}
 
 				return true;
 		}
