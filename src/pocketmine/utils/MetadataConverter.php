@@ -396,7 +396,7 @@ class MetadataConverter {
 
 		$metadata = [];
 		foreach($data as $metaName => $metaValue) {
-			if($metaName === Entity::DATA_FLAGS) {
+			if($metaName === Entity::DATA_FLAGS and is_array($metaValue)) {
 				$metaValue[1] = self::writeDataFlags($metaValue[1], $protocol);
 			}
 			if(isset(self::$entityData[$protocol][$metaName])) { // only send the metadata to clients which are compatible
