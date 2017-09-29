@@ -3,10 +3,11 @@
 namespace pocketmine\entity\animal\walking;
 
 use pocketmine\entity\animal\WalkingAnimal;
-use pocketmine\item\Item;
-use pocketmine\Player;
-use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\entity\Creature;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
+use pocketmine\Player;
 
 class Cow extends WalkingAnimal{
 	const NETWORK_ID = 11;
@@ -35,11 +36,12 @@ class Cow extends WalkingAnimal{
 		if($this->lastDamageCause instanceof EntityDamageByEntityEvent){
 			switch(mt_rand(0, 1)){
 				case 0:
-					return [Item::get(Item::RAW_BEEF, 0, 1)];
+					return [ItemFactory::get(Item::RAW_BEEF, 0, 1)];
 				case 1:
-					return [Item::get(Item::LEATHER, 0, 1)];
+					return [ItemFactory::get(Item::LEATHER, 0, 1)];
 			}
 		}
 		return [];
 	}
+
 }

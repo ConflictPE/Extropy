@@ -21,6 +21,7 @@
 
 namespace pocketmine\level\format\generic;
 
+use pocketmine\block\BlockFactory;
 use pocketmine\entity\Entity;
 use pocketmine\level\format\FullChunk;
 use pocketmine\level\format\LevelProvider;
@@ -28,7 +29,6 @@ use pocketmine\nbt\tag\Compound;
 use pocketmine\Player;
 use pocketmine\tile\Spawnable;
 use pocketmine\tile\Tile;
-use pocketmine\block\Block;
 
 abstract class BaseFullChunk implements FullChunk{
 
@@ -392,7 +392,7 @@ abstract class BaseFullChunk implements FullChunk{
 				}
 
 				for($y = $top; $y >= 0; --$y){
-					if(Block::$solid[$this->getBlockId($x, $y, $z)]){
+					if(BlockFactory::$solid[$this->getBlockId($x, $y, $z)]){
 						break;
 					}
 

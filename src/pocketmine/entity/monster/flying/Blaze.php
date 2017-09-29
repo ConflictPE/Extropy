@@ -4,14 +4,15 @@ namespace pocketmine\entity\monster\flying;
 
 use pocketmine\entity\animal\Animal;
 use pocketmine\entity\BaseEntity;
-use pocketmine\entity\monster\FlyingMonster;
-use pocketmine\entity\projectile\FireBall;
 use pocketmine\entity\Creature;
 use pocketmine\entity\Entity;
+use pocketmine\entity\monster\FlyingMonster;
+use pocketmine\entity\projectile\FireBall;
+use pocketmine\entity\ProjectileSource;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\ProjectileLaunchEvent;
 use pocketmine\item\Item;
-use pocketmine\entity\ProjectileSource;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\Location;
 use pocketmine\level\sound\LaunchSound;
 use pocketmine\math\Math;
@@ -177,7 +178,7 @@ class Blaze extends FlyingMonster implements ProjectileSource{
 	public function attackEntity(Entity $player){
 		if($this->attackDelay > 20 && mt_rand(1, 32) < 4 && $this->distance($player) <= 18){
 			$this->attackDelay = 0;
-		
+
 			$f = 1.2;
 			$yaw = $this->yaw + mt_rand(-220, 220) / 10;
 			$pitch = $this->pitch + mt_rand(-120, 120) / 10;
@@ -213,7 +214,7 @@ class Blaze extends FlyingMonster implements ProjectileSource{
 
 	public function getDrops(){
 		if($this->lastDamageCause instanceof EntityDamageByEntityEvent){
-			return [Item::get(Item::GLOWSTONE_DUST, 0, mt_rand(0, 2))];
+			return [ItemFactory::get(Item::GLOWSTONE_DUST, 0, mt_rand(0, 2))];
 		}
 		return [];
 	}

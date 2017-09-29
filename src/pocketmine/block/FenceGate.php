@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,51 +15,38 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\Tool;
+use pocketmine\item\tool\Tool;
 use pocketmine\level\sound\DoorSound;
 use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Vector3;
 use pocketmine\Player;
 
-class FenceGate extends Transparent{
+class FenceGate extends Transparent {
 
-	protected $id = self::FENCE_GATE;
-
-	public function __construct($meta = 0){
-		$this->meta = $meta;
-	}
-
-	public function getName(){
-		return "Oak Fence Gate";
-	}
-
-	public function getHardness(){
+	public function getHardness() : float {
 		return 2;
 	}
 
-	public function canBeActivated(){
-		return true;
-	}
-
-	public function getToolType(){
+	public function getToolType() : int {
 		return Tool::TYPE_AXE;
 	}
 
+	protected function recalculateBoundingBox() {
 
-	protected function recalculateBoundingBox(){
-
-		if(($this->getDamage() & 0x04) > 0){
+		if(($this->getDamage() & 0x04) > 0) {
 			return null;
 		}
-
 		$i = ($this->getDamage() & 0x03);
-		if($i === 2 and $i === 0){
+		if($i === 2 or $i === 0) {
 			return new AxisAlignedBB(
 				$this->x,
 				$this->y,
@@ -68,7 +55,7 @@ class FenceGate extends Transparent{
 				$this->y + 1.5,
 				$this->z + 0.625
 			);
-		}else{
+		} else {
 			return new AxisAlignedBB(
 				$this->x + 0.375,
 				$this->y,
@@ -80,35 +67,28 @@ class FenceGate extends Transparent{
 		}
 	}
 
-	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
-		$faces = [
-			0 => 3,
-			1 => 0,
-			2 => 1,
-			3 => 2,
-		];
-		$this->meta = $faces[$player instanceof Player ? $player->getDirection() : 0] & 0x03;
-		$this->getLevel()->setBlock($block, $this, true, true);
-
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $facePos, Player $player = null) : bool {
+		$this->meta = ($player instanceof Player ? ($player->getDirection() - 1) & 0x03 : 0);
+		$this->getLevel()->setBlock($blockReplace, $this, true, true);
 		return true;
 	}
 
-	public function getDrops(Item $item){
-		return [
-			[$this->id, 0, 1],
-		];
+	public function getVariantBitmask() : int {
+		return 0;
 	}
 
-	public function onActivate(Item $item, Player $player = null){
-		$faces = [
-			0 => 3,
-			1 => 0,
-			2 => 1,
-			3 => 2,
-		];
-		$this->meta = ($faces[$player instanceof Player ? $player->getDirection() : 0] & 0x03) | ((~$this->meta) & 0x04);
+	public function onActivate(Item $item, Player $player = null) : bool {
+		$this->meta = (($this->meta ^ 0x04) & ~0x02);
+		if($player !== null) {
+			$this->meta |= (($player->getDirection() - 1) & 0x02);
+		}
 		$this->getLevel()->setBlock($this, $this, true);
 		$this->level->addSound(new DoorSound($this));
 		return true;
 	}
+
+	public function getFuelTime() : int {
+		return 300;
+	}
+
 }

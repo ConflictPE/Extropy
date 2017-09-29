@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
@@ -23,20 +23,17 @@ namespace pocketmine\item;
 
 use pocketmine\block\Block;
 use pocketmine\level\Level;
+use pocketmine\math\Vector3;
 use pocketmine\Player;
 
+class Painting extends Item {
 
-class Painting extends Item{
-	public function __construct($meta = 0, $count = 1){
-		parent::__construct(self::PAINTING, 0, $count, "Painting");
+	public function __construct(int $meta = 0) {
+		parent::__construct(self::PAINTING, $meta, "Painting");
 	}
 
-	public function canBeActivated(){
-		return true;
-	}
-
-	public function onActivate(Level $level, Player $player, Block $block, Block $target, $face, $fx, $fy, $fz){
-		if($target->isTransparent() === false and $face > 1 and $block->isSolid() === false){
+	public function onActivate(Level $level, Player $player, Block $block, Block $target, int $face, Vector3 $facePos) : bool {
+		if($target->isTransparent() === false and $face > 1 and $block->isSolid() === false) {
 			$faces = [
 				2 => 1,
 				3 => 3,
@@ -85,7 +82,7 @@ class Painting extends Item{
 			//$e = $server->api->entity->add($level, ENTITY_OBJECT, OBJECT_PAINTING, $data);
 			//$e->spawnToAll();
 			/*if(($player->gamemode & 0x01) === 0x00){
-				$player->removeItem(Item::get($this->getId(), $this->getDamage(), 1));
+				$player->removeItem(ItemFactory::get($this->getId(), $this->getDamage(), 1));
 			}*/
 
 			return true;

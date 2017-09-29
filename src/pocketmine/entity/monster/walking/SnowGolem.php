@@ -2,20 +2,21 @@
 
 namespace pocketmine\entity\monster\walking;
 
-use pocketmine\entity\monster\WalkingMonster;
+use pocketmine\entity\Creature;
 use pocketmine\entity\Entity;
+use pocketmine\entity\monster\WalkingMonster;
 use pocketmine\entity\Projectile;
 use pocketmine\entity\ProjectileSource;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\ProjectileLaunchEvent;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\sound\LaunchSound;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\DoubleTag;
 use pocketmine\nbt\tag\Enum;
 use pocketmine\nbt\tag\FloatTag;
 use pocketmine\Player;
-use pocketmine\entity\Creature;
 
 class SnowGolem extends WalkingMonster implements ProjectileSource{
 	const NETWORK_ID = 21;
@@ -77,7 +78,7 @@ class SnowGolem extends WalkingMonster implements ProjectileSource{
 
 	public function getDrops(){
 		if($this->lastDamageCause instanceof EntityDamageByEntityEvent){
-			return [Item::get(Item::SNOWBALL, 0, 15)];
+			return [ItemFactory::get(Item::SNOWBALL, 0, 15)];
 		}
 		return [];
 	}

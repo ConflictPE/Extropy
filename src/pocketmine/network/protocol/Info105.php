@@ -120,14 +120,3 @@ interface Info105{
 	const SET_TITLE_PACKET = 0x58;
 
 }
-
-
-
-
-
-
-
-
-
-
-

@@ -134,4 +134,5 @@ class TimingsCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

@@ -25,6 +25,7 @@ use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityInventoryChangeEvent;
 use pocketmine\event\inventory\InventoryOpenEvent;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\network\multiversion\Multiversion;
 use pocketmine\Player;
 use pocketmine\Server;
@@ -61,7 +62,7 @@ abstract class BaseInventory implements Inventory{
 	public function __construct(InventoryHolder $holder, InventoryType $type, array $items = [], $overrideSize = null, $overrideTitle = null){
 		$this->holder = $holder;
 
-		$this->type = $type;		
+		$this->type = $type;
 		if($overrideSize !== null){
 			$this->size = (int) $overrideSize;
 		}else{
@@ -77,7 +78,7 @@ abstract class BaseInventory implements Inventory{
 		$this->name = $this->type->getDefaultTitle();
 
 		$this->setContents($items);
-		$this->air =  Item::get(Item::AIR, null, 0);
+		$this->air = ItemFactory::get(Item::AIR, 0, 0);
 	}
 
 	public function __destruct(){
@@ -120,7 +121,7 @@ abstract class BaseInventory implements Inventory{
 		if(count($items) > $this->size){
 			$items = array_slice($items, 0, $this->size, true);
 		}
-		
+
 		for($i = 0; $i < $this->size; ++$i){
 			if(!isset($items[$i])){
 				if(isset($this->slots[$i])){
@@ -341,7 +342,7 @@ abstract class BaseInventory implements Inventory{
 
 	public function clear($index){
 		if(isset($this->slots[$index])){
-			$item = Item::get(Item::AIR, null, 0);
+			$item = ItemFactory::get(Item::AIR, null, 0);
 			$old = $this->slots[$index];
 			$holder = $this->getHolder();
 			if($holder instanceof Entity){

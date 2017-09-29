@@ -53,4 +53,5 @@ class PardonCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

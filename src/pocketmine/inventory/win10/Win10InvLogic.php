@@ -2,10 +2,9 @@
 
 namespace pocketmine\inventory\win10;
 
-use pocketmine\network\protocol\Info;
+use pocketmine\inventory\PlayerInventory;
 use pocketmine\network\protocol\MobEquipmentPacket;
 use pocketmine\Player;
-use pocketmine\inventory\PlayerInventory;
 
 class Win10InvLogic {
 	
@@ -47,7 +46,7 @@ class Win10InvLogic {
 			case 'MOB_EQUIPMENT_PACKET':
 				if ($packet->windowId == self::WINDOW_ID_PLAYER_OFFHAND) {
 					$invData = self::$playersInventoryData[$playerId];
-					$invData->armorInventoryLogic(PlayerInventory::OFFHAND_ARMOR_SLOT_ID, $packet->item);
+					$invData->armorInventoryLogic(PlayerInventory::OFFHAND_CONTAINER_ID, $packet->item);
 					break;
 				}
 				$inventory = $player->getInventory();

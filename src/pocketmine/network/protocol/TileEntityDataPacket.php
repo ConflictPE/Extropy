@@ -19,12 +19,15 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\network\protocol;
 
 #include <rules/DataPacket.h>
 
 
-class TileEntityDataPacket extends PEPacket{
+class TileEntityDataPacket extends PEPacket {
+
 	const NETWORK_ID = Info::TILE_ENTITY_DATA_PACKET;
 	const PACKET_NAME = "TILE_ENTITY_DATA_PACKET";
 
@@ -33,13 +36,13 @@ class TileEntityDataPacket extends PEPacket{
 	public $z;
 	public $namedtag;
 
-	public function decode($playerProtocol){
+	public function decode(int $playerProtocol) {
 		$this->getHeader($playerProtocol);
 		$this->getBlockPosition($this->x, $this->y, $this->z);
 		$this->namedtag = $this->getRemaining();
 	}
 
-	public function encode($playerProtocol){
+	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
 		$this->putBlockPosition($this->x, $this->y, $this->z);
 		$this->put($this->namedtag);

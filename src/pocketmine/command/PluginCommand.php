@@ -79,4 +79,5 @@ class PluginCommand extends Command implements PluginIdentifiableCommand{
 	public function getPlugin(){
 		return $this->owningPlugin;
 	}
+
 }

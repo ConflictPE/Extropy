@@ -25,7 +25,6 @@
 namespace pocketmine\command;
 
 use pocketmine\event\TimingsHandler;
-use pocketmine\Player;
 use pocketmine\Server;
 use pocketmine\utils\TextFormat;
 
@@ -347,4 +346,5 @@ abstract class Command{
 	public function __toString(){
 		return $this->name;
 	}
+
 }

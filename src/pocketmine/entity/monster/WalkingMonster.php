@@ -2,13 +2,12 @@
 
 namespace pocketmine\entity\monster;
 
-use pocketmine\entity\monster\walking\Enderman;
-use pocketmine\entity\WalkingEntity;
 use pocketmine\block\Water;
 use pocketmine\entity\Effect;
 use pocketmine\entity\Entity;
+use pocketmine\entity\monster\walking\Enderman;
+use pocketmine\entity\WalkingEntity;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\Timings;
 use pocketmine\math\Math;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
@@ -168,7 +167,7 @@ abstract class WalkingMonster extends WalkingEntity implements Monster{
 				}
 				$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, $airTicks);
 			}else{
-				$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, 300);
+				$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, 400);
 			}
 		}
 

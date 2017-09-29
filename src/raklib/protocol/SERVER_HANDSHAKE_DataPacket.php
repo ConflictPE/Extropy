@@ -60,4 +60,5 @@ class SERVER_HANDSHAKE_DataPacket extends Packet{
         parent::decode();
         //TODO, not needed yet
     }
+
 }

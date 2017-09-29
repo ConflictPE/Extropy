@@ -64,4 +64,5 @@ class TellCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

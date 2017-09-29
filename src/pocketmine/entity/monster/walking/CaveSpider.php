@@ -2,11 +2,12 @@
 
 namespace pocketmine\entity\monster\walking;
 
-use pocketmine\entity\monster\WalkingMonster;
 use pocketmine\entity\Entity;
+use pocketmine\entity\monster\WalkingMonster;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 
 class CaveSpider extends WalkingMonster{
 	const NETWORK_ID = 40;
@@ -38,7 +39,7 @@ class CaveSpider extends WalkingMonster{
 	}
 
 	public function getDrops(){
-		return $this->lastDamageCause instanceof EntityDamageByEntityEvent ? [Item::get(Item::STRING, 0, mt_rand(0, 2))] : [];
+		return $this->lastDamageCause instanceof EntityDamageByEntityEvent ? [ItemFactory::get(Item::STRING, 0, mt_rand(0, 2))] : [];
 	}
 
 }

@@ -51,4 +51,5 @@ class StatusCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

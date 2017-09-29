@@ -24,7 +24,6 @@ namespace pocketmine\command\defaults;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 
-
 class StopCommand extends VanillaCommand{
 
 	public function __construct($name){
@@ -54,4 +53,5 @@ class StopCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

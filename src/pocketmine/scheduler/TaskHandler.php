@@ -160,4 +160,5 @@ class TaskHandler{
 
 		return get_class($this->task);
 	}
+
 }

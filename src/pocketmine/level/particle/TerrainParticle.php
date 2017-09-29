@@ -28,4 +28,5 @@ class TerrainParticle extends GenericParticle{
 	public function __construct(Vector3 $pos, Block $b){
 		parent::__construct($pos, Particle::TYPE_TERRAIN, ($b->getDamage() << 8) | $b->getId());
 	}
+
 }

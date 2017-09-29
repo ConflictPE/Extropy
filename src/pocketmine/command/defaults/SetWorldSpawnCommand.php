@@ -67,4 +67,5 @@ class SetWorldSpawnCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

@@ -97,4 +97,5 @@ abstract class AcknowledgePacket extends Packet{
 		$this->packets = [];
 		return parent::clean();
 	}
+
 }

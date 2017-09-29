@@ -115,4 +115,5 @@ class EmptyChunkSection implements ChunkSection{
 	final public function setBlockSkyLight($x, $y, $z, $level){
 		throw new ChunkException("Tried to modify an empty Chunk");
 	}
+
 }

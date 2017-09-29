@@ -23,7 +23,6 @@ namespace pocketmine\command\defaults;
 
 use pocketmine\command\CommandSender;
 use pocketmine\command\ConsoleCommandSender;
-use pocketmine\network\protocol\Info;
 use pocketmine\plugin\Plugin;
 use pocketmine\utils\TextFormat;
 
@@ -95,4 +94,5 @@ class VersionCommand extends VanillaCommand{
 
 		$sender->sendMessage($message);
 	}
+
 }

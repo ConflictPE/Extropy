@@ -53,21 +53,27 @@ class BossEventPacket extends PEPacket {
 
 	/** @var int (long) */
 	public $playerEid;
+
 	/** @var float */
 	public $healthPercent;
+
 	/** @var string */
 	public $title;
+
 	/** @var int */
 	public $unknownShort;
+
 	/** @var int */
 	public $color;
+
 	/** @var int */
 	public $overlay;
 
-	public function decode($playerProtocol){
-		$this->eid = $this->getEntityUniqueId();
+	public function decode(int $playerProtocol) {
+		$this->getHeader($playerProtocol);
+		$this->eid = $this->getVarInt();
 		$this->eventType = $this->getVarInt();
-		switch($this->eventType){
+		switch($this->eventType) {
 			case self::TYPE_REGISTER_PLAYER:
 			case self::TYPE_UNREGISTER_PLAYER:
 				$this->playerEid = $this->getEntityUniqueId();
@@ -94,13 +100,13 @@ class BossEventPacket extends PEPacket {
 		}
 	}
 
-	public function encode($playerProtocol){
-		$this->putEntityUniqueId($this->eid);
+	public function encode(int $playerProtocol) {
+		$this->putVarInt($this->eid);
 		$this->putVarInt($this->eventType);
-		switch($this->eventType){
+		switch($this->eventType) {
 			case self::TYPE_REGISTER_PLAYER:
 			case self::TYPE_UNREGISTER_PLAYER:
-				$this->putEntityUniqueId($this->playerEid);
+				$this->putVarInt($this->playerEid);
 				break;
 			/** @noinspection PhpMissingBreakStatementInspection */
 			case self::TYPE_SHOW:

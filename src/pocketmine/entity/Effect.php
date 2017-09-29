@@ -23,11 +23,8 @@ namespace pocketmine\entity;
 
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityRegainHealthEvent;
-use pocketmine\network\Network;
 use pocketmine\network\protocol\MobEffectPacket;
-use pocketmine\network\protocol\UpdateAttributesPacket;
 use pocketmine\Player;
-
 
 class Effect{
 	const SPEED = 1;
@@ -308,7 +305,7 @@ class Effect{
 		switch($this->id) {
 			case Effect::INVISIBILITY:
 				$entity->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_INVISIBLE, true);
-				$entity->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_SHOW_NAMETAG, false);
+				$entity->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_CAN_SHOW_NAMETAG, false);
 				break;
 			case Effect::SPEED:
 				if($isPlayer) {
@@ -345,7 +342,7 @@ class Effect{
 		switch($this->id) {
 			case Effect::INVISIBILITY:
 				$entity->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_INVISIBLE, false);
-				$entity->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_SHOW_NAMETAG, true);
+				$entity->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_CAN_SHOW_NAMETAG, true);
 				break;
 			case Effect::SPEED:
 				if($isPlayer) {
@@ -364,4 +361,5 @@ class Effect{
 				break;
 		}
 	}
+
 }

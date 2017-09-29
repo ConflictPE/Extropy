@@ -80,4 +80,5 @@ class SimpleForm implements CustomUI {
 			error_log(__CLASS__ . '::' . __METHOD__ . " Button with index {$response} doesn't exists.");
 		}
 	}
+
 }

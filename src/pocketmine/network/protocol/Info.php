@@ -25,7 +25,7 @@
 namespace pocketmine\network\protocol;
 
 
-interface Info{
+interface Info {
 
 	/**
 	 * Minecraft: PE protocol versions
@@ -36,15 +36,15 @@ interface Info{
 
 	const ACCEPTED_PROTOCOLS = [101, 102, 105, 106, 107, 110, 111, 112, 113, 134, 135, 136, 137];
 
-	const BASE_PROTOCOL = 101;
+	const BASE_PROTOCOL = 101; // v1.0.3.0
 	/** RELEASE 1.0.x, 1.1.x */
 	const PROTOCOL_105 = 105;
 	const PROTOCOL_106 = 106;
-	const PROTOCOL_107 = 107;
+	const PROTOCOL_107 = 107; // v1.0.7.0
 	const PROTOCOL_110 = 110;
 	const PROTOCOL_111 = 111;
 	const PROTOCOL_112 = 112;
-	const PROTOCOL_113 = 113;
+	const PROTOCOL_113 = 113; // v1.1.0.55
 	/** 1.2 BETAS */
 	const PROTOCOL_134 = 134; // 1.2.0.20, 1.2.0.22
 	const PROTOCOL_135 = 135; // 1.2.0.24, 1.2.0.25
@@ -145,14 +145,3 @@ interface Info{
 	const TRANSFER_PACKET = 0x53;
 
 }
-
-
-
-
-
-
-
-
-
-
-

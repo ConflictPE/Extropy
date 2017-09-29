@@ -24,7 +24,6 @@ namespace pocketmine\command\defaults;
 use pocketmine\command\CommandSender;
 use pocketmine\Player;
 
-
 class SeedCommand extends VanillaCommand{
 
 	public function __construct($name){
@@ -50,4 +49,5 @@ class SeedCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

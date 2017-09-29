@@ -127,4 +127,5 @@ class BanEntry{
 			return $entry;
 		}
 	}
+
 }

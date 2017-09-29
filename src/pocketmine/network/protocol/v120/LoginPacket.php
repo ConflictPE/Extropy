@@ -5,8 +5,8 @@ namespace pocketmine\network\protocol\v120;
 use pocketmine\network\protocol\Info;
 use pocketmine\network\protocol\Info120;
 use pocketmine\network\protocol\PEPacket;
-use pocketmine\utils\UUID;
 use pocketmine\utils\Binary;
+use pocketmine\utils\UUID;
 
 class LoginPacket extends PEPacket {
 
@@ -43,21 +43,21 @@ class LoginPacket extends PEPacket {
 		return $res;
 	}
 
-	public function decode($playerProtocol) {
+	public function decode(int $playerProtocol) {
 		$this->getHeader(Info::PROTOCOL_120);
 		$this->protocol1 = $this->getInt();
 		if (!in_array($this->protocol1, Info::ACCEPTED_PROTOCOLS)) {
 			$this->isValidProtocol = false;
 			return;
-		}	
+		}
 		$body = $this->getString();
-		
+
 		$this->chainsDataLength = Binary::readLInt($this->getFromString($body, 4));
 		$this->chains = json_decode($this->getFromString($body, $this->chainsDataLength), true);
 
 		$this->playerDataLength = Binary::readLInt($this->getFromString($body, 4));
 		$this->playerData = $this->getFromString($body, $this->playerDataLength);
-        
+
 		$this->chains['data'] = array();
 		$index = 0;
 		foreach ($this->chains['chain'] as $key => $jwt) {
@@ -72,7 +72,7 @@ class LoginPacket extends PEPacket {
 			$this->isValidProtocol = false;
 			return;
 		}
-		
+
 		$this->playerData = self::load($this->playerData);
 		$this->username = $this->chains['data'][$dataIndex]['extraData']['displayName'];
 		$this->clientId = $this->chains['data'][$dataIndex]['extraData']['identity'];
@@ -81,19 +81,19 @@ class LoginPacket extends PEPacket {
         if (isset($this->chains['data'][$dataIndex]['extraData']['XUID'])) {
             $this->xuid = $this->chains['data'][$dataIndex]['extraData']['XUID'];
         }
-		
+
 		$this->serverAddress = $this->playerData['ServerAddress'];
 		$this->skinName = $this->playerData['SkinId'];
 		$this->skin = base64_decode($this->playerData['SkinData']);
 		if (isset($this->playerData['SkinGeometryName'])) {
-            $this->skinGeometryName = $this->playerData['SkinGeometryName'];    
+            $this->skinGeometryName = $this->playerData['SkinGeometryName'];
         }
 		if (isset($this->playerData['SkinGeometry'])) {
-            $this->skinGeometryData = base64_decode($this->playerData['SkinGeometry']);  
+            $this->skinGeometryData = base64_decode($this->playerData['SkinGeometry']);
         }
 		$this->clientSecret = $this->playerData['ClientRandomId'];
         if (isset($this->playerData['DeviceOS'])) {
-            $this->osType = $this->playerData['DeviceOS'];    
+            $this->osType = $this->playerData['DeviceOS'];
         }
         if (isset($this->playerData['UIProfile'])) {
             $this->inventoryType = $this->playerData['UIProfile'];
@@ -111,8 +111,8 @@ class LoginPacket extends PEPacket {
 		$this->protocol1 = self::convertProtocol($this->protocol1);
 	}
 
-	public function encode($playerProtocol) {
-		
+	public function encode(int $playerProtocol) {
+
 	}
 
 	public static function load($jwsTokenString) {
@@ -125,4 +125,3 @@ class LoginPacket extends PEPacket {
 	}
 
 }
-

@@ -2,13 +2,13 @@
 
 namespace pocketmine\entity\monster\flying;
 
-use pocketmine\entity\monster\FlyingMonster;
-use pocketmine\entity\projectile\FireBall;
 use pocketmine\entity\BaseEntity;
 use pocketmine\entity\Creature;
 use pocketmine\entity\Entity;
-use pocketmine\event\entity\ProjectileLaunchEvent;
+use pocketmine\entity\monster\FlyingMonster;
+use pocketmine\entity\projectile\FireBall;
 use pocketmine\entity\ProjectileSource;
+use pocketmine\event\entity\ProjectileLaunchEvent;
 use pocketmine\level\Location;
 use pocketmine\level\sound\LaunchSound;
 use pocketmine\math\Vector3;
@@ -43,7 +43,7 @@ class Ghast extends FlyingMonster implements ProjectileSource{
 	public function attackEntity(Entity $player){
 		if($this->attackDelay > 30 && mt_rand(1, 32) < 4 && $this->distance($player) <= 100){
 			$this->attackDelay = 0;
-		
+
 			$f = 2;
 			$yaw = $this->yaw + mt_rand(-220, 220) / 10;
 			$pitch = $this->pitch + mt_rand(-120, 120) / 10;

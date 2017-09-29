@@ -22,11 +22,9 @@
 namespace pocketmine\level\particle;
 
 use pocketmine\entity\Entity;
-use pocketmine\entity\Item as ItemEntity;
 use pocketmine\math\Vector3;
-use pocketmine\network\protocol\AddEntityPacket;
-use pocketmine\network\protocol\RemoveEntityPacket;
 use pocketmine\network\protocol\AddPlayerPacket;
+use pocketmine\network\protocol\RemoveEntityPacket;
 use pocketmine\utils\UUID;
 
 class FloatingTextParticle extends Particle{
@@ -68,7 +66,7 @@ class FloatingTextParticle extends Particle{
 		$p = [];
 
 		if($this->entityId === null){
-			$this->entityId = bcadd("1095216660480", mt_rand(0, 0x7fffffff)); //No conflict with other things
+			$this->entityId = Entity::$entityCount++;
 		}else{
 			$pk0 = new RemoveEntityPacket();
 			$pk0->eid = $this->entityId;
@@ -90,9 +88,9 @@ class FloatingTextParticle extends Particle{
 			$pk->yaw = 0;
 			$pk->pitch = 0;
 			$pk->metadata = [
-				Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, (1 << Entity::DATA_FLAG_SHOW_NAMETAG) | (1 << Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG)],
+				Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, (1 << Entity::DATA_FLAG_CAN_SHOW_NAMETAG) | (1 << Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG)],
 				Entity::DATA_NAMETAG => [Entity::DATA_TYPE_STRING, $this->title . ($this->text !== "" ? "\n" . $this->text : "")],
-				Entity::DATA_LEAD_HOLDER => [Entity::DATA_TYPE_LONG, -1],
+				Entity::DATA_LEAD_HOLDER_EID => [Entity::DATA_TYPE_LONG, -1],
 				Entity::DATA_SCALE => [Entity::DATA_TYPE_FLOAT, 0.01],
 			];
 
@@ -101,4 +99,5 @@ class FloatingTextParticle extends Particle{
 
 		return $p;
 	}
+
 }

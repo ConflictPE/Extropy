@@ -47,4 +47,5 @@ abstract class Tag extends \stdClass{
 	public function __toString(){
 		return (string) $this->value;
 	}
+
 }

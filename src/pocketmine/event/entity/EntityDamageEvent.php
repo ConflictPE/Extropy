@@ -21,7 +21,6 @@
 
 namespace pocketmine\event\entity;
 
-use pocketmine\entity\Effect;
 use pocketmine\entity\Entity;
 use pocketmine\event\Cancellable;
 use pocketmine\item\enchantment\Enchantment;
@@ -65,6 +64,7 @@ class EntityDamageEvent extends EntityEvent implements Cancellable{
 	const CAUSE_MAGIC = 13;
 	const CAUSE_CUSTOM = 14;
 	const CAUSE_CONTACT = 15;
+	const CAUSE_STARVATION = 15;
 
 
 	private $cause;
@@ -101,10 +101,6 @@ class EntityDamageEvent extends EntityEvent implements Cancellable{
 
 		if(!isset($this->modifiers[self::MODIFIER_BASE])){
 			throw new \InvalidArgumentException("BASE Damage modifier missing");
-		}
-
-		if($entity->hasEffect(Effect::DAMAGE_RESISTANCE)){
-			$this->setDamage(-($this->getDamage(self::MODIFIER_BASE) * 0.20 * ($entity->getEffect(Effect::DAMAGE_RESISTANCE)->getAmplifier() + 1)), self::MODIFIER_RESISTANCE);
 		}
 
 		if($entity instanceof Player) {

@@ -72,6 +72,7 @@ class Collectable extends Threaded{
 	 * @return void
 	 */
 	public function setGarbage(){}
+
 }
 
 class Volatile extends Threaded{
@@ -241,6 +242,7 @@ class Threaded implements Traversable, Countable, ArrayAccess{
 
     public function delRef(){
     }
+
 }
 
 /**
@@ -329,6 +331,7 @@ class Thread extends Threaded{
      */
     public function start(int $options = PTHREADS_INHERIT_ALL){
     }
+
 }
 
 /**
@@ -427,6 +430,7 @@ class Worker extends Thread{
      */
     public function collect(callable $function){
     }
+
 }
 
 /**
@@ -544,4 +548,5 @@ class Pool{
      */
     public function submitTo($worker, Threaded $task){
     }
+
 }

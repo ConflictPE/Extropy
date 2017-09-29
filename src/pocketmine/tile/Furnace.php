@@ -21,24 +21,24 @@
 
 namespace pocketmine\tile;
 
-use pocketmine\block\Block;
+use pocketmine\block\BlockFactory;
 use pocketmine\event\inventory\FurnaceBurnEvent;
 use pocketmine\event\inventory\FurnaceSmeltEvent;
 use pocketmine\inventory\FurnaceInventory;
 use pocketmine\inventory\FurnaceRecipe;
 use pocketmine\inventory\InventoryHolder;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\format\FullChunk;
 use pocketmine\nbt\NBT;
-
 use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\Enum;
 use pocketmine\nbt\tag\ShortTag;
 use pocketmine\nbt\tag\StringTag;
-use pocketmine\network\Network;
 use pocketmine\network\protocol\ContainerSetDataPacket;
 
 class Furnace extends Tile implements InventoryHolder, Container, Nameable{
+
 	/** @var FurnaceInventory */
 	protected $inventory;
 
@@ -136,7 +136,7 @@ class Furnace extends Tile implements InventoryHolder, Container, Nameable{
 	public function getItem($index){
 		$i = $this->getSlotIndex($index);
 		if($i < 0){
-			return Item::get(Item::AIR, 0, 0);
+			return ItemFactory::get(Item::AIR, 0, 0);
 		}else{
 			return Item::nbtDeserialize($this->namedtag->Items[$i]);
 		}
@@ -191,13 +191,13 @@ class Furnace extends Tile implements InventoryHolder, Container, Nameable{
 		$this->namedtag->BurnTime = new ShortTag("BurnTime", $ev->getBurnTime());
 		$this->namedtag->BurnTicks = new ShortTag("BurnTicks", 0);
 		if($this->getBlock()->getId() === Item::FURNACE){
-			$this->getLevel()->setBlock($this, Block::get(Item::BURNING_FURNACE, $this->getBlock()->getDamage()), true);
+			$this->getLevel()->setBlock($this, BlockFactory::get(Item::BURNING_FURNACE, $this->getBlock()->getDamage()), true);
 		}
 
 		if($this->namedtag["BurnTime"] > 0 and $ev->isBurning()){
 			$fuel->setCount($fuel->getCount() - 1);
 			if($fuel->getCount() === 0){
-				$fuel = Item::get(Item::AIR, 0, 0);
+				$fuel = ItemFactory::get(Item::AIR, 0, 0);
 			}
 			$this->inventory->setFuel($fuel);
 		}
@@ -229,7 +229,7 @@ class Furnace extends Tile implements InventoryHolder, Container, Nameable{
 			if($smelt instanceof FurnaceRecipe and $canSmelt){
 				$this->namedtag->CookTime = new ShortTag("CookTime", $this->namedtag["CookTime"] + 1);
 				if($this->namedtag["CookTime"] >= 200){ //10 seconds
-					$product = Item::get($smelt->getResult()->getId(), $smelt->getResult()->getDamage(), $product->getCount() + 1);
+					$product = ItemFactory::get($smelt->getResult()->getId(), $smelt->getResult()->getDamage(), $product->getCount() + 1);
 
 					$this->server->getPluginManager()->callEvent($ev = new FurnaceSmeltEvent($this, $raw, $product));
 
@@ -237,7 +237,7 @@ class Furnace extends Tile implements InventoryHolder, Container, Nameable{
 						$this->inventory->setResult($ev->getResult());
 						$raw->setCount($raw->getCount() - 1);
 						if($raw->getCount() === 0){
-							$raw = Item::get(Item::AIR, 0, 0);
+							$raw = ItemFactory::get(Item::AIR, 0, 0);
 						}
 						$this->inventory->setSmelting($raw);
 					}
@@ -255,7 +255,7 @@ class Furnace extends Tile implements InventoryHolder, Container, Nameable{
 		}else{
 			;
 			if($this->getBlock()->getId() === Item::BURNING_FURNACE){
-				$this->getLevel()->setBlock($this, Block::get(Item::FURNACE, $this->getBlock()->getDamage()), true);
+				$this->getLevel()->setBlock($this, BlockFactory::get(Item::FURNACE, $this->getBlock()->getDamage()), true);
 			}
 			$this->namedtag->BurnTime = new ShortTag("BurnTime", 0);
 			$this->namedtag->CookTime = new ShortTag("CookTime", 0);
@@ -268,7 +268,7 @@ class Furnace extends Tile implements InventoryHolder, Container, Nameable{
 				$pk = new ContainerSetDataPacket();
 				$pk->windowid = $windowId;
 				$pk->property = 0; //Smelting
-				$pk->value = floor($this->namedtag["CookTime"]);
+				$pk->value = (int) floor($this->namedtag["CookTime"]);
 				$player->dataPacket($pk);
 
 				$pk = new ContainerSetDataPacket();
@@ -286,4 +286,5 @@ class Furnace extends Tile implements InventoryHolder, Container, Nameable{
 
 		return $ret;
 	}
+
 }

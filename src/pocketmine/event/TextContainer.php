@@ -47,4 +47,5 @@ class TextContainer{
 	public function __toString(){
 		return $this->getText();
 	}
+
 }

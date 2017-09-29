@@ -90,4 +90,5 @@ abstract class TextWrapper{
 
 		return $result;
 	}
+
 }

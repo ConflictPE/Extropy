@@ -19,12 +19,15 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\network\protocol;
 
 #include <rules/DataPacket.h>
 
 
-class StartGamePacket extends PEPacket{
+class StartGamePacket extends PEPacket {
+
 	const NETWORK_ID = Info::START_GAME_PACKET;
 	const PACKET_NAME = "START_GAME_PACKET";
 
@@ -42,69 +45,60 @@ class StartGamePacket extends PEPacket{
 	public $yaw = 0;
 	public $pitch = 0;
 	public $currentTick = 0;
+	public $dayCycleStopTime = 6000;
 
-	public function decode($playerProtocol){
+	public function decode(int $playerProtocol) {
 
 	}
 
-	public function encode($playerProtocol){
+	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putVarInt($this->eid); //EntityUniqueID
-		$this->putVarInt($this->eid); //EntityUniqueID
+		$this->putVarInt($this->eid);
+		$this->putVarInt($this->eid);
 
 		if($playerProtocol >= Info::PROTOCOL_110) {
- 			$this->putSignedVarInt($this->gamemode);	// Entity gamemode
+ 			$this->putSignedVarInt($this->gamemode);
  		}
 
-		$this->putLFloat($this->x); // default position (4)
-		$this->putLFloat($this->y); // (4)
-		$this->putLFloat($this->z); // (4)
+		$this->putVector3f($this->x, $this->y, $this->z);
 
-		$this->putLFloat($this->yaw); // yaw
-		$this->putLFloat($this->pitch); // pitch
+		$this->putLFloat($this->yaw);
+		$this->putLFloat($this->pitch);
 
-		// Level settings
 		$this->putSignedVarInt($this->seed);
-
 		$this->putSignedVarInt($this->dimension);
-
 		$this->putSignedVarInt($this->generator);
-
 		$this->putSignedVarInt($this->gamemode);
-
 		$this->putSignedVarInt(0); // Difficulty
 
-		// default spawn 3x VarInt
-		$this->putSignedVarInt($this->spawnX);
-		$this->putSignedVarInt($this->spawnY);
-		$this->putSignedVarInt($this->spawnZ);
+		$this->putBlockPosition($this->spawnX, $this->spawnY, $this->spawnZ);
 
-		$this->putByte(1); // hasAchievementsDisabled
-		$this->putSignedVarInt(0); // DayCycleStopTyme 1x VarInt
-		$this->putByte(0); //edu mode
-		$this->putLFloat(0); //rain level
-		$this->putLFloat(0); //lightning level
+		$this->putBool(true); // disable achievements?
+		$this->putSignedVarInt($this->dayCycleStopTime); // DayCycleStopTime (-1 = not stopped, any other value = stopped at that time)
+		$this->putBool(false); // edu mode?
+		$this->putLFloat(0); // rain level
+		$this->putLFloat(0); // lightning level
 
 		if($playerProtocol >= Info::PROTOCOL_120) {
-			$this->putByte(1); // is multiplayer game
-			$this->putByte(1); // Broadcast to LAN?
-			$this->putByte(1); // Broadcast to XBL?
+			$this->putBool(true); // is multiplayer game
+			$this->putBool(true); // Broadcast to LAN?
+			$this->putBool(true); // Broadcast to XBL?
 		}
 
-		$this->putByte(1);	//commands enabled
-		$this->putByte(0); // isTexturepacksRequired 1x Byte
+		$this->putBool(true); // enable commands?
+		$this->putBool(false); // force texture packs?
 
 		if($playerProtocol >= Info::PROTOCOL_120) {
 			$this->putVarInt(0); // rules count
-			$this->putByte(0); // is bonus chest enabled
-			$this->putByte(0); // is start with map enabled
-			$this->putByte(0); // has trust players enabled
+			$this->putBool(false); // is bonus chest enabled
+			$this->putBool(false); // is start with map enabled
+			$this->putBool(false); // has trust players enabled
 			$this->putSignedVarInt(1); // permission level
 			$this->putSignedVarInt(4); // game publish setting
 			$this->putString('3138ee93-4a4a-479b-8dca-65ca5399e075'); // level id (random UUID)
 			$this->putString(''); // level name
 			$this->putString(''); // template pack id
-			$this->putByte(0); // is trial?
+			$this->putBool(false); // is trial?
 			$this->putLong(0); // current level time
 			$this->putSignedVarInt(0); // enchantment seed
 		}

@@ -2,11 +2,12 @@
 
 namespace pocketmine\entity\monster\walking;
 
-use pocketmine\entity\monster\WalkingMonster;
 use pocketmine\entity\Entity;
+use pocketmine\entity\monster\WalkingMonster;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 
 class Enderman extends WalkingMonster{
 	const NETWORK_ID = 38;
@@ -38,7 +39,7 @@ class Enderman extends WalkingMonster{
 
 	public function getDrops(){
 		if($this->lastDamageCause instanceof EntityDamageByEntityEvent){
-			return [Item::get(Item::END_STONE, 0, 1)];
+			return [ItemFactory::get(Item::END_STONE, 0, 1)];
 		}
 		return [];
 	}

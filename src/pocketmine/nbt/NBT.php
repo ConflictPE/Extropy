@@ -24,25 +24,23 @@
  */
 namespace pocketmine\nbt;
 
-use pocketmine\item\Item;
-use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\ByteArray;
+use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\DoubleTag;
 use pocketmine\nbt\tag\End;
 use pocketmine\nbt\tag\Enum;
 use pocketmine\nbt\tag\FloatTag;
-use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\IntArray;
+use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\LongTag;
 use pocketmine\nbt\tag\NamedTAG;
 use pocketmine\nbt\tag\ShortTag;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\nbt\tag\Tag;
-
-#ifndef COMPILE
 use pocketmine\utils\Binary;
 
+#ifndef COMPILE
 #endif
 
 
@@ -274,7 +272,7 @@ class NBT{
 	}
 
 	public function getSignedByte() : int{
-		return Binary::readSignedByte($this->get(1));
+		return Binary::readByte($this->get(1), true);
 	}
 
 	public function putByte($v){

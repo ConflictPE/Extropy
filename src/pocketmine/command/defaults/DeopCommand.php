@@ -59,4 +59,5 @@ class DeopCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

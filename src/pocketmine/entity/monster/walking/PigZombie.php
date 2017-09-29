@@ -2,14 +2,15 @@
 
 namespace pocketmine\entity\monster\walking;
 
-use pocketmine\entity\monster\WalkingMonster;
-use pocketmine\entity\Entity;
-use pocketmine\item\GoldSword;
-use pocketmine\nbt\tag\IntTag;
-use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\entity\EntityDamageByEntityEvent;
-use pocketmine\item\Item;
 use pocketmine\entity\Creature;
+use pocketmine\entity\Entity;
+use pocketmine\entity\monster\WalkingMonster;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\item\GoldSword;
+use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
+use pocketmine\nbt\tag\IntTag;
 use pocketmine\network\protocol\MobEquipmentPacket;
 use pocketmine\Player;
 
@@ -91,13 +92,13 @@ class PigZombie extends WalkingMonster{
 		if($this->lastDamageCause instanceof EntityDamageByEntityEvent){
 			switch(mt_rand(0, 2)){
 				case 0:
-					$drops[] = Item::get(Item::FLINT, 0, 1);
+					$drops[] = ItemFactory::get(Item::FLINT, 0, 1);
 					break;
 				case 1:
-					$drops[] = Item::get(Item::GUNPOWDER, 0, 1);
+					$drops[] = ItemFactory::get(Item::GUNPOWDER, 0, 1);
 					break;
 				case 2:
-					$drops[] = Item::get(Item::REDSTONE_DUST, 0, 1);
+					$drops[] = ItemFactory::get(Item::REDSTONE_DUST, 0, 1);
 					break;
 			}
 		}

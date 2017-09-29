@@ -2,11 +2,10 @@
 
 namespace pocketmine\entity\monster;
 
-use pocketmine\entity\FlyingEntity;
 use pocketmine\entity\Effect;
 use pocketmine\entity\Entity;
+use pocketmine\entity\FlyingEntity;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\Timings;
 use pocketmine\math\Vector3;
 use pocketmine\Server;
 
@@ -134,7 +133,7 @@ abstract class FlyingMonster extends FlyingEntity implements Monster{
 			}
 			$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, $airTicks);
 		}else{
-			$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, 300);
+			$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, 400);
 		}
 
 		//Timings::$timerEntityBaseTick->stopTiming();

@@ -106,4 +106,5 @@ class TeleportCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

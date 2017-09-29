@@ -135,4 +135,5 @@ class EncapsulatedPacket{
     public function __toString(){
         return $this->toBinary();
     }
+
 }

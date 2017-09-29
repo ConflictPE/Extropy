@@ -19,6 +19,8 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\level\generator\normal\biome;
 
 use pocketmine\block\Sapling;
@@ -32,7 +34,7 @@ class ForestBiome extends GrassyBiome{
 
 	public $type;
 
-	public function __construct($type = self::TYPE_NORMAL){
+	public function __construct(int $type = self::TYPE_NORMAL){
 		parent::__construct();
 
 		$this->type = $type;
@@ -46,18 +48,18 @@ class ForestBiome extends GrassyBiome{
 
 		$this->addPopulator($tallGrass);
 
-		$this->setElevation(63, 68);
+		$this->setElevation(63, 81);
 
 		if($type === self::TYPE_BIRCH){
-			$this->temperature = 0.5;
+			$this->temperature = 0.6;
 			$this->rainfall = 0.5;
 		}else{
 			$this->temperature = 0.7;
-			$this->temperature = 0.8;
+			$this->rainfall = 0.8;
 		}
 	}
 
-	public function getName(){
+	public function getName() : string{
 		return $this->type === self::TYPE_BIRCH ? "Birch Forest" : "Forest";
 	}
 }

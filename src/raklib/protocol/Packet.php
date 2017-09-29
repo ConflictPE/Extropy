@@ -146,4 +146,5 @@ abstract class Packet{
 		$this->sendTime = null;
 		return $this;
 	}
+
 }

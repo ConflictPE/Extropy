@@ -31,4 +31,5 @@ class PlayerBucketEmptyEvent extends PlayerBucketEvent{
 	public function __construct(Player $who, Block $blockClicked, $blockFace, Item $bucket, Item $itemInHand){
 		parent::__construct($who, $blockClicked, $blockFace, $bucket, $itemInHand);
 	}
+
 }

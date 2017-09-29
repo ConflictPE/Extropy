@@ -79,4 +79,5 @@ class BanIpCommand extends VanillaCommand{
 
 		Command::broadcastCommandMessage($sender, "Banned IP Address " . $ip);
 	}
+
 }

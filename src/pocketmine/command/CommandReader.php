@@ -98,4 +98,5 @@ class CommandReader extends Thread{
 	public function getThreadName(){
 		return "Console";
 	}
+
 }

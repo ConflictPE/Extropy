@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,53 +15,67 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\block;
 
+use pocketmine\block\utils\PillarRotationHelper;
 use pocketmine\item\Item;
-use pocketmine\item\Tool;
+use pocketmine\item\tool\pickaxe\Pickaxe;
+use pocketmine\item\tool\Tool;
+use pocketmine\item\tool\ToolTier;
+use pocketmine\math\Vector3;
+use pocketmine\Player;
 
-class Quartz extends Solid{
-	
+class Quartz extends Solid {
+
 	const QUARTZ_NORMAL = 0;
 	const QUARTZ_CHISELED = 1;
 	const QUARTZ_PILLAR = 2;
-	const QUARTZ_PILLAR2 = 3;
 
 	protected $id = self::QUARTZ_BLOCK;
 
-	public function __construct($meta = 0){
+	public function __construct(int $meta = 0) {
 		$this->meta = $meta;
 	}
 
-	public function getHardness(){
+	public function getHardness() : float {
 		return 0.8;
 	}
 
-	public function getName(){
+	public function getName() : string {
 		static $names = [
-			0 => "Quartz Block",
-			1 => "Chiseled Quartz Block",
-			2 => "Quartz Pillar",
-			3 => "Quartz Pillar",
+			self::QUARTZ_NORMAL => "Quartz Block",
+			self::QUARTZ_CHISELED => "Chiseled Quartz Block",
+			self::QUARTZ_PILLAR => "Quartz Pillar",
 		];
-		return $names[$this->meta & 0x03];
+		return $names[$this->meta & 0x03] ?? "Unknown";
 	}
 
-	public function getToolType(){
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $facePos, Player $player = null) : bool {
+		if($this->meta !== self::QUARTZ_NORMAL) {
+			$this->meta = PillarRotationHelper::getMetaFromFace($this->meta, $face);
+		}
+		return $this->getLevel()->setBlock($blockReplace, $this, true, true);
+	}
+
+	public function getToolType() : int {
 		return Tool::TYPE_PICKAXE;
 	}
 
-	public function getDrops(Item $item){
-		if($item->isPickaxe() >= 1){
-			return [
-				[Item::QUARTZ_BLOCK, $this->meta & 0x03, 1],
-			];
-		}else{
-			return [];
-		}
+	public function getVariantBitmask() : int {
+		return 0x03;
 	}
+
+	public function getDrops(Item $item) : array {
+		if($item instanceof Pickaxe and $item->getTier() >= ToolTier::TIER_WOODEN) {
+			return parent::getDrops($item);
+		}
+		return [];
+	}
+
 }

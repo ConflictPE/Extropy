@@ -49,4 +49,5 @@ class PingCommand extends VanillaCommand{
 		$sender->sendPing();
 		return true;
 	}
+
 }

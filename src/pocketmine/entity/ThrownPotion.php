@@ -22,7 +22,7 @@
 
 namespace pocketmine\entity;
 
-use pocketmine\item\Potion;
+use pocketmine\item\food\Potion;
 use pocketmine\level\format\FullChunk;
 use pocketmine\level\particle\SpellParticle;
 use pocketmine\nbt\tag\Compound;
@@ -48,11 +48,11 @@ class ThrownPotion extends Projectile {
 		}
 		parent::__construct($chunk, $nbt, $shootingEntity);
 		unset($this->dataProperties[self::DATA_SHOOTER_ID]);
-		$this->setDataProperty(self::DATA_POTION_ID, self::DATA_TYPE_SHORT, $this->getPotionId());
+		$this->setDataProperty(self::DATA_POTION_AUX_VALUE, self::DATA_TYPE_SHORT, $this->getPotionId());
 	}
 
 	public function getPotionId() : int {
-		return (int)$this->namedtag["PotionId"];
+		return (int) $this->namedtag["PotionId"];
 	}
 
 	public function onUpdate($currentTick) {
@@ -74,10 +74,10 @@ class ThrownPotion extends Projectile {
 	}
 
 	public function kill() {
-		$color = Potion::getColor($this->getPotionId());
-		$this->getLevel()->addParticle(new SpellParticle($this, $color[0], $color[1], $color[2]));
-		$players = $this->getViewers();
-		foreach($players as $p) {
+		$this->getLevel()->addParticle(new SpellParticle($this, ...Potion::getColor($this->getPotionId())));
+		$this->setGenericFlag(self::DATA_FLAG_HAS_COLLISION, true);
+		$this->getLevel()->broadcastLevelSoundEvent($this->asVector3(), 116);
+		foreach($this->getLevel()->getCollidingEntities($this->getBoundingBox()->expand(8, 4, 8)) as $p) {
 			if($p->distance($this) <= 6) {
 				foreach(Potion::getEffectsById($this->getPotionId()) as $effect) {
 					$p->addEffect($effect);

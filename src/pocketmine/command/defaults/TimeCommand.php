@@ -120,4 +120,5 @@ class TimeCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

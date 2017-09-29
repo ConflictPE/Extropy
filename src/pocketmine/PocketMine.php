@@ -62,16 +62,17 @@ namespace {
 	function dummy(){
 
 	}
+
 }
 
 namespace pocketmine {
+
 	use pocketmine\utils\Binary;
 	use pocketmine\utils\MainLogger;
 	use pocketmine\utils\ServerKiller;
 	use pocketmine\utils\Terminal;
 	use pocketmine\utils\Utils;
 	use pocketmine\wizard\Installer;
-
 	const VERSION = '1.6.0-hybrid';
 	const CODENAME = "刀 (Katana)";
 	const MINECRAFT_VERSION = "v1.1.0 - v1.2.0";
@@ -144,6 +145,7 @@ namespace pocketmine {
 	//Logger has a dependency on timezone, so we'll set it to UTC until we can get the actual timezone.
 	date_default_timezone_set("UTC");
 	$logger = new MainLogger(\pocketmine\DATA . "server.log", \pocketmine\ANSI);
+	$logger->registerStatic();
 
 	if(!ini_get("date.timezone")){
 		if(($timezone = detect_system_timezone()) and date_default_timezone_set($timezone)){
@@ -319,8 +321,8 @@ namespace pocketmine {
 			case "linux":
 			default:
 				exec("kill -9 " . ((int) $pid) . " > /dev/null 2>&1");
-				}
 		}
+	}
 
 	/**
 	 * @param object $value
@@ -459,13 +461,16 @@ namespace pocketmine {
 
 	$logger->info("Stopping other threads");
 
-	foreach(ThreadManager::getInstance()->getAll() as $id => $thread){
-		$logger->debug("Stopping " . (new \ReflectionClass($thread))->getShortName() . " thread");
-		$thread->quit();
-	}
-
 	$killer = new ServerKiller(8);
 	$killer->start();
+	usleep(10000); //Fixes ServerKiller not being able to start on single-core machines
+
+	if(ThreadManager::getInstance()->stopAll() > 0){
+		if(\pocketmine\DEBUG > 1) {
+			echo "Some threads could not be stopped, performing a force-kill" . PHP_EOL . PHP_EOL;
+		}
+		kill(getmypid());
+	}
 
 	$logger->shutdown();
 	$logger->join();

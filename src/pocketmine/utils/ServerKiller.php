@@ -40,14 +40,9 @@ class ServerKiller extends Thread {
 		$this->synchronized(function() {
 			$this->wait($this->time * 1000000);
 		});
-		if (time() - $start >= $this->time) {
+		if(time() - $start >= $this->time) {
 			echo "\nTook too long to stop, server was killed forcefully!\n";
-			$uname = php_uname("s");
-			if (stripos($uname, "Win") !== false or $uname === "Msys") {
-				exec("taskkill.exe /F /PID " . ((int) getmypid()) . " > NUL");
-			} else {
-				exec("kill -9 " . ((int) $pid) . " > /dev/null 2>&1");
-			}
+			@\pocketmine\kill(getmypid());
 		}
 	}
 

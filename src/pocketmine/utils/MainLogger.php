@@ -41,6 +41,7 @@ class MainLogger extends \AttachableThreadedLogger{
 	 * @throws \RuntimeException
 	 */
 	public function __construct($logFile, $logDebug = false){
+		parent::__construct();
 		if(static::$logger instanceof MainLogger){
 			throw new \RuntimeException("MainLogger has been already created");
 		}
@@ -54,6 +55,18 @@ class MainLogger extends \AttachableThreadedLogger{
 	 */
 	public static function getLogger(){
 		return static::$logger;
+	}
+
+	/**
+	 * Assigns the MainLogger instance to the {@link MainLogger#logger} static property.
+	 *
+	 * WARNING: Because static properties are thread-local, this MUST be called from the body of every Thread if you
+	 * want the logger to be accessible via {@link MainLogger#getLogger}.
+	 */
+	public function registerStatic(){
+		if(static::$logger === null){
+			static::$logger = $this;
+		}
 	}
 
 	public function emergency($message){
@@ -210,4 +223,5 @@ class MainLogger extends \AttachableThreadedLogger{
 	public function run(){
 		$this->shutdown = false;
 	}
+
 }

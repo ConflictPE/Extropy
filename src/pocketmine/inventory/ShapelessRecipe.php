@@ -123,4 +123,5 @@ class ShapelessRecipe implements Recipe{
 	public function registerToCraftingManager(){
 		Server::getInstance()->getCraftingManager()->registerShapelessRecipe($this);
 	}
+
 }

@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,22 +15,33 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\level\generator\object;
 
 use pocketmine\block\Block;
 
 class OreType{
-	public $material, $clusterCount, $clusterSize, $maxHeight, $minHeight;
+	/** @var Block */
+	public $material;
+	/** @var int */
+	public $clusterCount;
+	/** @var int */
+	public $clusterSize;
+	/** @var int */
+	public $maxHeight;
+	/** @var int */
+	public $minHeight;
 
-	public function __construct(Block $material, $clusterCount, $clusterSize, $minHeight, $maxHeight){
+	public function __construct(Block $material, int $clusterCount, int $clusterSize, int $minHeight, int $maxHeight){
 		$this->material = $material;
-		$this->clusterCount = (int) $clusterCount;
-		$this->clusterSize = (int) $clusterSize;
-		$this->maxHeight = (int) $maxHeight;
-		$this->minHeight = (int) $minHeight;
+		$this->clusterCount = $clusterCount;
+		$this->clusterSize = $clusterSize;
+		$this->maxHeight = $maxHeight;
+		$this->minHeight = $minHeight;
 	}
 }

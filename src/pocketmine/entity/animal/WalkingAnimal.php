@@ -2,16 +2,15 @@
 
 namespace pocketmine\entity\animal;
 
-use pocketmine\entity\WalkingEntity;
 use pocketmine\entity\Effect;
 use pocketmine\entity\Entity;
+use pocketmine\entity\WalkingEntity;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\Timings;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
 
 abstract class WalkingAnimal extends WalkingEntity implements Animal{
-	
+
 	protected $waterTick = 0;
 
 	public function getSpeed(){
@@ -44,7 +43,7 @@ abstract class WalkingAnimal extends WalkingEntity implements Animal{
 			}
 			$this->setDataProperty(Entity::DATA_AIR, Entity::DATA_TYPE_SHORT, $airTicks);
 		}else{
-			$this->setDataProperty(Entity::DATA_AIR, Entity::DATA_TYPE_SHORT, 300);
+			$this->setDataProperty(Entity::DATA_AIR, Entity::DATA_TYPE_SHORT, 400);
 		}
 
 		//Timings::$timerEntityBaseTick->stopTiming();

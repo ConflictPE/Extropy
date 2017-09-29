@@ -2,13 +2,13 @@
 
 namespace pocketmine\entity\monster\walking;
 
-use pocketmine\entity\monster\WalkingMonster;
 use pocketmine\entity\Ageable;
 use pocketmine\entity\Entity;
+use pocketmine\entity\monster\WalkingMonster;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\Timings;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\Level;
 
 class Zombie extends WalkingMonster implements Ageable{
@@ -85,16 +85,17 @@ class Zombie extends WalkingMonster implements Ageable{
 		if($this->lastDamageCause instanceof EntityDamageByEntityEvent){
 			switch(mt_rand(0, 2)){
 				case 0:
-					$drops[] = Item::get(Item::FEATHER, 0, 1);
+					$drops[] = ItemFactory::get(Item::FEATHER, 0, 1);
 					break;
 				case 1:
-					$drops[] = Item::get(Item::CARROT, 0, 1);
+					$drops[] = ItemFactory::get(Item::CARROT, 0, 1);
 					break;
 				case 2:
-					$drops[] = Item::get(Item::POTATO, 0, 1);
+					$drops[] = ItemFactory::get(Item::POTATO, 0, 1);
 					break;
 			}
 		}
 		return $drops;
 	}
+
 }

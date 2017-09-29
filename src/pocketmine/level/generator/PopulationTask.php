@@ -19,19 +19,17 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\level\generator;
 
-
 use pocketmine\level\format\FullChunk;
-
 use pocketmine\level\Level;
 use pocketmine\level\SimpleChunkManager;
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
 
-
 class PopulationTask extends AsyncTask{
-
 
 	public $state;
 	public $levelId;
@@ -54,8 +52,8 @@ class PopulationTask extends AsyncTask{
 		$this->chunk = $chunk->toFastBinary();
 		$this->chunkClass = get_class($chunk);
 
-		for($i = 0; $i < 9; ++$i){
-			if($i === 4){
+		for($i = 0; $i < 9; ++$i) {
+			if($i === 4) {
 				continue;
 			}
 			$xx = -1 + $i % 3;

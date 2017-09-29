@@ -72,15 +72,18 @@ abstract class Thread extends \Thread{
 		$this->isKilled = true;
 
 		$this->notify();
-		
-		if(!$this->isJoined() and !$this->isTerminated()){
-			$this->join();
+
+		if(!$this->isJoined()) {
+			if(!$this->isTerminated()) {
+				$this->join();
+			}
 		}
-		
+
 		ThreadManager::getInstance()->remove($this);
 	}
 
 	public function getThreadName(){
 		return (new \ReflectionClass($this))->getShortName();
 	}
+
 }

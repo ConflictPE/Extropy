@@ -70,4 +70,5 @@ class ArmorSwapTransaction extends BaseTransaction {
 	public function isFoundAll() {
 		return $this->foundTransactions['source'] && $this->foundTransactions['target'];
 	}
+
 }

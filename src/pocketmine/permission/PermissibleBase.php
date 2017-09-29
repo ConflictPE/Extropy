@@ -21,7 +21,6 @@
 
 namespace pocketmine\permission;
 
-use pocketmine\event\Timings;
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
 use pocketmine\utils\PluginException;
@@ -219,4 +218,5 @@ class PermissibleBase implements Permissible{
 	public function getEffectivePermissions(){
 		return $this->permissions;
 	}
+
 }

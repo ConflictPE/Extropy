@@ -19,9 +19,15 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\network\protocol;
 
-class UpdateAttributesPacket extends PEPacket{
+#include <rules/DataPacket.h>
+
+
+class UpdateAttributesPacket extends PEPacket {
+
 	const NETWORK_ID = Info::UPDATE_ATTRIBUTES_PACKET;
 	const PACKET_NAME = "UPDATE_ATTRIBUTES_PACKET";
 
@@ -40,11 +46,11 @@ class UpdateAttributesPacket extends PEPacket{
 	public $name;
 	public $defaultValue;
 
-	public function decode($playerProtocol){
+	public function decode(int $playerProtocol) {
 
 	}
 
-	public function encode($playerProtocol){
+	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
 		$this->putVarInt($this->entityId);
 		$this->putVarInt(1);
@@ -54,4 +60,5 @@ class UpdateAttributesPacket extends PEPacket{
 		$this->putLFloat($this->defaultValue);
 		$this->putString($this->name);
 	}
+
 }

@@ -25,7 +25,7 @@
  */
 namespace pocketmine;
 
-use pocketmine\block\Block;
+use pocketmine\block\BlockFactory;
 use pocketmine\command\CommandReader;
 use pocketmine\command\CommandSender;
 use pocketmine\command\ConsoleCommandSender;
@@ -34,13 +34,13 @@ use pocketmine\command\SimpleCommandMap;
 use pocketmine\entity\Arrow;
 use pocketmine\entity\Attribute;
 use pocketmine\entity\Effect;
+use pocketmine\entity\Egg;
 use pocketmine\entity\Entity;
 use pocketmine\entity\FallingSand;
 use pocketmine\entity\Human;
 use pocketmine\entity\Item as DroppedItem;
 use pocketmine\entity\PrimedTNT;
 use pocketmine\entity\Snowball;
-use pocketmine\entity\Egg;
 use pocketmine\entity\Squid;
 use pocketmine\entity\ThrownPotion;
 use pocketmine\entity\Villager;
@@ -57,11 +57,12 @@ use pocketmine\inventory\Recipe;
 use pocketmine\inventory\ShapedRecipe;
 use pocketmine\inventory\ShapelessRecipe;
 use pocketmine\item\enchantment\Enchantment;
-use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\format\anvil\Anvil;
-use pocketmine\level\format\pmanvil\PMAnvil;
 use pocketmine\level\format\LevelProviderManager;
 use pocketmine\level\format\mcregion\McRegion;
+use pocketmine\level\format\pmanvil\PMAnvil;
+use pocketmine\level\generator\biome\Biome;
 use pocketmine\level\Level;
 use pocketmine\metadata\EntityMetadataStore;
 use pocketmine\metadata\LevelMetadataStore;
@@ -76,11 +77,11 @@ use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\LongTag;
 use pocketmine\nbt\tag\ShortTag;
 use pocketmine\nbt\tag\StringTag;
-use pocketmine\network\CompressBatchedTask;
 use pocketmine\network\Network;
 use pocketmine\network\protocol\BatchPacket;
 use pocketmine\network\protocol\CraftingDataPacket;
 use pocketmine\network\protocol\DataPacket;
+use pocketmine\network\protocol\Info;
 use pocketmine\network\protocol\PlayerListPacket;
 use pocketmine\network\query\QueryHandler;
 use pocketmine\network\RakLibInterface;
@@ -94,18 +95,18 @@ use pocketmine\plugin\Plugin;
 use pocketmine\plugin\PluginLoadOrder;
 use pocketmine\plugin\PluginManager;
 use pocketmine\scheduler\CallbackTask;
+use pocketmine\scheduler\FileWriteTask;
 use pocketmine\scheduler\GarbageCollectionTask;
-use pocketmine\scheduler\SendUsageTask;
 use pocketmine\scheduler\ServerScheduler;
 use pocketmine\tile\Bed;
 use pocketmine\tile\Cauldron;
 use pocketmine\tile\Chest;
 use pocketmine\tile\EnchantTable;
 use pocketmine\tile\EnderChest;
+use pocketmine\tile\FlowerPot;
 use pocketmine\tile\Furnace;
 use pocketmine\tile\Sign;
 use pocketmine\tile\Skull;
-use pocketmine\tile\FlowerPot;
 use pocketmine\tile\Tile;
 use pocketmine\utils\Binary;
 use pocketmine\utils\Cache;
@@ -113,38 +114,11 @@ use pocketmine\utils\Config;
 use pocketmine\utils\LevelException;
 use pocketmine\utils\MainLogger;
 use pocketmine\utils\ServerException;
-use pocketmine\utils\Terminal;
 use pocketmine\utils\TextFormat;
 use pocketmine\utils\TextWrapper;
 use pocketmine\utils\Utils;
 use pocketmine\utils\UUID;
 use pocketmine\utils\VersionString;
-use pocketmine\network\protocol\Info;
-use pocketmine\level\generator\biome\Biome;
-use pocketmine\scheduler\FileWriteTask;
-use pocketmine\entity\animal\walking\Chicken;
-use pocketmine\entity\animal\walking\Cow;
-use pocketmine\entity\animal\walking\Mooshroom;
-use pocketmine\entity\animal\walking\Ocelot;
-use pocketmine\entity\animal\walking\Pig;
-use pocketmine\entity\animal\walking\Rabbit;
-use pocketmine\entity\animal\walking\Sheep;
-use pocketmine\entity\monster\flying\Blaze;
-use pocketmine\entity\monster\flying\Ghast;
-use pocketmine\entity\monster\walking\CaveSpider;
-use pocketmine\entity\monster\walking\Creeper;
-use pocketmine\entity\monster\walking\Enderman;
-use pocketmine\entity\monster\walking\IronGolem;
-use pocketmine\entity\monster\walking\PigZombie;
-use pocketmine\entity\monster\walking\Silverfish;
-use pocketmine\entity\monster\walking\Skeleton;
-use pocketmine\entity\monster\walking\SnowGolem;
-use pocketmine\entity\monster\walking\Spider;
-use pocketmine\entity\monster\walking\Wolf;
-use pocketmine\entity\monster\walking\Zombie;
-use pocketmine\entity\monster\walking\ZombieVillager;
-use pocketmine\entity\projectile\FireBall;
-use pocketmine\utils\MetadataConvertor;
 
 /**
  * The class that manages everything
@@ -197,7 +171,7 @@ class Server{
 	private $tickAverage = [20, 20, 20, 20, 20];
 	private $useAverage = [20, 20, 20, 20, 20];
 
-	/** @var \AttachableThreadedLogger */
+	/** @var MainLogger */
 	private $logger;
 
 	/** @var CommandReader */
@@ -300,6 +274,12 @@ class Server{
 
 	private $unloadLevelQueue = [];
 
+	/** @var bool */
+	private $doTimeCycle = true;
+
+	/** @var int */
+	private $timeCycleStop = 6000;
+
 	public function addSpawnedEntity($entity) {
 		if ($entity instanceof Player) {
 			return;
@@ -325,6 +305,22 @@ class Server{
 
 	public function getMonsterLimit() {
 		return $this->monsterLimit;
+	}
+
+	public function getDoTimeTimeCycle() : bool {
+		return $this->doTimeCycle;
+	}
+
+	public function setDoTimeCycle(bool $value = true) {
+		$this->doTimeCycle = $value;
+	}
+
+	public function getTimeCycleStopTime() : int {
+		return $this->timeCycleStop;
+	}
+
+	public function setTimeCycleStopTime(int $value = 6000) {
+		$this->timeCycleStop = $value;
 	}
 
 	/**
@@ -634,7 +630,7 @@ class Server{
 	}
 
 	/**
-	 * @return \AttachableThreadedLogger
+	 * @return MainLogger
 	 */
 	public function getLogger(){
 		return $this->logger;
@@ -840,7 +836,7 @@ class Server{
 			]),
 			new FloatTag("FallDistance", 0.0),
 			new ShortTag("Fire", 0),
-			new ShortTag("Air", 300),
+			new ShortTag("Air", 400),
 			new ByteTag("OnGround", 1),
 			new ByteTag("Invulnerable", 0),
 			new StringTag("NameTag", $name),
@@ -1081,6 +1077,10 @@ class Server{
 
 		try{
 			$level = new Level($this, $name, $path, $provider);
+			if(!$this->doTimeCycle) {
+				$level->stopTime(false);
+				$level->setTime($this->timeCycleStop, false);
+			}
 		}catch(\Exception $e){
 
 			$this->logger->error("Could not load level \"" . $name . "\": " . $e->getMessage());
@@ -1450,12 +1450,12 @@ class Server{
 
 	/**
 	 * @param \ClassLoader    $autoloader
-	 * @param \ThreadedLogger $logger
+	 * @param MainLogger      $logger
 	 * @param string          $filePath
 	 * @param string          $dataPath
 	 * @param string          $pluginPath
 	 */
-	public function __construct(\ClassLoader $autoloader, \ThreadedLogger $logger, $filePath, $dataPath, $pluginPath){
+	public function __construct(\ClassLoader $autoloader, MainLogger $logger, $filePath, $dataPath, $pluginPath){
 		self::$instance = $this;
 		self::$serverId =  mt_rand(0, PHP_INT_MAX);
 
@@ -1524,12 +1524,16 @@ class Server{
 			"auto-save" => true,
 			"auto-generate" => false,
 			"save-player-data" => false,
-			"time-update" => true
+			"time-update" => true,
+			"time-lock" => 6000
 		]);
 
 		ServerScheduler::$WORKERS = 4;
 
 		$this->scheduler = new ServerScheduler();
+
+		$this->doTimeCycle = $this->getConfigBoolean("time-update");
+		$this->timeCycleStop = $this->getConfigInt("time-lock");
 
 		if($this->getConfigBoolean("enable-rcon", false) === true){
 			$this->rcon = new RCON($this, $this->getConfigString("rcon.password", ""), $this->getConfigInt("rcon.port", $this->getPort()), ($ip = $this->getIp()) != "" ? $ip : "0.0.0.0", $this->getConfigInt("rcon.threads", 1), $this->getConfigInt("rcon.clients-per-thread", 50));
@@ -1612,12 +1616,12 @@ class Server{
 		$this->registerTiles();
 
 		InventoryType::init();
-		Block::init();
+		BlockFactory::init();
 		Enchantment::init();
-		Item::init();
+		ItemFactory::init();
 		Biome::init();
 		TextWrapper::init();
-		MetadataConvertor::init();
+		Effect::init();
 		$this->craftingManager = new CraftingManager();
 
 		$this->pluginManager = new PluginManager($this, $this->commandMap);
@@ -2004,7 +2008,6 @@ class Server{
 	 */
 	public function shutdown(){
 		$this->isRunning = false;
-		\gc_collect_cycles();
 	}
 
 	public function forceShutdown(){
@@ -2015,18 +2018,15 @@ class Server{
 		try{
 			$this->hasStopped = true;
 
-			foreach($this->players as $player){
-				$player->close(TextFormat::YELLOW . $player->getName() . " has left the game", $this->getProperty("settings.shutdown-message", "Server closed"));
-			}
-
-			foreach($this->network->getInterfaces() as $interface){
-				$interface->shutdown();
-				$this->network->unregisterInterface($interface);
-			}
-
 			$this->shutdown();
+
 			if($this->rcon instanceof RCON){
 				$this->rcon->stop();
+			}
+
+			if($this->pluginManager instanceof PluginManager) {
+				$this->getLogger()->debug("Disabling all plugins");
+				$this->pluginManager->disablePlugins();
 			}
 
 			if($this->getProperty("settings.upnp-forwarding", false) === true){
@@ -2034,22 +2034,39 @@ class Server{
 				UPnP::RemovePortForward($this->getPort());
 			}
 
-			$this->pluginManager->disablePlugins();
+			foreach($this->players as $player){
+				$player->close(TextFormat::YELLOW . $player->getName() . " has left the game", $this->getProperty("settings.shutdown-message", "Server closed"));
+			}
 
+			$this->getLogger()->debug("Unloading all levels");
 			foreach($this->getLevels() as $level){
 				$this->unloadLevel($level, true, true);
 			}
 
+			$this->getLogger()->debug("Removing event handlers");
 			HandlerList::unregisterAll();
 
-			$this->scheduler->cancelAllTasks();
-			$this->scheduler->mainThreadHeartbeat(PHP_INT_MAX);
+			if($this->scheduler instanceof ServerScheduler) {
+				$this->getLogger()->debug("Stopping all tasks");
+				$this->scheduler->cancelAllTasks();
+				$this->scheduler->mainThreadHeartbeat(PHP_INT_MAX);
+			}
 
+			$this->getLogger()->debug("Saving properties");
 			$this->properties->save();
 
-			$this->console->shutdown();
+			$this->getLogger()->debug("Closing console");
 			$this->console->notify();
+			$this->console->shutdown();
+
+			foreach($this->network->getInterfaces() as $interface){
+				$interface->shutdown();
+				$this->network->unregisterInterface($interface);
+			}
+
+			gc_collect_cycles();
 		}catch(\Exception $e){
+			$this->logger->logException($e);
 			$this->logger->emergency("Crashed while crashing, killing process");
 			@kill(getmypid());
 		}
@@ -2093,12 +2110,9 @@ class Server{
 			$this->getScheduler()->scheduleRepeatingTask(new CallbackTask("pcntl_signal_dispatch"), 5);
 		}
 
-
 		$this->getScheduler()->scheduleRepeatingTask(new CallbackTask([$this, "checkTicks"]), 20 * 5);
 
 		$this->logger->info("Default game type: " . self::getGamemodeString($this->getGamemode()));
-
-		Effect::init();
 
 		$this->logger->info("Done (" . round(microtime(true) - \pocketmine\START_TIME, 3) . 's)! For help, type "help" or "?"');
 

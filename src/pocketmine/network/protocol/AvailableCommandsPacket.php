@@ -19,11 +19,17 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\network\protocol;
+
+#include <rules/DataPacket.h>
+
 
 use pocketmine\utils\BinaryStream;
 
-class AvailableCommandsPacket extends PEPacket{
+class AvailableCommandsPacket extends PEPacket {
+
 	const NETWORK_ID = Info::AVAILABLE_COMMANDS_PACKET;
 	const PACKET_NAME = "AVAILABLE_COMMANDS_PACKET";
 
@@ -31,16 +37,17 @@ class AvailableCommandsPacket extends PEPacket{
 
 	public $commands = "";
 
-	public function decode($playerProtocol){
+	public function decode(int $playerProtocol) {
+
 	}
 
-	public function encode($playerProtocol){
+	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
 		if($this->commands === "") {
 			if(isset(self::$commandsBuffer[$playerProtocol])) {
 				$this->put(self::$commandsBuffer[$playerProtocol]);
 			} else {
-				$this->putString(self::$commandsBuffer['default']);
+				$this->putString(self::$commandsBuffer["default"]);
 			}
 		} else {
 			$this->putString($this->commands);
@@ -62,25 +69,25 @@ class AvailableCommandsPacket extends PEPacket{
 	const ARG_TYPE_COMMAND  = 0x1c;
 
 	public static function prepareCommands($commands) {
-		self::$commandsBuffer['default'] = json_encode($commands);
+		self::$commandsBuffer["default"] = json_encode($commands);
 
 		$enumValues = [];
 		$enumValuesCount = 0;
 		$enumAdditional = [];
 		$enums = [];
 		$commandsStream = new BinaryStream();
-		foreach ($commands as $commandName => $commandData) {
-			if ($commandName == 'help') { //temp fix for 1.2
+		foreach($commands as $commandName => $commandData) {
+			if($commandName == "help") { //temp fix for 1.2
 				continue;
 			}
 			$commandsStream->putString($commandName);
-			$commandsStream->putString($commandData['versions'][0]['description']);
+			$commandsStream->putString($commandData["versions"][0]["description"]);
 			$commandsStream->putByte(0); // flags
 			$commandsStream->putByte(0); // permission level
-			if (isset($commandData['versions'][0]['aliases']) && !empty($commandData['versions'][0]['aliases'])) {
+			if(isset($commandData["versions"][0]["aliases"]) && !empty($commandData["versions"][0]["aliases"])) {
 				$aliases = [];
-				foreach ($commandData['versions'][0]['aliases'] as $alias) {
-					if (!isset($enumAdditional[$alias])) {
+				foreach($commandData["versions"][0]["aliases"] as $alias) {
+					if(!isset($enumAdditional[$alias])) {
 						$enumValues[$enumValuesCount] = $alias;
 						$enumAdditional[$alias] = $enumValuesCount;
 						$targetIndex = $enumValuesCount;
@@ -91,51 +98,51 @@ class AvailableCommandsPacket extends PEPacket{
 					$aliases[] = $targetIndex;
 				}
 				$enums[] = [
-					'name' => $commandName . 'CommandAliases',
-					'data' => $aliases,
+					"name" => $commandName . "CommandAliases",
+					"data" => $aliases,
 				];
 				$aliasesEnumId = count($enums) - 1;
 			} else {
 				$aliasesEnumId = -1;
 			}
 			$commandsStream->putLInt($aliasesEnumId);
-			$commandsStream->putVarInt(count($commandData['versions'][0]['overloads'])); // overloads
-			foreach ($commandData['versions'][0]['overloads'] as $overloadData) {
-				$commandsStream->putVarInt(count($overloadData['input']['parameters']));
-				$paramNum = count($overloadData['input']['parameters']);
-				foreach ($overloadData['input']['parameters'] as $paramData) {
-					$commandsStream->putString($paramData['name']);
+			$commandsStream->putVarInt(count($commandData["versions"][0]["overloads"])); // overloads
+			foreach($commandData["versions"][0]["overloads"] as $overloadData) {
+				$commandsStream->putVarInt(count($overloadData["input"]["parameters"]));
+				$paramNum = count($overloadData["input"]["parameters"]);
+				foreach($overloadData["input"]["parameters"] as $paramData) {
+					$commandsStream->putString($paramData["name"]);
 					// rawtext type cause problems on some types of clients
-					$isParamOneAndOptional = ($paramNum == 1 && isset($paramData['optional']) && $paramData['optional']);
-					if ($paramData['type'] == "rawtext" && ($paramNum > 1 || $isParamOneAndOptional)) {
-						$commandsStream->putLInt(self::ARG_FLAG_VALID | self::getFlag('string'));
+					$isParamOneAndOptional = ($paramNum == 1 && isset($paramData["optional"]) && $paramData["optional"]);
+					if($paramData["type"] == "rawtext" && ($paramNum > 1 || $isParamOneAndOptional)) {
+						$commandsStream->putLInt(self::ARG_FLAG_VALID | self::getFlag("string"));
 					} else {
-						$commandsStream->putLInt(self::ARG_FLAG_VALID | self::getFlag($paramData['type']));
+						$commandsStream->putLInt(self::ARG_FLAG_VALID | self::getFlag($paramData["type"]));
 					}
-					$commandsStream->putByte(isset($paramData['optional']) && $paramData['optional']);
+					$commandsStream->putBool(isset($paramData["optional"]) && $paramData["optional"]);
 				}
 			}
 		}
 
 		$additionalDataStream = new BinaryStream();
 		$additionalDataStream->putVarInt($enumValuesCount);
-		for ($i = 0; $i < $enumValuesCount; $i++) {
+		for($i = 0; $i < $enumValuesCount; $i++) {
 			$additionalDataStream->putString($enumValues[$i]);
 		}
 		$additionalDataStream->putVarInt(0);
 		$enumsCount = count($enums);
 		$additionalDataStream->putVarInt($enumsCount);
-		for ($i = 0; $i < $enumsCount; $i++) {
-			$additionalDataStream->putString($enums[$i]['name']);
-			$dataCount = count($enums[$i]['data']);
+		for($i = 0; $i < $enumsCount; $i++) {
+			$additionalDataStream->putString($enums[$i]["name"]);
+			$dataCount = count($enums[$i]["data"]);
 			$additionalDataStream->putVarInt($dataCount);
-			for ($j = 0; $j < $dataCount; $j++) {
-				if ($enumValuesCount < 256) {
-					$additionalDataStream->putByte($enums[$i]['data'][$j]);
-				} else if ($enumValuesCount < 65536) {
-					$additionalDataStream->putLShort($enums[$i]['data'][$j]);
+			for($j = 0; $j < $dataCount; $j++) {
+				if($enumValuesCount < 256) {
+					$additionalDataStream->putByte($enums[$i]["data"][$j]);
+				} elseif($enumValuesCount < 65536) {
+					$additionalDataStream->putLShort($enums[$i]["data"][$j]);
 				} else {
-					$additionalDataStream->putLInt($enums[$i]['data'][$j]);
+					$additionalDataStream->putLInt($enums[$i]["data"][$j]);
 				}
 			}
 		}
@@ -175,4 +182,5 @@ class AvailableCommandsPacket extends PEPacket{
 		}
 		return 0;
 	}
+
 }

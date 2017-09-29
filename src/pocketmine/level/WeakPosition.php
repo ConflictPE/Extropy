@@ -87,4 +87,5 @@ class WeakPosition extends Position{
 	public function __toString(){
 		return "Weak" . parent::__toString();
 	}
+
 }

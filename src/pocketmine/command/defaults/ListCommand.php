@@ -24,7 +24,6 @@ namespace pocketmine\command\defaults;
 use pocketmine\command\CommandSender;
 use pocketmine\Player;
 
-
 class ListCommand extends VanillaCommand{
 
 	public function __construct($name){
@@ -55,4 +54,5 @@ class ListCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

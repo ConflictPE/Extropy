@@ -27,7 +27,6 @@ namespace pocketmine\event\plugin;
 use pocketmine\event\Event;
 use pocketmine\plugin\Plugin;
 
-
 abstract class PluginEvent extends Event{
 
 	/** @var Plugin */
@@ -43,4 +42,5 @@ abstract class PluginEvent extends Event{
 	public function getPlugin(){
 		return $this->plugin;
 	}
+
 }

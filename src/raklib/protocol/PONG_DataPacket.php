@@ -37,4 +37,5 @@ class PONG_DataPacket extends Packet{
         parent::decode();
         $this->pingID = $this->getLong();
     }
+
 }

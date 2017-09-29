@@ -68,4 +68,5 @@ abstract class DataPacket extends Packet{
 		$this->seqNumber = null;
 		return parent::clean();
 	}
+
 }

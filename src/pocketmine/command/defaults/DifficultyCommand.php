@@ -21,9 +21,7 @@
 
 namespace pocketmine\command\defaults;
 
-use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
-use pocketmine\network\Network;
 use pocketmine\network\protocol\SetDifficultyPacket;
 use pocketmine\Server;
 use pocketmine\utils\TextFormat;
@@ -70,4 +68,5 @@ class DifficultyCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

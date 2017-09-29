@@ -21,19 +21,19 @@
 
 namespace pocketmine\level\format\mcregion;
 
+use pocketmine\entity\Human;
 use pocketmine\level\format\generic\BaseFullChunk;
 use pocketmine\level\format\LevelProvider;
 use pocketmine\nbt\NBT;
-use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\ByteArray;
+use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\Enum;
-use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\IntArray;
+use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\LongTag;
 use pocketmine\utils\Binary;
 use pocketmine\utils\BinaryStream;
-use pocketmine\entity\Human;
 
 class Chunk extends BaseFullChunk{
 
@@ -452,4 +452,5 @@ class Chunk extends BaseFullChunk{
 		$this->nbt->LightPopulated = new ByteTag("LightPopulated", $value ? 1 : 0);
 		$this->hasChanged = true;
 	}
+
 }

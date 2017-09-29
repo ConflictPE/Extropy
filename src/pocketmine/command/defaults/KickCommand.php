@@ -65,4 +65,5 @@ class KickCommand extends VanillaCommand{
 
 		return true;
 	}
+
 }

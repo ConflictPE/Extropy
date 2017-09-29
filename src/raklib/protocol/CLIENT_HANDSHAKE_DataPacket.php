@@ -49,4 +49,5 @@ class CLIENT_HANDSHAKE_DataPacket extends Packet{
         $this->sendPing = $this->getLong();
         $this->sendPong = $this->getLong();
     }
+
 }

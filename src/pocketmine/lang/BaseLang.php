@@ -200,4 +200,5 @@ class BaseLang{
 
 		return $newString;
 	}
+
 }

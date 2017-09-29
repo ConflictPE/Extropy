@@ -45,4 +45,5 @@ class OPEN_CONNECTION_REPLY_2 extends Packet{
         $this->mtuSize = $this->getShort();
         //server security
     }
+
 }

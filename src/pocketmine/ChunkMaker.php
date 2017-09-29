@@ -2,10 +2,10 @@
 
 namespace pocketmine;
 
-use pocketmine\utils\Binary;
-use pocketmine\network\protocol\FullChunkDataPacket;
 use pocketmine\network\protocol\DataPacket;
+use pocketmine\network\protocol\FullChunkDataPacket;
 use pocketmine\network\protocol\Info;
+use pocketmine\utils\Binary;
 
 class ChunkMaker extends Worker {
 
@@ -163,7 +163,6 @@ class ChunkMaker extends Worker {
 			$pk = new FullChunkDataPacket();
 			$pk->chunkX = $data['chunkX'];
 			$pk->chunkZ = $data['chunkZ'];
-			$pk->order = FullChunkDataPacket::ORDER_COLUMNS;
 
 			if($protocol >= Info::PROTOCOL_120) {
 				$pk->data = $chunkData120;

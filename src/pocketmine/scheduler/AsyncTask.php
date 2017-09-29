@@ -21,8 +21,9 @@
 
 namespace pocketmine\scheduler;
 
-use pocketmine\Server;
 use pocketmine\Collectable;
+use pocketmine\Server;
+use pocketmine\utils\MainLogger;
 
 /**
  * Class used to run async tasks in other threads.
@@ -31,18 +32,26 @@ use pocketmine\Collectable;
  */
 abstract class AsyncTask extends Collectable{
 
+	/** @var AsyncWorker $worker */
+	public $worker = null;
+
 	private $result = null;
 	/** @var int */
 	private $taskId = null;
-	
 	protected $isFinished = false;
 
-	public function run(){		
+	public function run(){
 		$this->result = null;
 
-		$this->onRun();
-		$this->isFinished = true;
-		//$this->setGarbage();
+		try{
+			$this->onRun();
+			$this->isFinished = true;
+		}catch(\Throwable $e){
+			$this->getLogger()->debug("Encountered " . (new \ReflectionObject($e))->getShortName() . " while trying to run async task " . (new \ReflectionObject($this))->getShortName() . " on " . $this->worker->getThreadName() . ".");
+			$this->getLogger()->logException($e);
+		}
+
+		$this->setGarbage();
 	}
 
 	/**
@@ -125,7 +134,7 @@ abstract class AsyncTask extends Collectable{
 		global $store;
 		return $this->isFinished() ? null : $store[$identifier];
 	}
-	
+
 	/**
 	 * @return bool
 	 */
@@ -148,6 +157,10 @@ abstract class AsyncTask extends Collectable{
 		return $this->taskId;
 	}
 
+	public function getLogger() : MainLogger {
+		return $this->worker->getLogger();
+	}
+
 	/**
 	 * Actions to execute when run
 	 *
@@ -166,7 +179,7 @@ abstract class AsyncTask extends Collectable{
 	public function onCompletion(Server $server){
 
 	}
-	
+
 	public function cleanObject(){
 		foreach($this as $p => $v){
 			if(!($v instanceof \Threaded)){
@@ -181,5 +194,5 @@ abstract class AsyncTask extends Collectable{
 			$store[$identifier] = $value;
 		}
 	}
-	
+
 }

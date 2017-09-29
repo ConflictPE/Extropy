@@ -4,10 +4,11 @@ namespace pocketmine\entity\animal\walking;
 
 use pocketmine\entity\animal\WalkingAnimal;
 use pocketmine\entity\Colorable;
-use pocketmine\item\Item;
-use pocketmine\Player;
-use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\entity\Creature;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
+use pocketmine\Player;
 
 class Sheep extends WalkingAnimal implements Colorable{
 	const NETWORK_ID = 13;
@@ -34,7 +35,7 @@ class Sheep extends WalkingAnimal implements Colorable{
 
 	public function getDrops(){
 		if($this->lastDamageCause instanceof EntityDamageByEntityEvent){
-			return [Item::get(Item::WOOL, mt_rand(0, 15), 1)];
+			return [ItemFactory::get(Item::WOOL, mt_rand(0, 15), 1)];
 		}
 		return [];
 	}

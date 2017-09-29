@@ -102,4 +102,5 @@ class WhitelistCommand extends VanillaCommand{
 
 		return false;
 	}
+
 }

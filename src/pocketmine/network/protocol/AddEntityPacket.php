@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,20 +15,24 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\network\protocol;
 
 #include <rules/DataPacket.h>
+
 
 #ifndef COMPILE
 use pocketmine\utils\Binary;
 
 #endif
 
-class AddEntityPacket extends PEPacket{
+class AddEntityPacket extends PEPacket {
+
 	const NETWORK_ID = Info::ADD_ENTITY_PACKET;
 	const PACKET_NAME = "ADD_ENTITY_PACKET";
 
@@ -37,49 +41,45 @@ class AddEntityPacket extends PEPacket{
 	public $x;
 	public $y;
 	public $z;
-	public $speedX;
-	public $speedY;
-	public $speedZ;
-	public $yaw;
-	public $pitch;
+	public $speedX = 0.0;
+	public $speedY = 0.0;
+	public $speedZ= 0.0;
+	public $yaw = 0.0;
+	public $pitch = 0.0;
 	public $metadata = [];
 	public $links = [];
 	public $attributes = [];
 
-	public function decode($playerProtocol){
-
+	public function decode(int $playerProtocol) {
 	}
 
-	public function encode($playerProtocol){
-		$this->reset($playerProtocol);		
-		$this->putVarInt($this->eid);
+	public function encode(int $playerProtocol) {
+		$this->reset($playerProtocol);
+		$this->putVarInt($this->eid); // TODO: correct eid and runtimeId's
 		$this->putVarInt($this->eid);
 		$this->putVarInt($this->type);
-		$this->putLFloat($this->x);
-		$this->putLFloat($this->y);
-		$this->putLFloat($this->z);
-		$this->putLFloat($this->speedX);
-		$this->putLFloat($this->speedY);
-		$this->putLFloat($this->speedZ);
+		$this->putVector3f($this->x, $this->y, $this->z);
+		$this->putVector3f($this->speedX, $this->speedY, $this->speedZ);
 		$this->putLFloat($this->pitch);
 		$this->putLFloat($this->yaw);
+
 		$this->putVarInt(count($this->attributes));
-		foreach ($this->attributes as $attribute) {
+		foreach($this->attributes as $attribute) {
 			$this->putString($attribute['name']);
 			$this->putLFloat($attribute['min']);
 			$this->putLFloat($attribute['default']);
-			$this->putLFloat($attribute['max']);			
+			$this->putLFloat($attribute['max']);
 		}
-		if(!empty($this->metadata)) {
-			$meta = Binary::writeMetadata($this->metadata, $playerProtocol);
-			$this->put($meta);
-		}
+
+		$this->put(Binary::writeMetadata($this->metadata, $playerProtocol));
+
 		$this->putVarInt(count($this->links));
-		foreach ($this->links as $link) {
+		foreach($this->links as $link) {
 			$this->putVarInt($link['from']);
 			$this->putVarInt($link['to']);
 			$this->putByte($link['type']);
 			$this->putByte(0);
 		}
 	}
+
 }

@@ -58,4 +58,5 @@ class TransferCommand extends VanillaCommand{
 		$sender->transfer($address, $port);
 		
 	}
+
 }

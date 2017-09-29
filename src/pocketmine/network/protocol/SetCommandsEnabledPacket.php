@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,24 +15,31 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\network\protocol;
 
-class SetCommandsEnabledPacket extends PEPacket{
+#include <rules/DataPacket.h>
+
+
+class SetCommandsEnabledPacket extends PEPacket {
+
 	const NETWORK_ID = Info::SET_COMMANDS_ENABLED_PACKET;
 	const PACKET_NAME = "SET_COMMANDS_ENABLED_PACKET";
-	
+
 	public $enabled;
-	
-	public function decode($playerProtocol){
-	
+
+	public function decode(int $playerProtocol) {
+
 	}
-	
-	public function encode($playerProtocol){
+
+	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
 		$this->putByte($this->enabled);
 	}
+
 }

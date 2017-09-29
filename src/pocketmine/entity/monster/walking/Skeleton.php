@@ -2,16 +2,16 @@
 
 namespace pocketmine\entity\monster\walking;
 
-use pocketmine\entity\monster\WalkingMonster;
 use pocketmine\entity\Entity;
+use pocketmine\entity\monster\WalkingMonster;
 use pocketmine\entity\Projectile;
 use pocketmine\entity\ProjectileSource;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityShootBowEvent;
 use pocketmine\event\entity\ProjectileLaunchEvent;
-use pocketmine\event\Timings;
 use pocketmine\item\Bow;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\Level;
 use pocketmine\level\sound\LaunchSound;
 use pocketmine\nbt\tag\Compound;
@@ -58,7 +58,7 @@ class Skeleton extends WalkingMonster implements ProjectileSource{
 			/** @var Projectile $arrow */
 			$arrow = Entity::createEntity("Arrow", $this->chunk, $nbt, $this);
 
-			$ev = new EntityShootBowEvent($this, Item::get(Item::ARROW, 0, 1), $arrow, $f);
+			$ev = new EntityShootBowEvent($this, ItemFactory::get(Item::ARROW, 0, 1), $arrow, $f);
 			$this->server->getPluginManager()->callEvent($ev);
 
 			$projectile = $ev->getProjectile();
@@ -107,8 +107,8 @@ class Skeleton extends WalkingMonster implements ProjectileSource{
 	public function getDrops(){
 		if($this->lastDamageCause instanceof EntityDamageByEntityEvent){
 			return [
-				Item::get(Item::BONE, 0, mt_rand(0, 2)),
-				Item::get(Item::ARROW, 0, mt_rand(0, 3)),
+				ItemFactory::get(Item::BONE, 0, mt_rand(0, 2)),
+				ItemFactory::get(Item::ARROW, 0, mt_rand(0, 3)),
 			];
 		}
 		return [];

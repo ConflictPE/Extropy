@@ -3,9 +3,9 @@
 namespace pocketmine\entity\animal\walking;
 
 use pocketmine\entity\animal\WalkingAnimal;
-use pocketmine\Player;
-use pocketmine\item\Item;
 use pocketmine\entity\Creature;
+use pocketmine\item\Item;
+use pocketmine\Player;
 
 class Ocelot extends WalkingAnimal{
 	const NETWORK_ID = 22;
@@ -37,4 +37,5 @@ class Ocelot extends WalkingAnimal{
 	public function getDrops(){
 		return [];
 	}
+
 }

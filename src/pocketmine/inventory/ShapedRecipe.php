@@ -22,9 +22,10 @@
 namespace pocketmine\inventory;
 
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
+use pocketmine\math\Vector2;
 use pocketmine\Server;
 use pocketmine\utils\UUID;
-use pocketmine\math\Vector2;
 
 class ShapedRecipe implements Recipe{
 	/** @var Item */
@@ -131,7 +132,7 @@ class ShapedRecipe implements Recipe{
 				if($ingredient !== null){
 					$ingredients[$y][$x] = clone $ingredient;
 				}else{
-					$ingredients[$y][$x] = Item::get(Item::AIR);
+					$ingredients[$y][$x] = ItemFactory::get(Item::AIR);
 				}
 			}
 		}
@@ -145,7 +146,7 @@ class ShapedRecipe implements Recipe{
 	 * @return null|Item
 	 */
 	public function getIngredient($x, $y){
-		return isset($this->ingredients[$y][$x]) ? $this->ingredients[$y][$x] : Item::get(Item::AIR);
+		return isset($this->ingredients[$y][$x]) ? $this->ingredients[$y][$x] : ItemFactory::get(Item::AIR);
 	}
 
 	/**
@@ -158,4 +159,5 @@ class ShapedRecipe implements Recipe{
 	public function registerToCraftingManager(){
 		Server::getInstance()->getCraftingManager()->registerShapedRecipe($this);
 	}
+
 }
