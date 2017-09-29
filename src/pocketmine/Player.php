@@ -2022,7 +2022,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 									}
 								}
 							}
-							$this->currentWindow->setItem(0, ProtocolInfo::get(Item::AIR));
+							$this->currentWindow->setItem(0, ItemFactory::get(Item::AIR));
 							$this->currentWindow->setEnchantingLevel(0);
 							$this->currentWindow->sendContents($this);
 							$this->inventory->sendContents($this);
@@ -2241,7 +2241,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						$newItem = clone $item;
 						$newItem->setCount($item->getCount() - $count);
 					}else{
-						$newItem = ProtocolInfo::get(Item::AIR, 0, 0);
+						$newItem = ItemFactory::get(Item::AIR, 0, 0);
 					}
 
 					$this->inventory->setItem($slot, $newItem);
@@ -3413,7 +3413,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			if (!$oldItem->deepEquals($newItem) && $oldItem->getId() !== Item::AIR && $inventory === $transaction->getInventory()) { // for swap
 				$targetItem = clone $oldItem;
 			} else if ($newItem->count === $items[$targetSlot]->count) {
-				$targetItem = ProtocolInfo::get(Item::AIR);
+				$targetItem = ItemFactory::get(Item::AIR);
 			} else {
 				$targetItem = clone $items[$targetSlot];
 				$targetItem->count -= $newItem->count;
@@ -3453,7 +3453,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 			if ($enchantInv->isItemWasEnchant() && $newItem->deepEquals($source, true, false)) {
 				// reset enchanting data
-				$enchantInv->setItem(0, ProtocolInfo::get(Item::AIR));
+				$enchantInv->setItem(0, ItemFactory::get(Item::AIR));
 				$enchantInv->setEnchantingLevel(0);
 
 				$playerItems = $this->inventory->getContents();
@@ -3472,11 +3472,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						$playerItems[$dyeSlot]->count -= $enchantingLevel;
 						$this->inventory->setItem($dyeSlot, $playerItems[$dyeSlot]);
 					} else {
-						$this->inventory->setItem($dyeSlot, ProtocolInfo::get(Item::AIR));
+						$this->inventory->setItem($dyeSlot, ItemFactory::get(Item::AIR));
 					}
 				}
 			} else if (!$enchantInv->isItemWasEnchant()) {
-				$enchantInv->setItem(0, ProtocolInfo::get(Item::AIR));
+				$enchantInv->setItem(0, ItemFactory::get(Item::AIR));
 			}
 			$enchantInv->sendContents($this);
 			$this->inventory->sendContents($this);
@@ -4011,7 +4011,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		}
 		// finalizing drop item process
 		if ($item->count == $dropItem->count) {
-			$item = ProtocolInfo::get(Item::AIR, 0, 0);
+			$item = ItemFactory::get(Item::AIR, 0, 0);
 		} else {
 			$item->count -= $dropItem->count;
 		}
@@ -4062,7 +4062,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$item->count -= $ingredient->count;
 				if ($item->count == 0) {
 					/** @important count = 0 is important */
-					$item = ProtocolInfo::get(Item::AIR, 0, 0);
+					$item = ItemFactory::get(Item::AIR, 0, 0);
 				}
 				break;
 			}
