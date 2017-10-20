@@ -342,7 +342,7 @@ abstract class BaseInventory implements Inventory{
 
 	public function clear($index){
 		if(isset($this->slots[$index])){
-			$item = ItemFactory::get(Item::AIR, null, 0);
+			$item = ItemFactory::get(Item::AIR, 0, 0);
 			$old = $this->slots[$index];
 			$holder = $this->getHolder();
 			if($holder instanceof Entity){
