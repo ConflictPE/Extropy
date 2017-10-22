@@ -67,7 +67,7 @@ class PluginManager{
 	protected $defaultPermsOp = [];
 
 	/**
-	 * @var Permissible[]
+	 * @var Permissible[][]
 	 */
 	protected $permSubs = [];
 
@@ -427,10 +427,9 @@ class PluginManager{
 	/**
 	 * @param string $permission
 	 *
-	 * @return Permissible[]
+	 * @return array|Permissible[]
 	 */
-
-		public function getPermissionSubscriptions($permission){
+	public function getPermissionSubscriptions($permission){
 		if(isset($this->permSubs[$permission])){
 			return $this->permSubs[$permission];
 			$subs = [];
