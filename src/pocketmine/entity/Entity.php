@@ -1065,9 +1065,6 @@ abstract class Entity extends Location implements Metadatable{
 
 			if($this->fireTicks <= 0) {
 				$this->extinguish();
-			} else {
-				$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ONFIRE, true);
-				$hasUpdate = true;
 			}
 		}
 
@@ -1163,6 +1160,8 @@ abstract class Entity extends Location implements Metadatable{
 			$this->fireTicks = $ticks;
 		}
 		$this->fireDamage = $damage;
+
+		$this->setGenericFlag(self::DATA_FLAG_ONFIRE, true);
 	}
 
 	public function getDirection(){
@@ -1185,6 +1184,7 @@ abstract class Entity extends Location implements Metadatable{
 	public function extinguish(){
 		$this->fireTicks = 0;
 		$this->fireDamage = 1;
+
 		$this->setGenericFlag(self::DATA_FLAG_ONFIRE, false);
 	}
 
@@ -1898,14 +1898,15 @@ abstract class Entity extends Location implements Metadatable{
 	 * @param bool $value
 	 * @param int  $propertyType
 	 */
-	public function setDataFlag(string $propertyName, string $flagName, bool $value = true, int $propertyType = self::DATA_TYPE_LONG){
+	public function setDataFlag(string $propertyName, string $flagName, bool $value = true, int $propertyType = self::DATA_TYPE_LONG) {
 		if($this->getDataFlag($propertyName, $flagName) !== $value) {
 			$flags = $this->getDataProperty($propertyName);
-			if(!$value and $this->getDataProperty($propertyName)[$flagName]) {
-				unset($flags[$flagName]);
-			} else {
+			if($value) {
 				$flags[$flagName] = $value;
+			} elseif(isset($flags[$flagName])) {
+				unset($flags[$flagName]);
 			}
+
 			$this->setDataProperty($propertyName, $propertyType, $flags);
 		}
 	}
