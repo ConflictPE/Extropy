@@ -1828,6 +1828,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 								}
 							}
 						}
+						$this->actionsNum["CRACK_BLOCK"] = 0;
 						$this->lastBreak = microtime(true);
 						break;
 					/** @noinspection PhpMissingBreakStatementInspection */
@@ -1937,16 +1938,18 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					case PlayerActionPacket::ACTION_STOP_GLIDE:
 						break; //TODO
 					case PlayerActionPacket::ACTION_CONTINUE_BREAK:
-						$target = $this->level->getBlock($pos);
-						$pk = new LevelEventPacket();
-						$pk->evid = LevelEventPacket::EVENT_PARTICLE_PUNCH_BLOCK;
-						$pk->x = $packet->x;
-						$pk->y = $packet->y;
-						$pk->z = $packet->z;
-						$pk->data = $target->getId() | ($target->getDamage() << 8);
-						/** @var Player $recipient */
-						foreach(array_merge($this->getViewers(), [$this]) as $recipient) {
-							$recipient->dataPacket($pk);
+						if($this->actionsNum["CRACK_BLOCK"]++ % 4 == 0) { // send block crack every 4 ticks
+							$target = $this->level->getBlock($pos);
+							$pk = new LevelEventPacket();
+							$pk->evid = LevelEventPacket::EVENT_PARTICLE_PUNCH_BLOCK;
+							$pk->x = $packet->x;
+							$pk->y = $packet->y;
+							$pk->z = $packet->z;
+							$pk->data = $target->getId() | ($target->getDamage() << 8);
+							/** @var Player $recipient */
+							foreach(array_merge($this->getViewers(), [$this]) as $recipient) {
+								$recipient->dataPacket($pk);
+							}
 						}
 						break;
 					default:
