@@ -113,7 +113,8 @@ class TextPacket extends PEPacket {
 				break;
 		}
 		if($playerProtocol >= Info::PROTOCOL_120) {
-			$this->putString($this->xuid);
+			//$this->putString($this->xuid);
+			$this->putString("");
 		}
 	}
 

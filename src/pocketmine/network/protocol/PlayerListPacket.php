@@ -64,7 +64,8 @@ class PlayerListPacket extends PEPacket {
 						$this->putString(isset($d[5]) ? $d[5] : ""); // Cape Data
 						$this->putString(isset($d[6]) ? $d[6] : ""); // Skin Geometry Name
 						$this->putString(isset($d[7]) ? $d[7] : ""); // Skin Geometry Data
-						$this->putString(isset($d[8]) ? $d[8] : ""); // XUID
+						//$this->putString(isset($d[8]) ? $d[8] : ""); // XUID
+						$this->putString("");
 					} else {
 						$this->putString("Standard_Custom"); // Skin ID
 						$this->putString($d[4]); // Skin
