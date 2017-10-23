@@ -38,12 +38,14 @@ chunk-sending:
  compression-level: 8
  #Amount of chunks sent around each player
  max-chunks: 256
+ #Radius of chunks that need to be sent before spawning the player
+ spawn-radius: 4
 
 chunk-ticking:
  #Max amount of chunks processed each tick
  per-tick: 0
  #Radius of chunks around a player to tick
- tick-radius: 4
+ tick-radius: 3
  #NOTE: This is currently not implemented
  light-updates: false
  clear-tick-list: false

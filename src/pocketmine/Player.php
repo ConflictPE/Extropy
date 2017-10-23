@@ -270,7 +270,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	/** @var Vector3 */
 	public $newPosition;
 
-	protected $spawnThreshold = 16 * M_PI;
+	protected $spawnThreshold;
 	/** @var null|Position */
 	private $spawnPosition = null;
 
@@ -339,7 +339,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	protected $xblName = '';
 
-	protected $viewRadius = 4;
+	protected $viewDistance = 4;
+	protected $chunksPerTick = 10;
 
 	private $actionsNum = [];
 
@@ -636,6 +637,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->ip = $ip;
 		$this->port = $port;
 		$this->clientID = $clientID;
+		$this->chunksPerTick = (int) $this->server->getProperty("chunk-sending.per-tick", 4);
+		$this->spawnThreshold = $this->server->getSpawnThreshold();
 		$this->spawnPosition = null;
 		$this->gamemode = $this->server->getGamemode();
 		$this->setLevel($this->server->getDefaultLevel(), true);
@@ -677,8 +680,20 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		}
 	}
 
-		public function setViewRadius($radius) {
-		$this->viewRadius = $radius;
+	public function getViewDistance() : int {
+		return $this->viewDistance;
+	}
+
+	public function setViewDistance(int $distance) {
+		$this->viewDistance = $this->server->getAllowedViewDistance($distance);
+
+		$this->spawnThreshold = (int) (min($this->viewDistance, $this->server->getSpawnThreshold()) ** 2 * M_PI);
+
+		$pk = new ChunkRadiusUpdatePacket();
+		$pk->radius = $this->viewDistance;
+		$this->dataPacket($pk);
+
+		$this->server->getLogger()->debug("Setting view distance for " . $this->getName() . " to " . $this->viewDistance . " (requested " . $distance . ")");
 	}
 
 	/**
@@ -810,7 +825,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 		if($this->spawned){
 			foreach($this->level->getChunkEntities($x, $z) as $entity){
-				if($entity !== $this and !$entity->closed and !$entity->dead and $this->canSeeEntity($entity)){
+				if($entity !== $this and !$entity->closed and $entity->isAlive()){
 					$entity->spawnTo($this);
 				}
 			}
@@ -819,6 +834,10 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					$tile->spawnTo($this);
 				}
 			}
+		}
+
+		if($this->chunkLoadCount >= $this->spawnThreshold and $this->spawned === false) {
+			$this->doFirstSpawn();
 		}
 	}
 
@@ -829,6 +848,10 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 		$count = 0;
 		foreach($this->loadQueue as $index => $distance){
+			if($count >= $this->chunksPerTick) {
+				break;
+			}
+
 			$X = null;
 			$Z = null;
 			Level::getXZ($index, $X, $Z);
@@ -840,6 +863,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 			$this->level->useChunk($X, $Z, $this);
 			$this->level->requestChunk($X, $Z, $this);
+
 			if($this->server->getAutoGenerate()){
 				if(!$this->level->populateChunk($X, $Z, true)){
 					if($this->spawned){
@@ -850,110 +874,133 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				}
 			}
 		}
+	}
 
-		if((!$this->isFirstConnect || $this->chunkLoadCount >= $this->spawnThreshold) && $this->spawned === false){
-			$this->server->getPluginManager()->callEvent($ev = new PlayerLoginEvent($this, "Plugin reason"));
-			if ($ev->isCancelled()) {
-				$this->close(TextFormat::YELLOW . $this->username . " has left the game", $ev->getKickMessage());
-				return;
-			}
+	protected function doFirstSpawn() {
+		$this->server->getPluginManager()->callEvent($ev = new PlayerLoginEvent($this, "Plugin reason"));
+		if($ev->isCancelled()) {
+			$this->close(TextFormat::YELLOW . $this->username . " has left the game", $ev->getKickMessage());
+			return;
+		}
 
-			$this->spawned = true;
+		$this->spawned = true;
 
-			$this->sendSettings();
-			$this->sendPotionEffects($this);
-			$this->sendData($this);
-			$this->inventory->sendContents($this);
-			$this->inventory->sendArmorContents($this);
+		$pk = new PlayStatusPacket();
+		$pk->status = PlayStatusPacket::PLAYER_SPAWN;
+		$this->dataPacket($pk);
 
-			$pk = new SetTimePacket();
-			$pk->time = $this->level->getTime();
-			$pk->started = $this->level->stopTime == false;
-			$this->dataPacket($pk);
+		$this->sendSettings();
+		$this->sendPotionEffects($this);
+		$this->sendData($this);
+		$this->inventory->sendContents($this);
+		$this->inventory->sendArmorContents($this);
 
-			$pk = new PlayStatusPacket();
-			$pk->status = PlayStatusPacket::PLAYER_SPAWN;
-			$this->dataPacket($pk);
-			$this->server->updatePlayerListData($this->getUniqueId(), $this->getId(), $this->getName(), $this->skinName, $this->skin, $this->skinGeometryName, $this->skinGeometryData, $this->capeData, $this->getXUID(), [$this]);
+		$this->server->updatePlayerListData($this->getUniqueId(), $this->getId(), $this->getName(), $this->skinName, $this->skin, $this->skinGeometryName, $this->skinGeometryData, $this->capeData, $this->getXUID(), [$this]);
 
-			$pos = $this->level->getSafeSpawn($this);
+		$this->server->getPluginManager()->callEvent($ev = new PlayerRespawnEvent($this, $this->level->getSafeSpawn($this)));
 
-			$this->server->getPluginManager()->callEvent($ev = new PlayerRespawnEvent($this, $pos));
+		$this->teleport($ev->getRespawnPosition());
 
-			$pos = $ev->getRespawnPosition();
-//			$pk = new RespawnPacket();
-//			$pk->x = $pos->x;
-//			$pk->y = $pos->y;
-//			$pk->z = $pos->z;
-//			$this->dataPacket($pk);
+		$this->noDamageTicks = 60;
 
-			$this->noDamageTicks = 60;
-
-			$chunkX = $chunkZ = null;
-			foreach($this->usedChunks as $index => $c){
-				Level::getXZ($index, $chunkX, $chunkZ);
-				foreach($this->level->getChunkEntities($chunkX, $chunkZ) as $entity){
-					if($entity !== $this && !$entity->closed && !$entity->dead && $this->canSeeEntity($entity)){
-						$entity->spawnTo($this);
-					}
+		$chunkX = $chunkZ = null;
+		foreach($this->usedChunks as $index => $c) {
+			Level::getXZ($index, $chunkX, $chunkZ);
+			foreach($this->level->getChunkEntities($chunkX, $chunkZ) as $entity) {
+				if($entity !== $this and !$entity->closed and $entity->isAlive()) {
+					$entity->spawnTo($this);
 				}
 			}
-
-			$this->teleport($pos);
-
-			if($this->getHealth() <= 0) { // if the player died and left the server
-				$pk = new RespawnPacket();
-				$pos = $this->getSpawn();
-				$pk->x = $pos->x;
-				$pk->y = $pos->y;
-				$pk->z = $pos->z;
-				$this->dataPacket($pk);
-			}
-			$this->server->getPluginManager()->callEvent($ev = new PlayerJoinEvent($this, ""));
 		}
+
+		$this->server->getPluginManager()->callEvent($ev = new PlayerJoinEvent($this, ""));
 	}
 
 	protected function orderChunks() {
-		if ($this->connected === false) {
+		if(!$this->isConnected() or $this->viewDistance === -1) {
 			return false;
 		}
 
 		$this->nextChunkOrderRun = 200;
-		$radiusSquared = $this->viewRadius ** 2;
+
+		$radius = $this->server->getAllowedViewDistance($this->viewDistance);
+		$radiusSquared = $radius ** 2;
+
+		$newOrder = [];
+		$unloadChunks = $this->usedChunks;
+
 		$centerX = $this->x >> 4;
 		$centerZ = $this->z >> 4;
-		$newOrder = [];
-		$lastChunk = $this->usedChunks;
 
-		for ($dx = 0; $dx < $this->viewRadius; $dx++) {
-			for ($dz = 0; $dz < $this->viewRadius; $dz++) {
-				if ($dx ** 2 + $dz ** 2 > $radiusSquared) {
-					continue;
+		for($x = 0; $x < $radius; ++$x) {
+			for($z = 0; $z <= $x; ++$z) {
+				if(($x ** 2 + $z ** 2) > $radiusSquared) {
+					break; //skip to next band
 				}
 
-				foreach ([$dx, (-$dx - 1)] as $ddx) {
-					foreach ([$dz, (-$dz - 1)] as $ddz) {
-						$chunkX = $centerX + $ddx;
-						$chunkZ = $centerZ + $ddz;
-						$index = Level::chunkHash($chunkX, $chunkZ);
-						if (isset($lastChunk[$index])) {
-							unset($lastChunk[$index]);
-						} else {
-							$newOrder[$index] = abs($dx) + abs($dz);
-						}
+				//If the chunk is in the radius, others at the same offsets in different quadrants are also guaranteed to be.
+
+				/* Top right quadrant */
+				if(!isset($this->usedChunks[$index = Level::chunkHash($centerX + $x, $centerZ + $z)]) or $this->usedChunks[$index] === false){
+					$newOrder[$index] = true;
+				}
+				unset($unloadChunks[$index]);
+
+				/* Top left quadrant */
+				if(!isset($this->usedChunks[$index = Level::chunkHash($centerX - $x - 1, $centerZ + $z)]) or $this->usedChunks[$index] === false){
+					$newOrder[$index] = true;
+				}
+				unset($unloadChunks[$index]);
+
+				/* Bottom right quadrant */
+				if(!isset($this->usedChunks[$index = Level::chunkHash($centerX + $x, $centerZ - $z - 1)]) or $this->usedChunks[$index] === false){
+					$newOrder[$index] = true;
+				}
+				unset($unloadChunks[$index]);
+
+
+				/* Bottom left quadrant */
+				if(!isset($this->usedChunks[$index = Level::chunkHash($centerX - $x - 1, $centerZ - $z - 1)]) or $this->usedChunks[$index] === false){
+					$newOrder[$index] = true;
+				}
+				unset($unloadChunks[$index]);
+
+				if($x !== $z){
+					/* Top right quadrant mirror */
+					if(!isset($this->usedChunks[$index = Level::chunkHash($centerX + $z, $centerZ + $x)]) or $this->usedChunks[$index] === false){
+						$newOrder[$index] = true;
 					}
+					unset($unloadChunks[$index]);
+
+					/* Top left quadrant mirror */
+					if(!isset($this->usedChunks[$index = Level::chunkHash($centerX - $z - 1, $centerZ + $x)]) or $this->usedChunks[$index] === false){
+						$newOrder[$index] = true;
+					}
+					unset($unloadChunks[$index]);
+
+					/* Bottom right quadrant mirror */
+					if(!isset($this->usedChunks[$index = Level::chunkHash($centerX + $z, $centerZ - $x - 1)]) or $this->usedChunks[$index] === false){
+						$newOrder[$index] = true;
+					}
+					unset($unloadChunks[$index]);
+
+					/* Bottom left quadrant mirror */
+					if(!isset($this->usedChunks[$index = Level::chunkHash($centerX - $z - 1, $centerZ - $x - 1)]) or $this->usedChunks[$index] === false){
+						$newOrder[$index] = true;
+					}
+					unset($unloadChunks[$index]);
 				}
 
 			}
 		}
 
-		foreach ($lastChunk as $index => $Yndex) {
-			$X = null;
-			$Z = null;
+		foreach($unloadChunks as $index => $bool){
 			Level::getXZ($index, $X, $Z);
 			$this->unloadChunk($X, $Z);
 		}
+
 		$this->loadQueue = $newOrder;
+
 		return true;
 	}
 
@@ -2372,15 +2419,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				break;
 			case 'REQUEST_CHUNK_RADIUS_PACKET':
 				//Timings::$timerChunkRudiusPacket->startTiming();
-				if ($packet->radius > 12) {
-					$packet->radius = 12;
-				} elseif ($packet->radius < 4) {
-					$packet->radius = 4;
-				}
-				$this->setViewRadius($packet->radius);
-				$pk = new ChunkRadiusUpdatePacket();
-				$pk->radius = $packet->radius;
-				$this->dataPacket($pk);
+				$this->setViewDistance($packet->radius);
 				$this->loggedIn = true;
 				$this->scheduleUpdate();
 				//Timings::$timerChunkRudiusPacket->stopTiming();

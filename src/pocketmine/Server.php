@@ -274,6 +274,12 @@ class Server{
 
 	private $unloadLevelQueue = [];
 
+	/** @var int */
+	private $spawnThreshold = 4;
+
+	/** @var int */
+	private $viewDistance = 8;
+
 	/** @var bool */
 	private $doTimeCycle = true;
 
@@ -394,10 +400,30 @@ class Server{
 	}
 
 	/**
+	 * Returns the radius of chunks that need to be sent before spawning the player.
+	 *
+	 * @return int
+	 */
+	public function getSpawnThreshold() : int {
+		return $this->spawnThreshold;
+	}
+
+	/**
 	 * @return int
 	 */
 	public function getViewDistance(){
-		return 96;
+		return max(2, $this->viewDistance);
+	}
+
+	/**
+	 * Returns a view distance up to the currently-allowed limit.
+	 *
+	 * @param int $distance
+	 *
+	 * @return int
+	 */
+	public function getAllowedViewDistance(int $distance) : int{
+		return max(2, min($distance, $this->getViewDistance()));
 	}
 
 	/**
@@ -1524,16 +1550,19 @@ class Server{
 			"auto-save" => true,
 			"auto-generate" => false,
 			"save-player-data" => false,
+			"view-distance" => 8,
 			"time-update" => true,
-			"time-lock" => 6000
+			"time-lock" => 6000,
 		]);
 
 		ServerScheduler::$WORKERS = 4;
 
 		$this->scheduler = new ServerScheduler();
 
-		$this->doTimeCycle = $this->getConfigBoolean("time-update");
-		$this->timeCycleStop = $this->getConfigInt("time-lock");
+		$this->spawnThreshold = $this->getProperty("chunk-sending.spawn-radius", 4);
+		$this->viewDistance = $this->getConfigInt("view-distance", 8);
+		$this->doTimeCycle = $this->getConfigBoolean("time-update", true);
+		$this->timeCycleStop = $this->getConfigInt("time-lock", 6000);
 
 		if($this->getConfigBoolean("enable-rcon", false) === true){
 			$this->rcon = new RCON($this, $this->getConfigString("rcon.password", ""), $this->getConfigInt("rcon.port", $this->getPort()), ($ip = $this->getIp()) != "" ? $ip : "0.0.0.0", $this->getConfigInt("rcon.threads", 1), $this->getConfigInt("rcon.clients-per-thread", 50));
