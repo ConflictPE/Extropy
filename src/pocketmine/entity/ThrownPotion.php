@@ -77,7 +77,7 @@ class ThrownPotion extends Projectile {
 		$this->getLevel()->addParticle(new SpellParticle($this, ...Potion::getColor($this->getPotionId())));
 		$this->setGenericFlag(self::DATA_FLAG_HAS_COLLISION, true);
 		$this->getLevel()->broadcastLevelSoundEvent($this->asVector3(), 116);
-		foreach($this->getLevel()->getCollidingEntities($this->getBoundingBox()->expand(8, 4, 8)) as $p) {
+		foreach($this->getViewers() as $p) {
 			if($p->distance($this) <= 6) {
 				foreach(Potion::getEffectsById($this->getPotionId()) as $effect) {
 					$p->addEffect($effect);
