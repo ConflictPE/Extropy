@@ -22,8 +22,13 @@
 namespace pocketmine\inventory;
 
 use pocketmine\item\Item;
+use pocketmine\Player;
 
-interface Transaction{
+interface Transaction {
+
+	// Transaction type constants
+	const TYPE_NORMAL = 0;
+	const TYPE_DROP_ITEM = 1;
 
 	/**
 	 * @return Inventory
@@ -49,4 +54,11 @@ interface Transaction{
 	 * @return float
 	 */
 	public function getCreationTime();
+
+	/**
+	 * @param Player $source
+	 * @return bool
+	 */
+	public function execute(Player $source): bool;
+
 }

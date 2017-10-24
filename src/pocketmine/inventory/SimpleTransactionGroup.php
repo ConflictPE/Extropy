@@ -31,7 +31,10 @@ use pocketmine\Server;
  */
 class SimpleTransactionGroup implements TransactionGroup {
 
+	/** @var float */
 	private $creationTime;
+
+	/** @var bool */
 	protected $hasExecuted = false;
 
 	/** @var Player */
@@ -51,39 +54,43 @@ class SimpleTransactionGroup implements TransactionGroup {
 		$this->source = $source;
 	}
 
-	/**
-	 * @return Player
-	 */
-	public function getSource() {
+	public function getSource() : Player {
 		return $this->source;
 	}
 
-	public function getCreationTime() {
+	public function getCreationTime() : float {
 		return $this->creationTime;
 	}
 
-	public function getInventories() {
+	/**
+	 * @return Inventory[]
+	 */
+	public function getInventories() : array {
 		return $this->inventories;
 	}
 
-	public function getTransactions() {
+	/**
+	 * @return Transaction[]
+	 */
+	public function getTransactions() : array{
 		return $this->transactions;
 	}
 
 	public function addTransaction(Transaction $transaction) {
-		if (isset($this->transactions[spl_object_hash($transaction)])) {
+		if(isset($this->transactions[spl_object_hash($transaction)])) {
 			return;
 		}
-		foreach ($this->transactions as $hash => $tx) {
-			if ($tx->getInventory() === $transaction->getInventory() && $tx->getSlot() === $transaction->getSlot()) {
-				$transaction = self::mergeTransaction($tx,  $transaction);
-				if ($transaction === null) {
+
+		foreach($this->transactions as $hash => $tx) {
+			if($tx->getInventory() === $transaction->getInventory() and $tx->getSlot() === $transaction->getSlot()) {
+				if($transaction->getCreationTime() >= $tx->getCreationTime()) {
+					unset($this->transactions[$hash]);
+				} else {
 					return;
 				}
-				unset($this->transactions[$hash]);
-				unset($this->inventories[spl_object_hash($tx->getInventory())]);
 			}
 		}
+
 		$this->transactions[spl_object_hash($transaction)] = $transaction;
 		$this->inventories[spl_object_hash($transaction->getInventory())] = $transaction->getInventory();
 	}
@@ -94,38 +101,36 @@ class SimpleTransactionGroup implements TransactionGroup {
 	 *
 	 * @return bool
 	 */
-	protected function matchItems(array &$needItems, array &$haveItems) {
-		foreach ($this->transactions as $key => $ts) {
-			if ($ts->getTargetItem()->getId() !== Item::AIR) {
+	protected function matchItems(array &$needItems, array &$haveItems) : bool {
+		foreach($this->transactions as $key => $ts) {
+			if($ts->getTargetItem()->getId() !== Item::AIR) {
 				$needItems[] = $ts->getTargetItem();
 			}
+
+			$checkSourceItem = $ts->getInventory()->getItem($ts->getSlot());
 			$sourceItem = $ts->getSourceItem();
-			$sourceItemIsAir = $sourceItem->getId() === Item::AIR;
-			if ($ts->getSlot() == PlayerInventory120::CREATIVE_INDEX) {
-				if (!$sourceItemIsAir && Item::getCreativeItemIndex($sourceItem) === -1) {					
-					return false;
-				}
-			} else {
-				$checkSourceItem = $ts->getInventory()->getItem($ts->getSlot());
-				if (!$checkSourceItem->deepEquals($sourceItem) || (!$sourceItemIsAir && $sourceItem->getCount() !== $checkSourceItem->getCount())) {
-					return false;
-				}
+
+			if(!$checkSourceItem->equals($sourceItem) or $sourceItem->getCount() !== $checkSourceItem->getCount()) {
+				return false;
 			}
-			if (!$sourceItemIsAir) {
-				$haveItems[] = $sourceItem;
+
+			if($sourceItem->getId() !== Item::AIR) {
+				$haveItem[] = $sourceItem;
 			}
 		}
-				
-		foreach ($needItems as $i => $needItem) {
-			foreach ($haveItems as $j => $haveItem) {
-				if ($needItem->deepEquals($haveItem)) {
+
+		foreach($needItems as $i => $needItem) {
+			foreach($haveItems as $j => $haveItem) {
+				if($needItem->equals($haveItem)) {
 					$amount = min($needItem->getCount(), $haveItem->getCount());
 					$needItem->setCount($needItem->getCount() - $amount);
 					$haveItem->setCount($haveItem->getCount() - $amount);
-					if ($haveItem->getCount() === 0) {
+
+					if($haveItem->getCount() === 0) {
 						unset($haveItems[$j]);
 					}
-					if ($needItem->getCount() === 0) {
+
+					if($needItem->getCount() === 0) {
 						unset($needItems[$i]);
 						break;
 					}
@@ -136,76 +141,42 @@ class SimpleTransactionGroup implements TransactionGroup {
 		return true;
 	}
 
-	public function canExecute() {
+	public function canExecute() : bool {
 		$haveItems = [];
 		$needItems = [];
 
-		$matchResult = $this->matchItems($haveItems, $needItems);
-		return $matchResult && empty($haveItems) && empty($needItems) && !empty($this->transactions);
+		return $this->matchItems($needItems, $haveItems) and count($this->transactions) > 0 and ((count($haveItems) === 0 and count($needItems) === 0) or $this->source->isCreative(true));
 	}
 
-	public function execute() {
-		if ($this->hasExecuted() or ! $this->canExecute()) {
+	public function execute() : bool {
+		if($this->hasExecuted() or ! $this->canExecute()) {
 			return false;
 		}
 
 		Server::getInstance()->getPluginManager()->callEvent($ev = new InventoryTransactionEvent($this));
-		if ($ev->isCancelled()) {
-			$this->sendInventories();
-			throw new \Exception('Event was canceled');
+		if($ev->isCancelled()) {
+			foreach($this->inventories as $inventory) {
+				if($inventory instanceof PlayerInventory) {
+					$inventory->sendArmorContents($this->getSource());
+				}
+
+				$inventory->sendContents($this->getSource());
+			}
+
+			return false;
 		}
 
-		foreach ($this->transactions as $transaction) {
+		foreach($this->transactions as $transaction) {
 			$transaction->getInventory()->setItem($transaction->getSlot(), $transaction->getTargetItem());
 		}
-		
+
 		$this->hasExecuted = true;
 
 		return true;
 	}
 
-	public function hasExecuted() {
+	public function hasExecuted() : bool {
 		return $this->hasExecuted;
-	}
-
-	public function sendInventories() {
-		foreach ($this->inventories as $inventory) {
-			if ($inventory instanceof PlayerInventory) {
-				$inventory->sendArmorContents($this->getSource());
-			}
-			$inventory->sendContents($this->getSource());
-		}
-	}
-	
-	/**
-	 * Merge two transaction in one.
-	 * It's duck tape for 1.2 enchantment
-	 * 
-	 * @param BaseTransaction $sourceTr
-	 * @param BaseTransaction $targetTr
-	 * @return BaseTransaction | null
-	 */
-	protected static function mergeTransaction($sourceTr, $targetTr) {
-		$oldSourceItem = $sourceTr->getSourceItem();
-		$newSourceItem = $targetTr->getSourceItem();
-		if ($oldSourceItem->equals($newSourceItem) || $oldSourceItem->getId() == Item::AIR || $newSourceItem->getId() == Item::AIR) {
-			$oldTargetItem = $sourceTr->getTargetItem();
-			$newTargetItem = $targetTr->getTargetItem();
-			if ($oldTargetItem->equals($newTargetItem) || $oldTargetItem->getId() == Item::AIR || $newTargetItem->getId() == Item::AIR) {
-				if ($oldSourceItem->getId() != Item::AIR) {
-					$oldSourceItem->count += $newSourceItem->count;
-				} else {
-					$oldSourceItem = $newSourceItem;
-				}
-				if ($oldTargetItem->getId() != Item::AIR) {
-					$oldTargetItem->count += $newTargetItem->count;
-				} else {
-					$oldTargetItem = $newTargetItem;
-				}
-				return new BaseTransaction($sourceTr->getInventory(), $sourceTr->getSlot(), $oldSourceItem, $oldTargetItem);
-			}
-		}
-		return null;
 	}
 
 }

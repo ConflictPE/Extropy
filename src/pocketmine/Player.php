@@ -46,9 +46,7 @@ use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerCommandPostprocessEvent;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\event\player\PlayerDeathEvent;
-use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerGameModeChangeEvent;
-use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerKickEvent;
 use pocketmine\event\player\PlayerLoginEvent;
@@ -62,7 +60,6 @@ use pocketmine\event\player\PlayerToggleSneakEvent;
 use pocketmine\event\player\PlayerToggleSprintEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
-use pocketmine\inventory\BaseTransaction;
 use pocketmine\inventory\BigShapedRecipe;
 use pocketmine\inventory\BigShapelessRecipe;
 use pocketmine\inventory\EnchantInventory;
@@ -72,8 +69,6 @@ use pocketmine\inventory\PlayerInventory;
 use pocketmine\inventory\PlayerInventory120;
 use pocketmine\inventory\ShapedRecipe;
 use pocketmine\inventory\ShapelessRecipe;
-use pocketmine\inventory\SimpleTransactionGroup;
-use pocketmine\inventory\transactions\SimpleTransactionData;
 use pocketmine\inventory\win10\Win10InvLogic;
 use pocketmine\item\armor\Armor;
 use pocketmine\item\enchantment\Enchantment;
@@ -1778,9 +1773,19 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				}
 				return true;
 			case 'MOB_EQUIPMENT_PACKET':
-				return $this->inventoryAdapter->handleMobEquipment($packet);
+				if($this->spawned == false or !$this->isAlive()) {
+					break;
+				}
+
+				$this->getInventoryAdapter()->handleMobEquipment($packet->slot, $packet->item, $packet->selectedSlot);
+				break;
 			case 'USE_ITEM_PACKET':
-				return $this->inventoryAdapter->handleUseItem($packet);
+				if($this->spawned == false or !$this->isAlive()) {
+					break;
+				}
+
+				$this->getInventoryAdapter()->handleUseItem($packet->item, $packet->hotbarSlot, $packet->face, new Vector3($packet->x, $packet->y, $packet->z), new Vector3($packet->fx, $packet->fy, $packet->fz));
+				break;
 			case 'PLAYER_ACTION_PACKET':
 				if(!$this->spawned or (!$this->isAlive() and !in_array($packet->action, [PlayerActionPacket::ACTION_RESPAWN, PlayerActionPacket::ACTION_DIMENSION_CHANGE]))){
 					break;
@@ -2034,7 +2039,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				//Timings::$timerEntityEventPacket->stopTiming();
 				break;
 			case 'DROP_ITEM_PACKET':
-				return $this->inventoryAdapter->handleDropItem($packet);
+				$this->getInventoryAdapter()->handleDropItem($packet->item);
+				break;
 			case 'TEXT_PACKET':
 				//Timings::$timerTextPacket->startTiming();
 				if($this->spawned === false or $this->dead === true){
@@ -2064,19 +2070,15 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				//Timings::$timerTextPacket->stopTiming();
 				break;
 			case 'CONTAINER_CLOSE_PACKET':
-				return $this->inventoryAdapter->handleContainerClose($packet);
+				$this->inventoryAdapter->handleContainerClose($packet->windowid);
+				break;
 			case 'CRAFTING_EVENT_PACKET':
-				//Timings::$timerCraftingEventPacket->startTiming();
-				if ($this->spawned === false or $this->dead) {
-					//Timings::$timerCraftingEventPacket->stopTiming();
+				if($this->spawned === false or !$this->isAlive()) {
 					break;
 				}
-				if ($packet->windowId > 0 && $packet->windowId !== $this->currentWindowId) {
-					$this->inventory->sendContents($this);
-					$pk = new ContainerClosePacket();
-					$pk->windowid = $packet->windowId;
-					$this->dataPacket($pk);
-					//Timings::$timerCraftingEventPacket->stopTiming();
+
+				if($packet->windowId > 0 and $packet->windowId !== $this->currentWindowId) {
+					$this->getInventoryAdapter()->sendContainerClose($packet->windowId);
 					break;
 				}
 
@@ -2215,7 +2217,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				break;
 
 			case 'CONTAINER_SET_SLOT_PACKET':
-				return $this->inventoryAdapter->handleContainerSetSlot($packet);
+				$this->getInventoryAdapter()->handleContainerSetSlot($packet->slot, $packet->windowid, $packet->item, $packet->hotbarSlot);
+				break;
 			case 'TILE_ENTITY_DATA_PACKET':
 				//Timings::$timerTileEntityPacket->startTiming();
 				if($this->spawned === false or $this->blocked === true or $this->dead === true){
@@ -2364,7 +2367,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					case InventoryTransactionPacket::TRANSACTION_TYPE_INVENTORY_MISMATCH:
 						break;
 					case InventoryTransactionPacket::TRANSACTION_TYPE_NORMAL:
-						$this->normalTransactionLogic($packet);
+						//$this->normalTransactionLogic($packet);
 						break;
 					case InventoryTransactionPacket::TRANSACTION_TYPE_ITEM_USE_ON_ENTITY:
 						if($packet->actionType == InventoryTransactionPacket::ITEM_USE_ON_ENTITY_ACTION_ATTACK) {
@@ -2376,7 +2379,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 						switch ($packet->actionType) {
 							case InventoryTransactionPacket::ITEM_USE_ACTION_PLACE:
 							case InventoryTransactionPacket::ITEM_USE_ACTION_USE:
-								$this->useItem($packet->item, $packet->slot, $packet->face, $blockVector, $this->getDirectionVector());
+								$this->getInventoryAdapter()->handleUseItem($packet->item, $packet->slot, $packet->face, $blockVector, $this->getDirectionVector());
 								break;
 							case InventoryTransactionPacket::ITEM_USE_ACTION_DESTROY:
 								$this->breakBlock($blockVector);
@@ -3268,122 +3271,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->dataPacket($pk);
 	}
 
-	/**
-	 * Create new transaction pair for transaction or add it to suitable one
-	 *
-	 * @param BaseTransaction $transaction
-	 * @return null
-	 */
-	public function addTransaction($transaction) {
-		$newItem = $transaction->getTargetItem();
-		$oldItem = $transaction->getSourceItem();
-		// if decreasing transaction drop down
-		if ($newItem->getId() === Item::AIR || ($oldItem->deepEquals($newItem) && $oldItem->count > $newItem->count)) {
-
-			return;
-		}
-		// if increasing create pair manualy
-
-		// trying to find inventory
-		$inventory = $this->currentWindow;
-		if (is_null($this->currentWindow) || $this->currentWindow === $transaction->getInventory()) {
-			$inventory = $this->inventory;
-		}
-		// get item difference
-		if ($oldItem->deepEquals($newItem)) {
-			$newItem->count -= $oldItem->count;
-		}
-
-		$items = $inventory->getContents();
-		$targetSlot = -1;
-		foreach ($items as $slot => $item) {
-			if ($item->deepEquals($newItem) && $newItem->count <= $item->count) {
-				$targetSlot = $slot;
-				break;
-			}
-		}
-		if ($targetSlot !== -1) {
-			$trGroup = new SimpleTransactionGroup($this);
-			$trGroup->addTransaction($transaction);
-			// create pair for the first transaction
-			if (!$oldItem->deepEquals($newItem) && $oldItem->getId() !== Item::AIR && $inventory === $transaction->getInventory()) { // for swap
-				$targetItem = clone $oldItem;
-			} else if ($newItem->count === $items[$targetSlot]->count) {
-				$targetItem = ItemFactory::get(Item::AIR);
-			} else {
-				$targetItem = clone $items[$targetSlot];
-				$targetItem->count -= $newItem->count;
-			}
-			$pairTransaction = new BaseTransaction($inventory, $targetSlot, $items[$targetSlot], $targetItem);
-			$trGroup->addTransaction($pairTransaction);
-
-			try {
-				$isExecute = $trGroup->execute();
-				if (!$isExecute) {
-//					echo '[INFO] Transaction execute fail 1.'.PHP_EOL;
-					$trGroup->sendInventories();
-				}
-			} catch (\Exception $ex) {
-//				echo '[INFO] Transaction execute fail 2.'.PHP_EOL;
-				$trGroup->sendInventories();
-			}
-		} else {
-//			echo '[INFO] Suiteble item not found in the current inventory.'.PHP_EOL;
-			$transaction->getInventory()->sendContents($this);
-		}
-	}
-
-	protected function enchantTransaction(BaseTransaction $transaction) {
-		if ($this->craftingType !== self::CRAFTING_ENCHANT) {
-			$this->getInventory()->sendContents($this);
-			return;
-		}
-		$oldItem = $transaction->getSourceItem();
-		$newItem = $transaction->getTargetItem();
-		$enchantInv = $this->currentWindow;
-
-		if (($newItem instanceof Armor || $newItem instanceof Tool) && $transaction->getInventory() === $this->inventory) {
-			// get enchanting data
-			$source = $enchantInv->getItem(0);
-			$enchantingLevel = $enchantInv->getEnchantingLevel();
-
-			if ($enchantInv->isItemWasEnchant() && $newItem->deepEquals($source, true, false)) {
-				// reset enchanting data
-				$enchantInv->setItem(0, ItemFactory::get(Item::AIR));
-				$enchantInv->setEnchantingLevel(0);
-
-				$playerItems = $this->inventory->getContents();
-				$dyeSlot = -1;
-				$targetItemSlot = -1;
-				foreach ($playerItems as $slot => $item) {
-					if ($item->getId() === Item::DYE && $item->getDamage() === 4 && $item->getCount() >= $enchantingLevel) {
-						$dyeSlot = $slot;
-					} else if ($item->deepEquals($source)) {
-						$targetItemSlot = $slot;
-					}
-				}
-				if ($dyeSlot !== -1 && $targetItemSlot !== -1) {
-					$this->inventory->setItem($targetItemSlot, $newItem);
-					if ($playerItems[$dyeSlot]->getCount() > $enchantingLevel) {
-						$playerItems[$dyeSlot]->count -= $enchantingLevel;
-						$this->inventory->setItem($dyeSlot, $playerItems[$dyeSlot]);
-					} else {
-						$this->inventory->setItem($dyeSlot, ItemFactory::get(Item::AIR));
-					}
-				}
-			} else if (!$enchantInv->isItemWasEnchant()) {
-				$enchantInv->setItem(0, ItemFactory::get(Item::AIR));
-			}
-			$enchantInv->sendContents($this);
-			$this->inventory->sendContents($this);
-			return;
-		}
-
-		if (($oldItem instanceof Armor || $oldItem instanceof Tool) && $transaction->getInventory() === $this->inventory) {
-			$enchantInv->setItem(0, $oldItem);
-		}
-	}
-
 	protected function updateAttribute($name, $value, $minValue, $maxValue, $defaultValue) {
 		$pk = new UpdateAttributesPacket();
 		$pk->entityId = $this->id;
@@ -3700,87 +3587,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		//No need to do anything here, this data will be set from the login.
 	}
 
-	public function useItem(Item $item, int $slot, int $face, Vector3 $blockPosition, Vector3 $clickPosition) : bool {
-		$itemInHand = $this->inventory->getItemInHand();
-
-		switch($face) {
-			// Use item, block place
-			case 0:
-			case 1:
-			case 2:
-			case 3:
-			case 4:
-			case 5:
-				$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, false);
-
-				if(!$this->canInteract($blockPosition->add(0.5, 0.5, 0.5), 13) or $this->isSpectator()) {
-
-				} elseif($this->isCreative()) {
-					if($this->level->useItemOn($blockPosition, $item, $face, $clickPosition, $this, true) === true){
-						return true;
-					}
-				} elseif(!$itemInHand->equals($item)) {
-					$this->inventory->sendHeldItem($this);
-				} else {
-					$oldItem = clone $itemInHand;
-					if($this->level->useItemOn($blockPosition, $item, $face, $clickPosition, $this, true)){
-						if(!$item->equalsExact($oldItem)){
-							$this->inventory->setItemInHand($item);
-							$this->inventory->sendHeldItem($this->getViewers());
-						}
-
-						return true;
-					}
-				}
-
-				$this->inventory->sendHeldItem($this);
-
-				if($blockPosition->distanceSquared($this) > 10000){
-					return true;
-				}
-
-				$target = $this->level->getBlock($blockPosition);
-				$block = $target->getSide($face);
-
-				$this->level->sendBlocks([$this], [$target, $block], UpdateBlockPacket::FLAG_ALL_PRIORITY);
-
-				return true;
-
-			case 0xff:
-			case -1:  // -1 for 0.16
-				$directionVector = $this->getDirectionVector();
-
-				if($this->isCreative()) {
-					$item = $this->inventory->getItemInHand();
-				} elseif(!$this->inventory->getItemInHand()->equals($item)) {
-					$this->inventory->sendHeldItem($this);
-					return true;
-				} else {
-					$item = $this->inventory->getItemInHand();
-				}
-
-				$this->server->getPluginManager()->callEvent($ev = new PlayerInteractEvent($this, $item, $directionVector, $face, PlayerInteractEvent::RIGHT_CLICK_AIR));
-				if($ev->isCancelled()) {
-					$this->inventory->sendHeldItem($this);
-					return true;
-				}
-
-				if($item->onClickAir($this, $directionVector) and $this->isSurvival()){
-					$this->inventory->setItemInHand($item);
-				}
-
-				if($item->getId() === Item::BOW and !$this->inventory->contains(ItemFactory::get(Item::ARROW, 0, 1))) {
-					$this->setUsingItem(false); // attempting to draw a bow with no arrows
-				} else {
-					$this->setUsingItem(true);
-				}
-
-				return true;
-		}
-
-		return true;
-	}
-
 	/**
 	 * @param Vector3 $blockPosition
 	 */
@@ -3812,152 +3618,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 		if($tile instanceof Spawnable){
 			$tile->spawnTo($this);
-		}
-	}
-
-	/**
-	 * @minProtocolSupport 120
-	 * @param InventoryTransactionPacket $packet
-	 */
-	private function normalTransactionLogic($packet) {
-		$trGroup = new SimpleTransactionGroup($this);
-		foreach ($packet->transactions as $trData) {
-//			echo $trData . PHP_EOL;
-			if ($trData->isDropItemTransaction()) {
-				$this->tryDropItem($packet->transactions);
-				return;
-			}
-			if ($trData->isCompleteEnchantTransaction()) {
-				$this->tryEnchant($packet->transactions);
-				return;
-			}
-			$transaction = $trData->convertToTransaction($this);
-			if ($transaction == null) {
-				// roolback
-				$trGroup->sendInventories();
-				return;
-			}
-			$trGroup->addTransaction($transaction);
-		}
-		try {
-			if (!$trGroup->execute()) {
-//				echo '[INFO] Transaction execute fail.'.PHP_EOL;
-				$trGroup->sendInventories();
-			} else {
-//				echo '[INFO] Transaction successfully executed.'.PHP_EOL;
-			}
-		} catch (\Exception $ex) {
-			echo '[INFO] Transaction execute exception. ' . $ex->getMessage() .PHP_EOL;
-		}
-	}
-
-	/**
-	 * @minprotocol 120
-	 * @param SimpleTransactionData[] $transactionsData
-	 */
-	private function tryDropItem($transactionsData) {
-		$dropItem = null;
-		$transaction = null;
-		foreach ($transactionsData as $trData) {
-			if ($trData->isDropItemTransaction()) {
-				$dropItem = $trData->newItem;
-			} else {
-				$transaction = $trData->convertToTransaction($this);
-			}
-		}
-		if ($dropItem == null || $transaction == null) {
-			$this->inventory->sendContents($this);
-			if ($this->currentWindow != null) {
-				$this->currentWindow->sendContents($this);
-			}
-			return;
-		}
-		//  check transaction and real data
-		$inventory = $transaction->getInventory();
-		$item = $inventory->getItem($transaction->getSlot());
-		if (!$item->equals($dropItem) || $item->count < $dropItem->count) {
-			$inventory->sendContents($this);
-			return;
-		}
-		// generate event
-		$ev = new PlayerDropItemEvent($this, $dropItem);
-		$this->server->getPluginManager()->callEvent($ev);
-		if($ev->isCancelled()) {
-			$inventory->sendContents($this);
-			return;
-		}
-		// finalizing drop item process
-		if ($item->count == $dropItem->count) {
-			$item = ItemFactory::get(Item::AIR, 0, 0);
-		} else {
-			$item->count -= $dropItem->count;
-		}
-		$inventory->setItem($transaction->getSlot(), $item);
-		$motion = $this->getDirectionVector()->multiply(0.4);
-		$this->level->dropItem($this->add(0, 1.3, 0), $dropItem, $motion, 40);
-		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, false);
-	}
-
-	/**
-	 * @minprotocol 120
-	 * @param Item[] $craftSlots
-	 * @param Recipe $recipe
-	 * @throws \Exception
-	 */
-	private static function tryApplyCraft(&$craftSlots, $recipe) {
-		if ($recipe instanceof ShapedRecipe) {
-			$ingredients = [];
-			$itemGrid = $recipe->getIngredientMap();
-			// convert map into list
-			foreach ($itemGrid as $line) {
-				foreach ($line as $item) {
-//					echo $item . PHP_EOL;
-					$ingredients[] = $item;
-				}
-			}
-		} else if ($recipe instanceof ShapelessRecipe) {
-			$ingredients = $recipe->getIngredientList();
-		}
-		$ingredientsCount = count($ingredients);
-		$firstIndex = 0;
-		foreach ($craftSlots as &$item) {
-			if ($item == null || $item->getId() == Item::AIR) {
-				continue;
-			}
-			for ($i = $firstIndex; $i < $ingredientsCount; $i++) {
-				$ingredient = $ingredients[$i];
-				if ($ingredient->getId() == Item::AIR) {
-					continue;
-				}
-				$isItemsNotEquals = $item->getId() != $ingredient->getId() ||
-						($item->getDamage() != $ingredient->getDamage() && $ingredient->getDamage() != 32767) ||
-						$item->count < $ingredient->count;
-				if ($isItemsNotEquals) {
-					throw new \Exception('Recive bad recipe');
-				}
-				$firstIndex = $i + 1;
-				$item->count -= $ingredient->count;
-				if ($item->count == 0) {
-					/** @important count = 0 is important */
-					$item = ItemFactory::get(Item::AIR, 0, 0);
-				}
-				break;
-			}
-		}
-	}
-
-	/**
-	 * @minprotocol 120
-	 * @param SimpleTransactionData[] $transactionsData
-	 */
-	private function tryEnchant($transactionsData) {
-		foreach ($transactionsData as $trData) {
-			if (!$trData->isUpdateEnchantSlotTransaction() || $trData->oldItem->getId() != Item::AIR) {
-				continue;
-			}
-			$transaction = $trData->convertToTransaction($this);
-			$inventory = $transaction->getInventory();
-			$inventory->setItem($transaction->getSlot(), $transaction->getTargetItem());
 		}
 	}
 

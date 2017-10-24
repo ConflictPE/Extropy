@@ -434,7 +434,7 @@ abstract class BaseInventory implements Inventory{
 				continue;
 			}
 
-			$target->getInventoryAdapter()->sendInventoryContents($id, $slots);
+			$player->getInventoryAdapter()->sendInventoryContents($id, $slots);
 		}
 	}
 
@@ -455,7 +455,7 @@ abstract class BaseInventory implements Inventory{
 				continue;
 			}
 
-			$target->getInventoryAdapter()->sendInventorySlot($id, $item, $index);
+			$player->getInventoryAdapter()->sendInventorySlot($id, $item, $index);
 		}
 	}
 

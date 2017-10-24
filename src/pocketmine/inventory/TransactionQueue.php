@@ -21,19 +21,35 @@
 
 namespace pocketmine\inventory;
 
-/**
- * Saves all the information regarding default inventory sizes and types
- */
-interface SlotType{
-	const RESULT = 0;
+interface TransactionQueue {
 
-	const CRAFTING = 1; //Not used in Minecraft: PE yet
+	const DEFAULT_ALLOWED_RETRIES = 5;
 
-	const ARMOR = 2;
+	/**
+	 * @return Inventory[]
+	 */
+	public function getInventories();
 
-	const CONTAINER = 3;
+	/**
+	 * @return \SplQueue
+	 */
+	public function getTransactions();
 
-	const HOTBAR = 4;
+	/**
+	 * @return int
+	 */
+	public function getTransactionCount();
 
-	const FUEL = 5;
+	/**
+	 * @param Transaction $transaction
+	 *
+	 * Adds a transaction to the queue
+	 */
+	public function addTransaction(Transaction $transaction);
+
+	/**
+	 * Handles transaction queue execution
+	 */
+	public function execute();
+
 }

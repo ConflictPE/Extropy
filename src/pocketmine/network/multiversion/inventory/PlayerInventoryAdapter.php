@@ -23,9 +23,11 @@ namespace pocketmine\network\multiversion\inventory;
 
 use pocketmine\event\inventory\InventoryCloseEvent;
 use pocketmine\event\player\PlayerDropItemEvent;
+use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\inventory\BaseTransaction;
 use pocketmine\inventory\ContainerInventory;
 use pocketmine\inventory\PlayerInventory;
+use pocketmine\inventory\SimpleTransactionGroup;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
@@ -33,11 +35,8 @@ use pocketmine\network\protocol\ContainerClosePacket;
 use pocketmine\network\protocol\ContainerOpenPacket;
 use pocketmine\network\protocol\ContainerSetContentPacket;
 use pocketmine\network\protocol\ContainerSetSlotPacket;
-use pocketmine\network\protocol\DropItemPacket;
-use pocketmine\network\protocol\MobArmorEquipmentPacket;
-use pocketmine\network\protocol\MobEquipmentPacket;
 use pocketmine\network\protocol\types\ContainerIds;
-use pocketmine\network\protocol\UseItemPacket;
+use pocketmine\network\protocol\UpdateBlockPacket;
 use pocketmine\Player;
 
 /**
@@ -48,6 +47,9 @@ class PlayerInventoryAdapter {
 	/** @var Player */
 	private $player;
 
+	/** @var SimpleTransactionGroup */
+	protected $currentTransaction = null;
+
 	public function __construct(Player $player) {
 		$this->player = $player;
 	}
@@ -56,161 +58,246 @@ class PlayerInventoryAdapter {
 		return $this->player;
 	}
 
-	public function handleMobEquipment(MobEquipmentPacket $packet) : bool {
+	/**
+	 * Handle an incoming mob equipment update
+	 *
+	 * @param int $slot
+	 * @param Item $item
+	 * @param int $inventorySlot
+	 */
+	public function handleMobEquipment(int $slot, Item $item, int $inventorySlot) {
 		$player = $this->getPlayer();
 		$inventory = $player->getInventory();
 
-		if($player->spawned == false or !$player->isAlive() or !($inventory instanceof PlayerInventory)) {
-			return true;
-		}
-
-		if($packet->slot === 255) {
-			$packet->slot = -1; // Cleared slot
+		if($slot === 255) {
+			$slot = -1; // Cleared slot
 		} else {
-			if($packet->slot < 9) {
-				$player->getServer()->getLogger()->debug($player->getName() . " tried to equip a slot that does not exist (index " . $packet->slot . ")");
+			if($slot < 9) {
+				$player->getServer()->getLogger()->debug($player->getName() . " tried to equip a slot that does not exist (index " . $slot . ")");
 				$inventory->sendContents($player);
-				return false;
+				return;
 			}
 
-			$packet->slot -= 9; // Get real inventory slot
+			$slot -= 9; // Get real inventory slot
 
-			$item = $inventory->getItem($packet->slot);
+			$handItem = $inventory->getItem($slot);
 
-			if(!$item->equals($packet->item)) {
-				$player->getServer()->getLogger()->debug($player->getName() . " tried to equip " . $packet->item . " but has " . $item . " in target slot");
+			if(!$handItem->equals($item)) {
+				$player->getServer()->getLogger()->debug($player->getName() . " tried to equip " . $item . " but has " . $handItem . " in target slot");
 				$inventory->sendContents($player);
-				return false;
+				return;
 			}
 		}
 
-		$inventory->equipItem($packet->selectedSlot, $packet->slot);
+		$inventory->equipItem($inventorySlot, $slot);
 
 		$player->setUsingItem(false);
-
-		return true;
-	}
-
-	public function handleMobArmorEquipment(MobArmorEquipmentPacket $packet) : bool {
-		return true;
 	}
 
 	//public function handleBlockPickRequest(BlockPickRequestPacket $packet) : bool {
 	//
 	//}
 
-	public function handleUseItem(UseItemPacket $packet) : bool {
+	/**
+	 * Handle an incoming use item request
+	 *
+	 * @param Item $item
+	 * @param int $slot
+	 * @param int $face
+	 * @param Vector3 $blockPosition
+	 * @param Vector3 $clickPosition
+	 */
+	public function handleUseItem(Item $item, int $slot, int $face, Vector3 $blockPosition, Vector3 $clickPosition) {
 		$player = $this->getPlayer();
+		$inventory = $player->getInventory();
+		$handItem = $inventory->getItemInHand();
 
-		if($player->spawned == false or !$player->isAlive()) {
-			return true;
+		switch($face) {
+			// Use item, block place
+			case 0:
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+			case 5:
+				$player->setUsingItem(false);
+
+				if(!$player->canInteract($blockPosition->add(0.5, 0.5, 0.5), 13) or $player->isSpectator()) {
+
+				} elseif($player->isCreative()) {
+					if($player->getLevel()->useItemOn($blockPosition, $item, $face, $clickPosition, $this, true) === true){
+						return;
+					}
+				} elseif(!$handItem->equals($item)) {
+					$inventory->sendHeldItem($player);
+				} else {
+					$oldItem = clone $handItem;
+					if($player->getLevel()->useItemOn($blockPosition, $item, $face, $clickPosition, $player, true)){
+						if(!$item->equalsExact($oldItem)){
+							$inventory->setItemInHand($item);
+							$inventory->sendHeldItem($player->getViewers());
+						}
+
+						return;
+					}
+				}
+
+				$inventory->sendHeldItem($player);
+
+				if($blockPosition->distanceSquared($player) > 10000){
+					return;
+				}
+
+				$target = $player->getLevel()->getBlock($blockPosition);
+				$block = $target->getSide($face);
+
+				$player->getLevel()->sendBlocks([$player], [$target, $block], UpdateBlockPacket::FLAG_ALL_PRIORITY);
+
+			break;
+
+			case 0xff:
+			case -1:  // -1 for 0.16
+				$directionVector = $player->getDirectionVector();
+
+				if($player->isCreative()) {
+					$item = $inventory->getItemInHand();
+				} elseif(!$handItem->equals($item)) {
+					$inventory->sendHeldItem($player);
+					return;
+				} else {
+					$item = $inventory->getItemInHand();
+				}
+
+				$player->getServer()->getPluginManager()->callEvent($ev = new PlayerInteractEvent($player, $item, $directionVector, $face, PlayerInteractEvent::RIGHT_CLICK_AIR));
+				if($ev->isCancelled()) {
+					$inventory->sendHeldItem($player);
+					return;
+				}
+
+				if($item->onClickAir($player, $directionVector) and $player->isSurvival()){
+					$inventory->setItemInHand($item);
+				}
+
+				if($item->getId() === Item::BOW and !$inventory->contains(ItemFactory::get(Item::ARROW, 0, 1))) {
+					$player->setUsingItem(false); // attempting to draw a bow with no arrows
+				} else {
+					$player->setUsingItem(true);
+				}
+
+			break;
 		}
-
-		$player->useItem($packet->item, $packet->hotbarSlot, $packet->face, new Vector3($packet->x, $packet->y, $packet->z), new Vector3($packet->fx, $packet->fy, $packet->fz));
-
-		return true;
 	}
 
-	public function handleDropItem(DropItemPacket $packet) : bool {
+	/**
+	 * Handle an incoming drop item request
+	 *
+	 * @param Item $item
+	 */
+	public function handleDropItem(Item $item) {
 		$player = $this->getPlayer();
 		$inventory = $player->getInventory();
 
-		if($player->spawned == false or !$player->isAlive() or !($inventory instanceof PlayerInventory)) {
-			return true;
-		}
+		if($inventory->contains($item)) {
+			$player->getServer()->getPluginManager()->callEvent($ev = new PlayerDropItemEvent($player, $item));
+			if($ev->isCancelled()) {
+				$inventory->sendContents($player);
+				return;
+			}
 
-		if($packet->item->getId() === Item::AIR) {
-			// Windows 10 Edition drops the contents of the crafting grid on container close - including air.
-			return true;
-		}
+			$inventory->remove($item);
 
-		$item = $inventory->getItemInHand();
-		$player->getServer()->getPluginManager()->callEvent($ev = new PlayerDropItemEvent($player, $item));
-		if($ev->isCancelled()) {
+			$motion = $player->getDirectionVector()->multiply(0.4);
+			$player->getLevel()->dropItem($player->asVector3()->add(0, 1.3, 0), $item, $motion, 40);
+			$player->setUsingItem(false);
+		} else {
 			$inventory->sendContents($player);
-			return true;
 		}
-
-		$inventory->setItemInHand(ItemFactory::get(Item::AIR, 0, 1));
-		$motion = $player->getDirectionVector()->multiply(0.4);
-
-		$player->getLevel()->dropItem($player->asVector3()->add(0, 1.3, 0), $item, $motion, 40);
-
-		$player->setUsingItem(false);
-
-		return true;
 	}
 
-	public function handleContainerClose(ContainerClosePacket $packet) : bool {
+	/**
+	 * Handle an incoming container close request
+	 *
+	 * @param int $windowId
+	 */
+	public function handleContainerClose(int $windowId) {
 		$player = $this->getPlayer();
-		$inventory = $player->getInventory();
-
-		if($player->spawned == false or !$player->isAlive() or !($inventory instanceof PlayerInventory)) {
-			return true;
-		}
 
 		$player->craftingType = 0;
-		$player->currentTransaction = null;
+		$this->currentTransaction = null;
 
-		if($packet->windowid === $player->getCurrentWindowId()) {
+		if($player->getCurrentWindowId() === $windowId) {
 			$player->getServer()->getPluginManager()->callEvent(new InventoryCloseEvent($window = $player->getCurrentWindow(), $player));
 			$player->removeWindow($window);
 		}
-
-		return true;
 	}
 
-	public function handleContainerSetSlot(ContainerSetSlotPacket $packet) : bool {
+	/**
+	 * Handle an incoming container set slot request
+	 *
+	 * @param int $slot
+	 * @param int $windowId
+	 * @param Item $item
+	 * @param int $hotbarSlot
+	 */
+	public function handleContainerSetSlot(int $slot, int $windowId, Item $item, int $hotbarSlot) {
 		$player = $this->getPlayer();
 		$inventory = $player->getInventory();
 
-		if($player->spawned == false or !$player->isAlive() or !($inventory instanceof PlayerInventory)) {
-			return true;
+		if($slot < 0) {
+			return;
 		}
 
-		if($packet->slot < 0) {
-			return false;
-		}
-
-		switch($packet->windowid) {
+		switch($windowId) {
 			case ContainerIds::TYPE_INVENTORY: // Normal inventory change
-				if($packet->slot >= $inventory->getSize()) {
-					return false;
+				if($slot >= $inventory->getSize()) {
+					return;
 				}
 
-				$transaction = new BaseTransaction($inventory, $packet->slot, $inventory->getItem($packet->slot), $packet->item);
+				$transaction = new BaseTransaction($inventory, $slot, $inventory->getItem($slot), $item);
 				break;
 			case ContainerIds::TYPE_ARMOR: // Armour change
-				if($packet->slot >= 4) {
-					return false;
+				if($slot >= 4) {
+					return;
 				}
 
-				$transaction = new BaseTransaction($inventory, $packet->slot + $inventory->getSize(), $inventory->getArmorItem($packet->slot), $packet->item);
+				$transaction = new BaseTransaction($inventory, $slot + $inventory->getSize(), $inventory->getArmorItem($slot), $item);
 				break;
 
 			case ContainerIds::TYPE_HOTBAR: // Hotbar link update
 				// hotbarSlot 0-8, slot 9-44
-				$inventory->setHotbarSlotIndex($packet->hotbarSlot, $packet->slot - 9);
-				return true;
+				$inventory->setHotbarSlotIndex($hotbarSlot, $slot - 9);
+				return;
 			default:
-				if($packet->windowid !== $player->getCurrentWindowId()) {
-					$player->getServer()->getLogger()->debug($player->getName() . " tried to set slot " . $packet->slot . " on unknown window to " . $packet->item . "");
-					return false; // unknown windowID and/or not matching any open windows
+				if($player->getCurrentWindowId() !== $windowId) {
+					$player->getServer()->getLogger()->debug($player->getName() . " tried to set slot " . $slot . " on unknown window to " . $item . "");
+					return; // unknown windowID and/or not matching any open windows
 				}
 
 				$player->craftingType = 0;
-				$transaction = new BaseTransaction($inv = $player->getCurrentWindow(), $packet->slot, $inv->getItem($packet->slot), $packet->item);
+				$transaction = new BaseTransaction($inv = $player->getCurrentWindow(), $slot, $inv->getItem($slot), $item);
 				break;
 		}
 
-		if($transaction->getSourceItem()->equals($transaction->getTargetItem()) and $transaction->getTargetItem()->getCount() === $transaction->getSourceItem()->getCount()) {
-			// No changes, just a local inventory update sent by the client
-			return true;
+		if($this->currentTransaction === null or $this->currentTransaction->getCreationTime() < (microtime(true) - 8)) {
+			if($this->currentTransaction !== null) {
+				foreach($this->currentTransaction->getInventories() as $inventory) {
+					if($inventory instanceof PlayerInventory) {
+						$inventory->sendArmorContents($player);
+					}
+
+					$inventory->sendContents($player);
+				}
+			}
+			$this->currentTransaction = new SimpleTransactionGroup($player);
 		}
 
-		$player->addTransaction($transaction);
+		$this->currentTransaction->addTransaction($transaction);
 
-		return true;
+		if($this->currentTransaction->canExecute()) {
+			$this->currentTransaction->execute();
+
+			$this->currentTransaction = null;
+		}
 	}
 
 	/**
@@ -243,14 +330,16 @@ class PlayerInventoryAdapter {
 	 * Send a packet to set an inventory's contents
 	 *
 	 * @param int $windowId
-	 * @param array $items
+	 * @param Item[] $items
+	 * @param Item[] $hotbarItems
 	 */
-	public function sendInventoryContents(int $windowId, array $items) {
+	public function sendInventoryContents(int $windowId, array $items, array $hotbarItems = []) {
 		$player = $this->getPlayer();
 
 		$pk = new ContainerSetContentPacket();
 		$pk->windowid = $windowId;
 		$pk->slots = $items;
+		$pk->hotbar = $hotbarItems;
 		$pk->eid = $player->getId();
 
 		$this->getPlayer()->dataPacket($pk);

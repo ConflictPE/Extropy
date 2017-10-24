@@ -22,6 +22,7 @@
 namespace pocketmine\inventory;
 
 use pocketmine\item\Item;
+use pocketmine\Player;
 
 class BaseTransaction implements Transaction {
 
@@ -40,55 +41,182 @@ class BaseTransaction implements Transaction {
 	/** @var float */
 	protected $creationTime;
 
+	/** @var int */
+	protected $transactionType = Transaction::TYPE_NORMAL;
+
+	/** @var int */
+	protected $failures = 0;
+
+	/** @var bool */
+	protected $wasSuccessful = false;
+
 	/**
 	 * @param Inventory $inventory
 	 * @param int       $slot
 	 * @param Item      $sourceItem
 	 * @param Item      $targetItem
 	 */
-	public function __construct(Inventory $inventory, $slot, Item $sourceItem, Item $targetItem) {
+	public function __construct(Inventory $inventory, int $slot, Item $sourceItem, Item $targetItem) {
 		$this->inventory = $inventory;
-		$this->slot = (int) $slot;
+		$this->slot = $slot;
 		$this->sourceItem = clone $sourceItem;
 		$this->targetItem = clone $targetItem;
 		$this->creationTime = microtime(true);
 	}
 
-	public function getCreationTime() {
+	public function getCreationTime() : float {
 		return $this->creationTime;
 	}
 
-	public function getInventory() {
+	public function getInventory() : Inventory {
 		return $this->inventory;
 	}
 
-	public function getSlot() {
+	public function getSlot() : int {
 		return $this->slot;
 	}
 
-	public function getSourceItem() {
+	public function getSourceItem() : Item {
 		return clone $this->sourceItem;
 	}
 
-	public function getTargetItem() {
+	public function getTargetItem() : Item {
 		return clone $this->targetItem;
 	}
 
-	/**
-	 * 
-	 * @param Player $target
-	 */
-	public function revert($target) {
-		$this->inventory->sendContents($target);
+	public function getFailures() : int {
+		return $this->failures;
 	}
-	
-	public function clearCustomNames($target = 'both') {
-		if ($target === 'source' || $target === 'both') {
-			$this->sourceItem->clearCustomName();
+
+	public function addFailure() {
+		$this->failures++;
+	}
+
+	public function succeeded() : bool {
+		return $this->wasSuccessful;
+	}
+
+	public function setSuccessful(bool $value = true) {
+		$this->wasSuccessful = $value;
+	}
+
+	/**
+	 * @param Player $source
+	 *
+	 * Sends a slot update to inventory viewers
+	 * For successful transactions, update non-source viewers (source does not need updating)
+	 * For failed transactions, update the source (non-source viewers will see nothing anyway)
+	 */
+	public function sendSlotUpdate(Player $source){
+		if($this->getInventory() instanceof TemporaryInventory) {
+			return;
 		}
-		if ($target === 'target' || $target === 'both') {
-			$this->targetItem->clearCustomName();
+
+		$targets = [];
+
+		if($this->wasSuccessful) {
+			$targets = $this->getInventory()->getViewers();
+			unset($targets[spl_object_hash($source)]);
+		} else {
+			$targets = [$source];
 		}
+
+		$this->inventory->sendSlot($this->slot, $targets);
+	}
+
+	/**
+	 * Returns the change in inventory resulting from this transaction
+	 * @return array ("in" => items added to the inventory, "out" => items removed from the inventory)
+	 * ]
+	 */
+	public function getChange() {
+		$sourceItem = $this->getInventory()->getItem($this->slot);
+
+		if($sourceItem->equalsExact($this->targetItem)){
+			return null; // This should never happen, somehow a change happened where nothing changed
+		}elseif($sourceItem->equals($this->targetItem)){ // Same item, change of count
+			$item = clone $sourceItem;
+			$countDiff = $this->targetItem->getCount() - $sourceItem->getCount();
+			$item->setCount(abs($countDiff));
+
+			if($countDiff < 0) { // Count decreased
+				return [
+					"in" => null,
+					"out" => $item,
+				];
+			} elseif($countDiff > 0) { // Count increased
+				return [
+					"in" => $item,
+					"out" => null,
+				];
+			} else {
+				// Should be impossible (identical items and no count change)
+				// This should be caught by the first condition even if it was possible
+				return null;
+			}
+		} elseif($sourceItem->getId() !== Item::AIR and $this->targetItem->getId() === Item::AIR) {
+			//Slot emptied (item removed)
+			return [
+				"in" => null,
+				"out" => clone $sourceItem,
+			];
+		} elseif($sourceItem->getId() === Item::AIR and $this->targetItem->getId() !== Item::AIR) {
+			//Slot filled (item added)
+			return [
+				"in" => $this->getTargetItem(),
+					"out" => null,
+			];
+		} else {
+			//Some other slot change - an item swap (tool damage changes will be ignored as they are processed server-side before any change is sent by the client
+			return [
+				"in" => $this->getTargetItem(),
+				"out" => clone $sourceItem,
+			];
+		}
+	}
+
+	/**
+	 * @param Player $source
+	 * @return bool
+	 *
+	 * Handles transaction execution. Returns whether transaction was successful or not.
+	 */
+	public function execute(Player $source): bool{
+		if($this->getInventory()->processSlotChange($this)) { //This means that the transaction should be handled the normal way
+			if(!$source->isCreative()) {
+				$change = $this->getChange();
+
+				if($change === null)  { // No changes to make, ignore this transaction
+					return true;
+				}
+
+				/* Verify that we have the required items */
+				if($change["out"] instanceof Item) {
+					if(!$this->getInventory()->slotContains($this->getSlot(), $change["out"])) {
+						return false;
+					}
+				}
+
+				if($change["in"] instanceof Item) {
+					if(!$source->getFloatingInventory()->contains($change["in"])){
+						return false;
+					}
+				}
+
+				/* All checks passed, make changes to floating inventory
+				 * This will not be reached unless all requirements are met */
+				if($change["out"] instanceof Item) {
+					$source->getFloatingInventory()->addItem($change["out"]);
+				}
+
+				if($change["in"] instanceof Item) {
+					$source->getFloatingInventory()->removeItem($change["in"]);
+				}
+			}
+			$this->getInventory()->setItem($this->getSlot(), $this->getTargetItem(), false);
+		}
+
+		return true;
 	}
 
 }
