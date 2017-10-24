@@ -26,15 +26,12 @@ namespace pocketmine\network\protocol;
 #include <rules/DataPacket.h>
 
 
+use pocketmine\network\protocol\types\ContainerIds;
+
 class ContainerSetContentPacket extends PEPacket {
 
 	const NETWORK_ID = Info::CONTAINER_SET_CONTENT_PACKET;
 	const PACKET_NAME = "CONTAINER_SET_CONTENT_PACKET";
-
-	const SPECIAL_INVENTORY = 0;
-	const SPECIAL_OFFHAND = 0x77;
-	const SPECIAL_ARMOR = 0x78;
-	const SPECIAL_CREATIVE = 0x79;
 
 	public $windowid;
 	public $eid = 0;
@@ -74,7 +71,7 @@ class ContainerSetContentPacket extends PEPacket {
 		foreach($this->slots as $slot) {
 			$this->putSlot($slot, $playerProtocol);
 		}
-		if($this->windowid === self::SPECIAL_INVENTORY and count($this->hotbar) > 0) {
+		if($this->windowid === ContainerIds::TYPE_INVENTORY and count($this->hotbar) > 0) {
 			$this->putVarInt(count($this->hotbar));
 			foreach($this->hotbar as $slot) {
 				$this->putSignedVarInt($slot);

@@ -32,6 +32,7 @@ use pocketmine\network\protocol\ContainerSetSlotPacket;
 use pocketmine\network\protocol\Info;
 use pocketmine\network\protocol\MobArmorEquipmentPacket;
 use pocketmine\network\protocol\MobEquipmentPacket;
+use pocketmine\network\protocol\types\ContainerIds;
 use pocketmine\Player;
 use pocketmine\Server;
 
@@ -393,7 +394,7 @@ class PlayerInventory extends BaseInventory{
 			if($player === $this->getHolder()){
 				$pk2 = new ContainerSetContentPacket();
 				$pk2->eid = $this->getHolder()->getId();
-				$pk2->windowid = ContainerSetContentPacket::SPECIAL_ARMOR;
+				$pk2->windowid = ContainerIds::TYPE_ARMOR;
 				$pk2->slots = $armor;
 				$player->dataPacket($pk2);
 			}else{
@@ -414,7 +415,7 @@ class PlayerInventory extends BaseInventory{
 			if($player->getPlayerProtocol() >= Info::PROTOCOL_110) {
 				if ($player === $this->getHolder()) {
 					$pk2 = new ContainerSetSlotPacket();
-					$pk2->windowid = ContainerSetContentPacket::SPECIAL_OFFHAND;
+					$pk2->windowid = ContainerIds::TYPE_OFFHAND;
 					$pk2->slot = 0;
 					$pk2->item = $this->getItem($this->getSize() + self::OFFHAND_CONTAINER_ID);
 					$player->dataPacket($pk2);
@@ -470,7 +471,7 @@ class PlayerInventory extends BaseInventory{
 		foreach($target as $player){
 			if($player === $this->getHolder()){
 				$pk2 = new ContainerSetSlotPacket();
-				$pk2->windowid = ContainerSetContentPacket::SPECIAL_ARMOR;
+				$pk2->windowid = ContainerIds::TYPE_ARMOR;
 				$pk2->slot = $index - $this->getSize();
 				$pk2->item = $this->getItem($index);
 				$player->dataPacket($pk2);
@@ -489,7 +490,7 @@ class PlayerInventory extends BaseInventory{
 		}
 		$pk = new ContainerSetContentPacket();
 		$pk->eid = $this->getHolder()->getId();
-		$pk->windowid = ContainerSetContentPacket::SPECIAL_INVENTORY;
+		$pk->windowid = ContainerIds::TYPE_INVENTORY;
 		$pk->slots = [];
 		for ($i = 0; $i < $this->getSize(); ++$i) { //Do not send armor by error here
 			$pk->slots[$i] = $this->getItem($i);
@@ -517,7 +518,7 @@ class PlayerInventory extends BaseInventory{
 		$pk = new ContainerSetSlotPacket();
 		$pk->slot = $index;
 		$pk->item = clone $this->getItem($index);
-		$pk->windowid = ContainerSetContentPacket::SPECIAL_INVENTORY;
+		$pk->windowid = ContainerIds::TYPE_INVENTORY;
 		$this->getHolder()->dataPacket($pk);
 	}
 
