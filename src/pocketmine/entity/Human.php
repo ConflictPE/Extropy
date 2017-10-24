@@ -301,11 +301,7 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 		$this->setNameTagVisible(true);
 		$this->setNameTagAlwaysVisible(true);
 
-		if($this instanceof Player){
-			$this->inventory = Multiversion::getPlayerInventory($this);
-		} else {
-			$this->inventory = new PlayerInventory($this);
-		}
+		$this->inventory = new PlayerInventory($this);
 
 		$this->enderChestInventory = new EnderChestInventory($this, ($this->namedtag->EnderChestInventory ?? null));
 

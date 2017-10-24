@@ -24,11 +24,14 @@ namespace pocketmine\network\multiversion\inventory;
 use pocketmine\event\inventory\InventoryCloseEvent;
 use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\inventory\BaseTransaction;
+use pocketmine\inventory\ContainerInventory;
 use pocketmine\inventory\PlayerInventory;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
 use pocketmine\network\protocol\ContainerClosePacket;
+use pocketmine\network\protocol\ContainerOpenPacket;
+use pocketmine\network\protocol\ContainerSetContentPacket;
 use pocketmine\network\protocol\ContainerSetSlotPacket;
 use pocketmine\network\protocol\DropItemPacket;
 use pocketmine\network\protocol\MobArmorEquipmentPacket;
@@ -208,6 +211,79 @@ class PlayerInventoryAdapter {
 		$player->addTransaction($transaction);
 
 		return true;
+	}
+
+	/**
+	 * Send a packet to open a container inventory
+	 *
+	 * @param ContainerInventory $inventory
+	 */
+	public function sendContainerOpen(ContainerInventory $inventory) {
+		$player = $this->getPlayer();
+
+		$pk = new ContainerOpenPacket();
+		$pk->windowid = $player->getWindowId($inventory);
+		$pk->type = $inventory->getType()->getNetworkType();
+		$pk->slots = $inventory->getSize();
+		$pk->entityId = $player->getId();
+		$holder = $inventory->getHolder();
+		if($holder instanceof Vector3){
+			$pk->x = $holder->getX();
+			$pk->y = $holder->getY();
+			$pk->z = $holder->getZ();
+		}else{
+			$pk->x = $pk->y = $pk->z = 0;
+		}
+
+		$player->dataPacket($pk);
+		$inventory->sendContents($player);
+	}
+
+	/**
+	 * Send a packet to set an inventory's contents
+	 *
+	 * @param int $windowId
+	 * @param array $items
+	 */
+	public function sendInventoryContents(int $windowId, array $items) {
+		$player = $this->getPlayer();
+
+		$pk = new ContainerSetContentPacket();
+		$pk->windowid = $windowId;
+		$pk->slots = $items;
+		$pk->eid = $player->getId();
+
+		$this->getPlayer()->dataPacket($pk);
+	}
+
+	/**
+	 * Send a packet to set a slot in an inventory
+	 *
+	 * @param int $windowId
+	 * @param Item $item
+	 * @param int $slot
+	 */
+	public function sendInventorySlot(int $windowId, Item $item, int $slot) {
+		$pk = new ContainerSetSlotPacket();
+		$pk->windowid = $windowId;
+		$pk->item = $item;
+		$pk->slot = $slot;
+
+		$this->getPlayer()->dataPacket($pk);
+	}
+
+	/**
+	 * Send a packet to close a container inventory
+	 *
+	 * @param ContainerInventory $inventory
+	 */
+	public function sendContainerClose(ContainerInventory $inventory) {
+		$player = $this->getPlayer();
+
+		$pk = new ContainerClosePacket();
+		$pk->windowid = $player->getWindowId($inventory);
+
+		$player->dataPacket($pk);
 	}
 
 }

@@ -623,6 +623,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		return $this->perm->getEffectivePermissions();
 	}
 
+	public function getInventoryAdapter() : PlayerInventoryAdapter {
+		return $this->inventoryAdapter;
+	}
 
 	/**
 	 * @param SourceInterface $interface
@@ -3241,7 +3244,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			foreach(Item::getCreativeItems() as $item) {
 				$slots[] = clone $item;
 			}
-			Multiversion::sendContainer($this, Protocol120::CONTAINER_ID_CREATIVE, $slots);
+
+			$this->inventoryAdapter->sendInventoryContents(Protocol120::CONTAINER_ID_CREATIVE, $slots);
 		}
 
 		$this->server->sendRecipeList($this);

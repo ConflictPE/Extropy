@@ -433,7 +433,8 @@ abstract class BaseInventory implements Inventory{
 				$this->close($player);
 				continue;
 			}
-			Multiversion::sendContainer($player, $id, $slots);
+
+			$target->getInventoryAdapter()->sendInventoryContents($id, $slots);
 		}
 	}
 
@@ -453,7 +454,8 @@ abstract class BaseInventory implements Inventory{
 				$this->close($player);
 				continue;
 			}
-			Multiversion::sendContainerSlot($player, $id, $item, $index);
+
+			$target->getInventoryAdapter()->sendInventorySlot($id, $item, $index);
 		}
 	}
 
