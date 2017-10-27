@@ -127,17 +127,31 @@ class PlayerInventory extends BaseInventory {
 	}
 
 	/**
-	 * @deprecated
+	 * Links a hotbar slot to the specified slot in the main inventory. -1 links to no slot and will clear the hotbar slot.
+	 * This method is intended for use in network interaction with clients only.
 	 *
-	 * Changes the linkage of the specified hotbar slot. This should never be done unless it is requested by the client.
+	 * NOTE: Do not change hotbar slot mapping with plugins, this will cause myriad client-sided bugs, especially with desktop GUI clients.
 	 *
-	 * @param int $index
-	 * @param int $slot
+	 * @param int $hotbarSlot
+	 * @param int $inventorySlot
 	 */
-	public function setHotbarSlotIndex($index, $slot){
-		if($this->getHolder()->getServer()->getProperty("settings.deprecated-verbose") !== false){
-			trigger_error("Do not attempt to change hotbar links in plugins!", E_USER_DEPRECATED);
+	public function setHotbarSlotIndex(int $hotbarSlot, int $inventorySlot) {
+		if($hotbarSlot < 0 or $hotbarSlot >= $this->getHotbarSize()){
+			throw new \InvalidArgumentException("Hotbar slot index \"$hotbarSlot\" is out of range");
+		} elseif($inventorySlot < -1 or $inventorySlot >= $this->getSize()){
+			throw new \InvalidArgumentException("Inventory slot index \"$inventorySlot\" is out of range");
 		}
+
+		if($inventorySlot !== -1 and ($alreadyEquippedIndex = array_search($inventorySlot, $this->hotbar)) !== false) {
+			/* Swap the slots
+			 * This assumes that the equipped slot can only be equipped in one other slot
+			 * it will not account for ancient bugs where the same slot ended up linked to several hotbar slots.
+			 * Such bugs will require a hotbar reset to default.
+			 */
+			$this->hotbar[$alreadyEquippedIndex] = $this->hotbar[$hotbarSlot];
+		}
+
+		$this->hotbar[$hotbarSlot] = $inventorySlot;
 	}
 
 	public function getHeldItemIndex() : int {
