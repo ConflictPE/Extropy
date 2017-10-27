@@ -19,8 +19,39 @@
  *
 */
 
-namespace pocketmine\inventory;
+namespace pocketmine\inventory\transaction;
 
-class BigShapedRecipe extends ShapedRecipe {
+use pocketmine\inventory\Inventory;
+
+interface TransactionQueue {
+
+	const DEFAULT_ALLOWED_RETRIES = 5;
+
+	/**
+	 * @return Inventory[]
+	 */
+	public function getInventories();
+
+	/**
+	 * @return \SplQueue
+	 */
+	public function getTransactions();
+
+	/**
+	 * @return int
+	 */
+	public function getTransactionCount();
+
+	/**
+	 * @param Transaction $transaction
+	 *
+	 * Adds a transaction to the queue
+	 */
+	public function addTransaction(Transaction $transaction);
+
+	/**
+	 * Handles transaction queue execution
+	 */
+	public function execute();
 
 }

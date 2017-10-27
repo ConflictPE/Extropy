@@ -21,13 +21,20 @@
 
 namespace pocketmine\network\multiversion\inventory;
 
+use pocketmine\event\inventory\CraftItemEvent;
 use pocketmine\event\inventory\InventoryCloseEvent;
 use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerInteractEvent;
-use pocketmine\inventory\BaseTransaction;
 use pocketmine\inventory\ContainerInventory;
+use pocketmine\inventory\FloatingInventory;
 use pocketmine\inventory\PlayerInventory;
-use pocketmine\inventory\SimpleTransactionGroup;
+use pocketmine\inventory\Recipe;
+use pocketmine\inventory\ShapedRecipe;
+use pocketmine\inventory\ShapelessRecipe;
+use pocketmine\inventory\transaction\BaseTransaction;
+use pocketmine\inventory\transaction\SimpleTransactionGroup;
+use pocketmine\inventory\transaction\SimpleTransactionQueue;
+use pocketmine\inventory\transaction\type\DropItemTransaction;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
@@ -42,20 +49,45 @@ use pocketmine\Player;
 /**
  * Class to assist with inventory transactions
  */
-class PlayerInventoryAdapter {
+class PlayerInventoryAdapter implements InventoryAdapter {
 
 	/** @var Player */
 	private $player;
 
-	/** @var SimpleTransactionGroup */
-	protected $currentTransaction = null;
+	/** @var FloatingInventory */
+	protected $floatingInventory;
+
+	/** @var SimpleTransactionQueue */
+	protected $transactionQueue = null;
 
 	public function __construct(Player $player) {
 		$this->player = $player;
+
+		// Virtual inventory for desktop GUI crafting and anti-cheat transaction processing
+		$this->floatingInventory = new FloatingInventory($player);
 	}
 
 	public function getPlayer() : Player {
 		return $this->player;
+	}
+
+	public function getFloatingInventory() {
+		return $this->floatingInventory;
+	}
+
+	public function getTransactionQueue() {
+		// Is creating the transaction queue on demand a good idea? I think only if it's destroyed afterwards. hmm...
+		if($this->transactionQueue === null){
+			//Potential for crashes here if a plugin attempts to use this, say for an NPC plugin or something...
+			$this->transactionQueue = new SimpleTransactionQueue($this->getPlayer());
+		}
+		return $this->transactionQueue;
+	}
+
+	public function doTick(int $currentTick) {
+		if($this->getTransactionQueue() !== null) {
+			$this->getTransactionQueue()->execute();
+		}
 	}
 
 	/**
@@ -89,7 +121,7 @@ class PlayerInventoryAdapter {
 			}
 		}
 
-		$inventory->equipItem($inventorySlot, $slot);
+		$inventory->equipItem($slot);
 
 		$player->setUsingItem(false);
 	}
@@ -195,23 +227,15 @@ class PlayerInventoryAdapter {
 	 */
 	public function handleDropItem(Item $item) {
 		$player = $this->getPlayer();
-		$inventory = $player->getInventory();
-
-		if($inventory->contains($item)) {
-			$player->getServer()->getPluginManager()->callEvent($ev = new PlayerDropItemEvent($player, $item));
-			if($ev->isCancelled()) {
-				$inventory->sendContents($player);
-				return;
-			}
-
-			$inventory->remove($item);
-
-			$motion = $player->getDirectionVector()->multiply(0.4);
-			$player->getLevel()->dropItem($player->asVector3()->add(0, 1.3, 0), $item, $motion, 40);
-			$player->setUsingItem(false);
-		} else {
-			$inventory->sendContents($player);
+		if($player->spawned === false or !$player->isAlive()) { // w10 drops the contents of the crafting grid when the inventory closes - including air.
+			return;
 		}
+
+		if($item->getId() === Item::AIR) {
+			return;
+		}
+
+		$this->getTransactionQueue()->addTransaction(new DropItemTransaction($item));
 	}
 
 	/**
@@ -223,11 +247,20 @@ class PlayerInventoryAdapter {
 		$player = $this->getPlayer();
 
 		$player->craftingType = 0;
-		$this->currentTransaction = null;
 
 		if($player->getCurrentWindowId() === $windowId) {
 			$player->getServer()->getPluginManager()->callEvent(new InventoryCloseEvent($window = $player->getCurrentWindow(), $player));
 			$player->removeWindow($window);
+		}
+
+		/**
+		 * Drop anything still left in the crafting inventory
+		 * This will usually never be needed since Windows 10 clients will send DropItemPackets
+		 * which will cause this to happen anyway, but this is here for when transactions
+		 * fail and items end up stuck in the crafting inventory.
+		 */
+		foreach($this->getFloatingInventory()->getContents() as $item){
+			$this->getTransactionQueue()->addTransaction(new DropItemTransaction($item));
 		}
 	}
 
@@ -278,25 +311,132 @@ class PlayerInventoryAdapter {
 				break;
 		}
 
-		if($this->currentTransaction === null or $this->currentTransaction->getCreationTime() < (microtime(true) - 8)) {
-			if($this->currentTransaction !== null) {
-				foreach($this->currentTransaction->getInventories() as $inventory) {
-					if($inventory instanceof PlayerInventory) {
-						$inventory->sendArmorContents($player);
-					}
+		$this->getTransactionQueue()->addTransaction($transaction);
+	}
 
-					$inventory->sendContents($player);
+	/**
+	 * Handle an incoming crafting request
+	 *
+	 * @param Recipe $recipe
+	 * @param Item[] $input
+	 * @param Item[] $output
+	 */
+	public function handleCraftingEvent(Recipe $recipe, array $input, array $output) {
+		$player = $this->getPlayer();
+		$inventory = $player->getInventory();
+		$canCraft = true;
+
+		if($recipe instanceof ShapedRecipe) {
+			for($x = 0; $x < 3 and $canCraft; ++$x) {
+				for($y = 0; $y < 3; ++$y) {
+					/** @var Item $item */
+					$item = $input[$y * 3 + $x];
+					$ingredient = $recipe->getIngredient($x, $y);
+					if($item->getCount() > 0) {
+						if($ingredient === null or !$ingredient->equals($item, !$ingredient->hasAnyDamageValue(), $ingredient->hasCompoundTag())) {
+							$canCraft = false;
+							break;
+						}
+					}
 				}
 			}
-			$this->currentTransaction = new SimpleTransactionGroup($player);
+		} elseif($recipe instanceof ShapelessRecipe) {
+			$needed = $recipe->getIngredientList();
+
+			for($x = 0; $x < 3 and $canCraft; ++$x) {
+				for($y = 0; $y < 3; ++$y) {
+					/** @var Item $item */
+					$item = clone $input[$y * 3 + $x];
+
+					foreach($needed as $k => $n) {
+						if($n->equals($item, !$n->hasAnyDamageValue(), $n->hasCompoundTag())) {
+							$remove = min($n->getCount(), $item->getCount());
+							$n->setCount($n->getCount() - $remove);
+							$item->setCount($item->getCount() - $remove);
+
+							if($n->getCount() === 0) {
+								unset($needed[$k]);
+							}
+						}
+					}
+
+					if($item->getCount() > 0) {
+						$canCraft = false;
+						break;
+					}
+				}
+			}
+
+			if(count($needed) > 0) {
+				$canCraft = false;
+			}
+		} else {
+			$canCraft = false;
 		}
 
-		$this->currentTransaction->addTransaction($transaction);
+		/** @var Item[] $ingredients */
+		$ingredients = $input;
+		$result = $output[0];
 
-		if($this->currentTransaction->canExecute()) {
-			$this->currentTransaction->execute();
+		if(!$canCraft or !$recipe->getResult()->equals($result)) {
+			$player->getServer()->getLogger()->debug("Unmatched recipe " . $recipe->getId() . " from player " . $player->getName() . ": expected " . $recipe->getResult() . ", got " . $result . ", using: " . implode(", ", $ingredients));
+			$inventory->sendContents($player);
+			return;
+		}
 
-			$this->currentTransaction = null;
+		$used = array_fill(0, $inventory->getSize(), 0);
+
+		foreach($ingredients as $ingredient) {
+			$slot = -1;
+			foreach($inventory->getContents() as $index => $item) {
+				if($ingredient->getId() !== 0 and $ingredient->equals($item, !$ingredient->hasAnyDamageValue(), $ingredient->hasCompoundTag()) and ($item->getCount() - $used[$index]) >= 1) {
+					$slot = $index;
+					$used[$index]++;
+					break;
+				}
+			}
+
+			if($ingredient->getId() !== 0 and $slot === -1) {
+				$canCraft = false;
+				break;
+			}
+		}
+
+		if(!$canCraft) {
+			$player->getServer()->getLogger()->debug("Unmatched recipe " . $recipe->getId() . " from player " . $player->getName() . ": client does not have enough items, using: " . implode(", ", $ingredients));
+			$inventory->sendContents($player);
+			return;
+		}
+
+		$player->getServer()->getPluginManager()->callEvent($ev = new CraftItemEvent($ingredients, $recipe, $player));
+
+		if($ev->isCancelled()) {
+			$inventory->sendContents($player);
+			return;
+		}
+
+		foreach($used as $slot => $count) {
+			if($count === 0) {
+				continue;
+			}
+
+			$item = $inventory->getItem($slot);
+
+			if($item->getCount() > $count) {
+				$newItem = clone $item;
+				$newItem->setCount($item->getCount() - $count);
+			} else {
+				$newItem = ItemFactory::get(Item::AIR, 0, 0);
+			}
+
+			$inventory->setItem($slot, $newItem);
+		}
+
+		$extraItem = $inventory->addItem($recipe->getResult());
+		if(count($extraItem) > 0) {
+			foreach($extraItem as $item) {
+				$player->getLevel()->dropItem($player, $item);
+			}
 		}
 	}
 

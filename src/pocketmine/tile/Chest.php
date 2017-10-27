@@ -23,6 +23,7 @@ namespace pocketmine\tile;
 
 use pocketmine\inventory\ChestInventory;
 use pocketmine\inventory\DoubleChestInventory;
+use pocketmine\inventory\Inventory;
 use pocketmine\inventory\InventoryHolder;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;

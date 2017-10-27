@@ -185,7 +185,7 @@ class Network {
 
 				$interface->emergencyShutdown();
 				$this->unregisterInterface($interface);
-				$logger->critical("Network error: ".$e->getMessage());
+				$logger->critical("Network error: " . $e->getMessage());
 			}
 		}
 	}

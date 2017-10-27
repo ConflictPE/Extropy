@@ -32,7 +32,6 @@ use pocketmine\command\ConsoleCommandSender;
 use pocketmine\command\PluginIdentifiableCommand;
 use pocketmine\command\SimpleCommandMap;
 use pocketmine\entity\Arrow;
-use pocketmine\entity\Attribute;
 use pocketmine\entity\Effect;
 use pocketmine\entity\Egg;
 use pocketmine\entity\Entity;
@@ -53,7 +52,6 @@ use pocketmine\event\Timings;
 use pocketmine\event\TimingsHandler;
 use pocketmine\inventory\CraftingManager;
 use pocketmine\inventory\InventoryType;
-use pocketmine\inventory\PlayerInventory;
 use pocketmine\inventory\Recipe;
 use pocketmine\inventory\ShapedRecipe;
 use pocketmine\inventory\ShapelessRecipe;
@@ -78,7 +76,6 @@ use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\LongTag;
 use pocketmine\nbt\tag\ShortTag;
 use pocketmine\nbt\tag\StringTag;
-use pocketmine\network\multiversion\inventory\PlayerInventoryAdapter;
 use pocketmine\network\Network;
 use pocketmine\network\protocol\BatchPacket;
 use pocketmine\network\protocol\CraftingDataPacket;
@@ -153,15 +150,6 @@ class Server{
 
 	/** @var PluginManager */
 	private $pluginManager = null;
-
-	/** @var AutoUpdater */
-	private $updater = null;
-
-	/** @var ServerScheduler */
-	private $scheduler = null;
-
-	/** @var GenerationRequestManager */
-	private $generationManager = null;
 
 	/**
 	 * Counts the ticks since the server start
@@ -1646,6 +1634,7 @@ class Server{
 		$this->registerEntities();
 		$this->registerTiles();
 
+		DataPacket::initPackets();
 		InventoryType::init();
 		BlockFactory::init();
 		Enchantment::init();
@@ -2108,7 +2097,6 @@ class Server{
 	 * Starts the PocketMine-MP server and starts processing ticks and packets
 	 */
 	public function start(){
-		DataPacket::initPackets();
 		$jsonCommands = @json_decode(@file_get_contents(__DIR__ . "/command/commands.json"), true);
 		if ($jsonCommands) {
 			$this->jsonCommands = $jsonCommands;
@@ -2335,26 +2323,7 @@ class Server{
 	private $craftList = [];
 
 	public function sendRecipeList(Player $p){
-		if(!isset($this->craftList[$p->getPlayerProtocol()])) {
-			$pk = new CraftingDataPacket();
-			$pk->cleanRecipes = true;
-
-			foreach($this->getCraftingManager()->getRecipes() as $recipe){
-				if($recipe instanceof ShapedRecipe){
-					$pk->addShapedRecipe($recipe);
-				}elseif($recipe instanceof ShapelessRecipe){
-					$pk->addShapelessRecipe($recipe);
-				}
-			}
-
-			foreach($this->getCraftingManager()->getFurnaceRecipes() as $recipe){
-				$pk->addFurnaceRecipe($recipe);
-			}
-			$pk->encode($p->getPlayerProtocol(), $p->getSubClientId());
-			$pk->isEncoded = true;
-			$this->craftList[$p->getPlayerProtocol()] = $pk;
-		}
-		$this->batchPackets([$p], [$this->craftList[$p->getPlayerProtocol()]]);
+		$this->batchPackets([$p], [$this->craftingManager->getCraftingDataPacket($p->getPlayerProtocol())]);
 	}
 
 	public function addPlayer($identifier, Player $player){

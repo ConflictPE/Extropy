@@ -56,9 +56,10 @@ class CraftingDataPacket extends PEPacket {
 			return self::writeShapedRecipe($entry, $stream, $playerProtocol);
 		}elseif($entry instanceof FurnaceRecipe) {
 			return self::writeFurnaceRecipe($entry, $stream, $playerProtocol);
-		}elseif($entry instanceof EnchantmentList) {
+		}/*elseif($entry instanceof EnchantmentList) {
 			return self::writeEnchantList($entry, $stream, $playerProtocol);
-		}
+		}*/
+		// TODO: add MultiRecipe
 
 		return -1;
 	}
@@ -69,8 +70,11 @@ class CraftingDataPacket extends PEPacket {
 			$stream->putSlot($item, $playerProtocol);
 		}
 
-		$stream->putVarInt(1);
-		$stream->putSlot($recipe->getResult(), $playerProtocol);
+		$results = $recipe->getAllResults();
+		$stream->putVarInt(count($results));
+		foreach($results as $item) {
+			$stream->putSlot($item, $playerProtocol);
+		}
 
 		$stream->putUUID($recipe->getId());
 
@@ -80,14 +84,18 @@ class CraftingDataPacket extends PEPacket {
 	private static function writeShapedRecipe(ShapedRecipe $recipe, BinaryStream $stream, int $playerProtocol) {
 		$stream->putSignedVarInt($recipe->getWidth());
 		$stream->putSignedVarInt($recipe->getHeight());
-		for($z = 0; $z < $recipe->getWidth(); ++$z) {
-			for($x = 0; $x < $recipe->getHeight(); ++$x) {
+
+		for($z = 0; $z < $recipe->getHeight(); ++$z) {
+			for($x = 0; $x < $recipe->getWidth(); ++$x) {
 				$stream->putSlot($recipe->getIngredient($x, $z), $playerProtocol);
 			}
 		}
 
-		$stream->putVarInt(1);
-		$stream->putSlot($recipe->getResult(), $playerProtocol);
+		$results = $recipe->getAllResults();
+		$stream->putVarInt(count($results));
+		foreach($results as $item) {
+			$stream->putSlot($item, $playerProtocol);
+		}
 
 		$stream->putUUID($recipe->getId());
 
@@ -95,14 +103,16 @@ class CraftingDataPacket extends PEPacket {
 	}
 
 	private static function writeFurnaceRecipe(FurnaceRecipe $recipe, BinaryStream $stream, int $playerProtocol) {
-		if($recipe->getInput()->getDamage() !== 0) { //Data recipe
-			$stream->putSignedVarInt($recipe->getInput()->getDamage());
+		if($recipe->getInput()->hasAnyDamageValue()) { // Data recipe
 			$stream->putSignedVarInt($recipe->getInput()->getId());
+			$stream->putSignedVarInt($recipe->getInput()->getDamage());
 			$stream->putSlot($recipe->getResult(), $playerProtocol);
+
 			return CraftingDataPacket::ENTRY_FURNACE_DATA;
 		} else {
 			$stream->putSignedVarInt($recipe->getInput()->getId());
 			$stream->putSlot($recipe->getResult(), $playerProtocol);
+
 			return CraftingDataPacket::ENTRY_FURNACE;
 		}
 	}
@@ -166,7 +176,7 @@ class CraftingDataPacket extends PEPacket {
 			$writer->reset();
 		}
 
-		$this->putByte($this->cleanRecipes ? 1 : 0);
+		$this->putBool($this->cleanRecipes);
 	}
 
 }

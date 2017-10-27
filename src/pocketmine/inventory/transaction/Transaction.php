@@ -19,37 +19,47 @@
  *
 */
 
-namespace pocketmine\inventory;
+namespace pocketmine\inventory\transaction;
 
-interface TransactionQueue {
+use pocketmine\inventory\Inventory;
+use pocketmine\item\Item;
+use pocketmine\Player;
 
-	const DEFAULT_ALLOWED_RETRIES = 5;
+interface Transaction {
+
+	// Transaction type constants
+	const TYPE_NORMAL = 0;
+	const TYPE_DROP_ITEM = 1;
 
 	/**
-	 * @return Inventory[]
+	 * @return Inventory
 	 */
-	public function getInventories();
-
-	/**
-	 * @return \SplQueue
-	 */
-	public function getTransactions();
+	public function getInventory();
 
 	/**
 	 * @return int
 	 */
-	public function getTransactionCount();
+	public function getSlot();
 
 	/**
-	 * @param Transaction $transaction
-	 *
-	 * Adds a transaction to the queue
+	 * @return Item
 	 */
-	public function addTransaction(Transaction $transaction);
+	public function getSourceItem();
 
 	/**
-	 * Handles transaction queue execution
+	 * @return Item
 	 */
-	public function execute();
+	public function getTargetItem();
+
+	/**
+	 * @return float
+	 */
+	public function getCreationTime();
+
+	/**
+	 * @param Player $source
+	 * @return bool
+	 */
+	public function execute(Player $source): bool;
 
 }

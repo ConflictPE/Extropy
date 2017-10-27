@@ -19,14 +19,18 @@
  *
  */
 
-namespace pocketmine\inventory;
+namespace pocketmine\inventory\transaction;
 
+use pocketmine\inventory\BaseInventory;
+use pocketmine\inventory\Inventory;
+use pocketmine\inventory\TemporaryInventory;
 use pocketmine\item\Item;
+use pocketmine\network\multiversion\inventory\PlayerInventoryAdapter;
 use pocketmine\Player;
 
 class BaseTransaction implements Transaction {
 
-	/** @var Inventory */
+	/** @var Inventory|BaseInventory */
 	protected $inventory;
 
 	/** @var int */
@@ -68,7 +72,10 @@ class BaseTransaction implements Transaction {
 		return $this->creationTime;
 	}
 
-	public function getInventory() : Inventory {
+	/**
+	 * @return BaseInventory|Inventory
+	 */
+	public function getInventory() {
 		return $this->inventory;
 	}
 
@@ -111,8 +118,6 @@ class BaseTransaction implements Transaction {
 		if($this->getInventory() instanceof TemporaryInventory) {
 			return;
 		}
-
-		$targets = [];
 
 		if($this->wasSuccessful) {
 			$targets = $this->getInventory()->getViewers();
@@ -181,39 +186,37 @@ class BaseTransaction implements Transaction {
 	 *
 	 * Handles transaction execution. Returns whether transaction was successful or not.
 	 */
-	public function execute(Player $source): bool{
-		if($this->getInventory()->processSlotChange($this)) { //This means that the transaction should be handled the normal way
-			if(!$source->isCreative()) {
-				$change = $this->getChange();
-
-				if($change === null)  { // No changes to make, ignore this transaction
-					return true;
-				}
-
-				/* Verify that we have the required items */
-				if($change["out"] instanceof Item) {
-					if(!$this->getInventory()->slotContains($this->getSlot(), $change["out"])) {
-						return false;
+	public function execute(Player $source): bool {
+		$adapter = $source->getInventoryAdapter();
+		if($adapter instanceof PlayerInventoryAdapter) {
+			if($this->getInventory()->processSlotChange($this)) { //This means that the transaction should be handled the normal way
+				if(!$source->isCreative()) {
+					$change = $this->getChange();
+					if($change === null) { // No changes to make, ignore this transaction
+						return true;
+					}
+					/* Verify that we have the required items */
+					if($change["out"] instanceof Item) {
+						if(!$this->getInventory()->slotContains($this->getSlot(), $change["out"])) {
+							return false;
+						}
+					}
+					if($change["in"] instanceof Item) {
+						if(!$adapter->getFloatingInventory()->contains($change["in"])) {
+							return false;
+						}
+					}
+					/* All checks passed, make changes to floating inventory
+					 * This will not be reached unless all requirements are met */
+					if($change["out"] instanceof Item) {
+						$adapter->getFloatingInventory()->addItem($change["out"]);
+					}
+					if($change["in"] instanceof Item) {
+						$adapter->getFloatingInventory()->removeItem($change["in"]);
 					}
 				}
-
-				if($change["in"] instanceof Item) {
-					if(!$source->getFloatingInventory()->contains($change["in"])){
-						return false;
-					}
-				}
-
-				/* All checks passed, make changes to floating inventory
-				 * This will not be reached unless all requirements are met */
-				if($change["out"] instanceof Item) {
-					$source->getFloatingInventory()->addItem($change["out"]);
-				}
-
-				if($change["in"] instanceof Item) {
-					$source->getFloatingInventory()->removeItem($change["in"]);
-				}
+				$this->getInventory()->setItem($this->getSlot(), $this->getTargetItem(), false);
 			}
-			$this->getInventory()->setItem($this->getSlot(), $this->getTargetItem(), false);
 		}
 
 		return true;

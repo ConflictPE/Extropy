@@ -25,7 +25,6 @@ use pocketmine\event\player\PlayerCreationEvent;
 use pocketmine\network\protocol\BatchPacket;
 use pocketmine\network\protocol\DataPacket;
 use pocketmine\network\protocol\Info;
-use pocketmine\network\protocol\UnknownPacket;
 use pocketmine\Player;
 use pocketmine\Server;
 use pocketmine\utils\Binary;
@@ -106,9 +105,7 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 		if(!$this->rakLib->isTerminated()){
 			$this->interface->sendTick();
 		}else{
-			$info = $this->rakLib->getTerminationInfo();
-			$this->network->unregisterInterface($this);
-			\ExceptionHandler::handler(E_ERROR, "RakLib Thread crashed [".$info["scope"]."]: " . (isset($info["message"]) ? $info["message"] : ""), $info["file"], $info["line"]);
+			throw new \Exception("RakLib Thread crashed");
 		}
 	}
 

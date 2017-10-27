@@ -21,41 +21,13 @@
 
 namespace pocketmine\inventory;
 
-interface TransactionGroup{
+/**
+ * The in-between inventory where items involved in transactions are stored temporarily
+ */
+class FloatingInventory extends BaseInventory {
 
-	/**
-	 * @return float
-	 */
-	function getCreationTime();
-
-	/**
-	 * @return Transaction[]
-	 */
-	function getTransactions();
-
-	/**
-	 * @return Inventory[]
-	 */
-	function getInventories();
-
-	/**
-	 * @param Transaction $transaction
-	 */
-	function addTransaction(Transaction $transaction);
-
-	/**
-	 * @return bool
-	 */
-	function canExecute();
-
-	/**
-	 * @return bool
-	 */
-	function execute();
-
-	/**
-	 * @return bool
-	 */
-	function hasExecuted();
+	public function __construct(InventoryHolder $holder){
+		parent::__construct($holder, InventoryType::get(InventoryType::PLAYER_FLOATING));
+	}
 
 }

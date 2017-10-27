@@ -7,7 +7,7 @@ use pocketmine\entity\Entity;
 use pocketmine\entity\monster\WalkingMonster;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\item\GoldSword;
+use pocketmine\item\tool\sword\GoldSword;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
 use pocketmine\nbt\tag\IntTag;

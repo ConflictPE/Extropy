@@ -28,13 +28,13 @@ use pocketmine\Player;
 
 abstract class ContainerInventory extends BaseInventory{
 
-	public function onOpen(Player $who){
+	public function onOpen(Player $who) {
 		parent::onOpen($who);
 
 		$who->getInventoryAdapter()->sendContainerOpen($this);
 	}
 
-	public function onClose(Player $who){
+	public function onClose(Player $who) {
 		$who->getInventoryAdapter()->sendContainerClose($this);
 
 		parent::onClose($who);

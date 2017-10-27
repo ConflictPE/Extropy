@@ -46,6 +46,7 @@ use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerCommandPostprocessEvent;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\event\player\PlayerDeathEvent;
+use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerGameModeChangeEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerKickEvent;
@@ -66,10 +67,8 @@ use pocketmine\inventory\EnchantInventory;
 use pocketmine\inventory\Inventory;
 use pocketmine\inventory\InventoryHolder;
 use pocketmine\inventory\PlayerInventory;
-use pocketmine\inventory\PlayerInventory120;
 use pocketmine\inventory\ShapedRecipe;
 use pocketmine\inventory\ShapelessRecipe;
-use pocketmine\inventory\win10\Win10InvLogic;
 use pocketmine\item\armor\Armor;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\food\Edible;
@@ -88,16 +87,15 @@ use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\LongTag;
 use pocketmine\nbt\tag\StringTag;
+use pocketmine\network\multiversion\inventory\InventoryAdapter;
 use pocketmine\network\multiversion\inventory\PlayerInventoryAdapter;
 use pocketmine\network\multiversion\inventory\PlayerInventoryAdapter120;
-use pocketmine\network\multiversion\Multiversion;
 use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\AdventureSettingsPacket;
 use pocketmine\network\protocol\AnimatePacket;
 use pocketmine\network\protocol\AvailableCommandsPacket;
 use pocketmine\network\protocol\BatchPacket;
 use pocketmine\network\protocol\ChunkRadiusUpdatePacket;
-use pocketmine\network\protocol\ContainerClosePacket;
 use pocketmine\network\protocol\DataPacket;
 use pocketmine\network\protocol\DisconnectPacket;
 use pocketmine\network\protocol\EntityEventPacket;
@@ -362,7 +360,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	/** @var Player */
 	protected $parent = null;
 
-	/** @var PlayerInventoryAdapter */
+	/** @var InventoryAdapter */
 	private $inventoryAdapter;
 
 	public function getLeaveMessage(){
@@ -618,7 +616,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		return $this->perm->getEffectivePermissions();
 	}
 
-	public function getInventoryAdapter() : PlayerInventoryAdapter {
+	public function getInventoryAdapter() : InventoryAdapter {
 		return $this->inventoryAdapter;
 	}
 
@@ -1055,7 +1053,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		if($this->getPlayerProtocol() >= ProtocolInfo::PROTOCOL_120) {
 			$disallowedPackets = Protocol120::getDisallowedPackets();
 			if (in_array(get_class($packet), $disallowedPackets)) {
-				return;
+				return false;
 			}
 		}
 
@@ -1422,10 +1420,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 						$this->inventory->addItem(clone $item);
 						$entity->kill();
-
-						if ($this->inventoryType == self::INVENTORY_CLASSIC && $this->protocol < ProtocolInfo::PROTOCOL_120) {
-							Win10InvLogic::playerPickUpItem($this, $item);
-						}
 					}
 				}
 			}
@@ -1622,6 +1616,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			}
 
 			$this->checkChunks();
+
+			$this->inventoryAdapter->doTick($currentTick);
 
 			$this->messageQueue->doTick();
 			$this->popupQueue->doTick();
@@ -2077,143 +2073,15 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					break;
 				}
 
-				if($packet->windowId > 0 and $packet->windowId !== $this->currentWindowId) {
-					$this->getInventoryAdapter()->sendContainerClose($packet->windowId);
-					break;
-				}
-
 				$recipe = $this->server->getCraftingManager()->getRecipe($packet->id);
-				$result = $packet->output[0];
 
-				if (!($result instanceof Item)) {
+				if($recipe === null or (($recipe instanceof BigShapelessRecipe or $recipe instanceof BigShapedRecipe) and $this->craftingType === 0) or count($packet->input) === 0) {
 					$this->inventory->sendContents($this);
-					//Timings::$timerCraftingEventPacket->stopTiming();
-					break;
+					return false;
 				}
 
-				if (is_null($recipe) || !$result->deepEquals($recipe->getResult(), true, false) ) { //hack for win10
-					$newRecipe = $this->server->getCraftingManager()->getRecipeByHash($result->getId() . ":" . $result->getDamage());
-					if (!is_null($newRecipe)) {
-						$recipe = $newRecipe;
-					}
-				}
+				$this->inventoryAdapter->handleCraftingEvent($recipe, $packet->input, $packet->output);
 
-				if ($this->protocol >= ProtocolInfo::PROTOCOL_120) {
-					$craftSlots = $this->inventory->getCraftContents();
-					try {
-						self::tryApplyCraft($craftSlots, $recipe);
-						$this->inventory->setItem(PlayerInventory120::CRAFT_RESULT_INDEX, $recipe->getResult());
-						foreach ($craftSlots as $slot => $item) {
-							if ($item == null) {
-								continue;
-							}
-							$this->inventory->setItem(PlayerInventory120::CRAFT_INDEX_0 - $slot, $item);
-						}
-					} catch (\Exception $e) {
-						var_dump($e->getMessage());
-					}
-					return;
-				}
-
-				// переделать эту проверку
-				if ($recipe === null || (($recipe instanceof BigShapelessRecipe || $recipe instanceof BigShapedRecipe) && $this->craftingType === self::CRAFTING_DEFAULT)) {
-					$this->inventory->sendContents($this);
-					//Timings::$timerCraftingEventPacket->stopTiming();
-					break;
-				}
-
-//				foreach($packet->input as $i => $item){
-//					if($item->getDamage() === -1 or $item->getDamage() === 0x7fff){
-//						$item->setDamage(null);
-//					}
-//
-//					if($i < 9 and $item->getId() > 0){
-//						$item->setCount(1);
-//					}
-//				}
-
-				$canCraft = true;
-
-
-				/** @var Item[] $ingredients */
-				$ingredients = [];
-				if ($recipe instanceof ShapedRecipe) {
-					$ingredientMap = $recipe->getIngredientMap();
-					foreach ($ingredientMap as $row) {
-						$ingredients = array_merge($ingredients, $row);
-					}
-				} else if ($recipe instanceof ShapelessRecipe) {
-					$ingredients = $recipe->getIngredientList();
-				} else {
-					$canCraft = false;
-				}
-
-				if(!$canCraft || !$result->deepEquals($recipe->getResult(), true, false)){
-					$this->server->getLogger()->debug("Unmatched recipe ". $recipe->getId() ." from player ". $this->getName() .": expected " . $recipe->getResult() . ", got ". $result .", using: " . implode(", ", $ingredients));
-					$this->inventory->sendContents($this);
-					//Timings::$timerCraftingEventPacket->stopTiming();
-					break;
-				}
-
-				$used = array_fill(0, $this->inventory->getSize() + 5, 0);
-
-				$playerInventoryItems = $this->inventory->getContents();
-				foreach ($ingredients as $ingredient) {
-					$slot = -1;
-					foreach ($playerInventoryItems as $index => $i) {
-						if ($ingredient->getId() !== Item::AIR && $ingredient->deepEquals($i, (!is_null($ingredient->getDamage()) && $ingredient->getDamage() != 0x7fff), false) && ($i->getCount() - $used[$index]) >= 1) {
-							$slot = $index;
-							$used[$index]++;
-							break;
-						}
-					}
-
-					if($ingredient->getId() !== Item::AIR and $slot === -1){
-						$canCraft = false;
-						break;
-					}
-				}
-
-				if(!$canCraft){
-					$this->server->getLogger()->debug("Unmatched recipe ". $recipe->getId() ." from player ". $this->getName() .": client does not have enough items, using: " . implode(", ", $ingredients));
-					$this->inventory->sendContents($this);
-					//Timings::$timerCraftingEventPacket->stopTiming();
-					break;
-				}
-				$this->server->getPluginManager()->callEvent($ev = new CraftItemEvent($ingredients, $recipe, $this));
-
-				if($ev->isCancelled()){
-					$this->inventory->sendContents($this);
-					//Timings::$timerCraftingEventPacket->stopTiming();
-					break;
-				}
-
-				foreach($used as $slot => $count){
-					if($count === 0){
-						continue;
-					}
-
-					$item = $playerInventoryItems[$slot];
-
-					if($item->getCount() > $count){
-						$newItem = clone $item;
-						$newItem->setCount($item->getCount() - $count);
-					}else{
-						$newItem = ItemFactory::get(Item::AIR, 0, 0);
-					}
-
-					$this->inventory->setItem($slot, $newItem);
-				}
-
-				$extraItem = $this->inventory->addItem($recipe->getResult());
-				if(count($extraItem) > 0){
-					foreach($extraItem as $item){
-						$this->level->dropItem($this, $item);
-					}
-				}
-				$this->inventory->sendContents($this);
-
-				//Timings::$timerCraftingEventPacket->stopTiming();
 				break;
 
 			case 'CONTAINER_SET_SLOT_PACKET':
@@ -2478,6 +2346,41 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	/**
+	 * @param Item $item
+	 *
+	 * Drops the specified item in front of the player.
+	 */
+	public function dropItem(Item $item) {
+		if($this->spawned === false or !$this->isAlive()) {
+			return;
+		}
+
+		if($this->isSpectator()) {
+			return;
+		}
+
+		if($item->isNull()){
+			return;
+		}
+
+		$ev = new PlayerDropItemEvent($this, $item);
+		$this->server->getPluginManager()->callEvent($ev);
+		if($ev->isCancelled()) {
+			if($this->inventoryAdapter instanceof PlayerInventoryAdapter) {
+				$this->inventoryAdapter->getFloatingInventory()->removeItem($item);
+				$this->getInventory()->addItem($item);
+			}
+			return;
+		}
+
+		$motion = $this->getDirectionVector()->multiply(0.4);
+
+		$this->level->dropItem($this->add(0, 1.3, 0), $item, $motion, 40);
+
+		$this->setUsingItem(false);
+	}
+
+	/**
 	 * Schedules a chat message to be sent to a player
 	 *
 	 * @param string $message
@@ -2569,8 +2472,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$subClient->close($message, $reason);
 			}
 		}
-        Win10InvLogic::removeData($this);
-        foreach($this->tasks as $task){
+		foreach($this->tasks as $task){
 			$task->cancel();
 		}
 		$this->tasks = [];
@@ -3186,12 +3088,12 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->server->addOnlinePlayer($this);
 
 		if($this->isCreative()) {
-			$this->inventory->setHeldItemSlot(0);
+			$this->inventory->setHeldItemIndex(0);
 		} else {
 			if(isset($this->namedtag->SelectedInventorySlot)) {
-				$this->inventory->setHeldItemSlot($this->inventory->getHotbarSlotIndex($nbt["SelectedInventorySlot"]));
+				$this->inventory->setHeldItemIndex($this->inventory->getHotbarSlotIndex($nbt["SelectedInventorySlot"]));
 			} else {
-				$this->inventory->setHeldItemSlot($this->inventory->getHotbarSlotIndex(0));
+				$this->inventory->setHeldItemIndex($this->inventory->getHotbarSlotIndex(0));
 			}
 		}
 

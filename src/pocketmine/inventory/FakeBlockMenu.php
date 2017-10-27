@@ -26,14 +26,15 @@ use pocketmine\level\Position;
 
 class FakeBlockMenu extends Position implements InventoryHolder{
 
+	/** @var Inventory */
 	private $inventory;
 
-	public function __construct(Inventory $inventory, Position $pos){
+	public function __construct(Inventory $inventory, Position $pos) {
 		$this->inventory = $inventory;
-		parent::__construct($pos->x, $pos->y, $pos->z, $pos->level);
+		parent::__construct($pos->x, $pos->y, $pos->z, $pos->getLevel());
 	}
 
-	public function getInventory(){
+	public function getInventory() : Inventory {
 		return $this->inventory;
 	}
 

@@ -28,6 +28,7 @@ use pocketmine\network\protocol\types\WindowTypes;
  */
 class InventoryType{
 
+	// NOTE: Do not confuse these with the network IDs.
 	const CHEST = 0;
 	const DOUBLE_CHEST = 1;
 	const PLAYER = 2;
@@ -39,6 +40,8 @@ class InventoryType{
 	const ANVIL = 8;
 	const ENCHANT_TABLE = 9;
 	const ENDER_CHEST = 10;
+
+	const PLAYER_FLOATING = 254;
 
 	private static $default = [];
 
@@ -71,6 +74,8 @@ class InventoryType{
 			static::BREWING_STAND => new InventoryType(4, "Brewing", WindowTypes::BREWING_STAND), // 1 INPUT, 3 POTION
 			static::ANVIL => new InventoryType(3, "Anvil", WindowTypes::ANVIL), // 2 INPUT, 1 OUTPUT
 			static::ENDER_CHEST => new InventoryType(27, "Ender Chest",  WindowTypes::CONTAINER),
+
+			static::PLAYER_FLOATING => new InventoryType(36, "Floating", null), //Mirror all slots of main inventory (needed for large item pickups)
 		];
 	}
 
@@ -88,21 +93,21 @@ class InventoryType{
 	/**
 	 * @return int
 	 */
-	public function getDefaultSize(){
+	public function getDefaultSize() : int {
 		return $this->size;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getDefaultTitle(){
+	public function getDefaultTitle() : string {
 		return $this->title;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getNetworkType(){
+	public function getNetworkType() : int {
 		return $this->typeId;
 	}
 

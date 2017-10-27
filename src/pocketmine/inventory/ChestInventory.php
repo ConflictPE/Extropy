@@ -30,6 +30,9 @@ use pocketmine\tile\Chest;
 
 class ChestInventory extends ContainerInventory {
 
+	/** @var Chest */
+	protected $holder;
+
 	public function __construct(Chest $tile) {
 		parent::__construct($tile, InventoryType::get(InventoryType::CHEST));
 	}

@@ -36,22 +36,25 @@ class EnderChestInventory extends ContainerInventory{
 	/** @var Human|Player */
 	private $owner;
 
-	public function __construct(Human $owner, $contents = null){
+	/** @var FakeBlockMenu */
+	protected $holder;
+
+	public function __construct(Human $owner, Enum $contents = null) {
 		$this->owner = $owner;
 		parent::__construct(new FakeBlockMenu($this, $owner->getPosition()), InventoryType::get(InventoryType::ENDER_CHEST));
 
-		if($contents !== null){
-			if($contents instanceof Enum){ //Saved data to be loaded into the inventory
-				foreach($contents as $item){
+		if($contents !== null) {
+			if($contents instanceof Enum) { //Saved data to be loaded into the inventory
+				foreach($contents as $item) {
 					$this->setItem($item["Slot"], Item::nbtDeserialize($item));
 				}
-			}else{
+			} else {
 				throw new \InvalidArgumentException("Expecting Enum, received " . gettype($contents));
 			}
 		}
 	}
 
-	public function getOwner(){
+	public function getOwner() : Human {
 		return $this->owner;
 	}
 
@@ -61,7 +64,7 @@ class EnderChestInventory extends ContainerInventory{
 	 *
 	 * @param Position $pos
 	 */
-	public function openAt(Position $pos){
+	public function openAt(Position $pos) {
 		$this->getHolder()->setComponents($pos->x, $pos->y, $pos->z);
 		$this->getHolder()->setLevel($pos->getLevel());
 		$this->owner->addWindow($this);
@@ -70,11 +73,11 @@ class EnderChestInventory extends ContainerInventory{
 	/**
 	 * @return FakeBlockMenu
 	 */
-	public function getHolder(){
+	public function getHolder() {
 		return $this->holder;
 	}
 
-	public function onOpen(Player $who){
+	public function onOpen(Player $who) {
 		parent::onOpen($who);
 
 		if(count($this->getViewers()) === 1){
@@ -84,7 +87,7 @@ class EnderChestInventory extends ContainerInventory{
 			$pk->z = $this->getHolder()->getZ();
 			$pk->case1 = 1;
 			$pk->case2 = 2;
-			if(($level = $this->getHolder()->getLevel()) instanceof Level){
+			if(($level = $this->getHolder()->getLevel()) instanceof Level) {
 				Server::broadcastPacket($level->getUsingChunk($this->getHolder()->getX() >> 4, $this->getHolder()->getZ() >> 4), $pk);
 			}
 		}
@@ -92,15 +95,15 @@ class EnderChestInventory extends ContainerInventory{
 		$who->sendSound(LevelSoundEventPacket::SOUND_CHEST_OPEN, $position);
 	}
 
-	public function onClose(Player $who){
-		if(count($this->getViewers()) === 1){
+	public function onClose(Player $who) {
+		if(count($this->getViewers()) === 1) {
 			$pk = new TileEventPacket();
 			$pk->x = $this->getHolder()->getX();
 			$pk->y = $this->getHolder()->getY();
 			$pk->z = $this->getHolder()->getZ();
 			$pk->case1 = 1;
 			$pk->case2 = 0;
-			if(($level = $this->getHolder()->getLevel()) instanceof Level){
+			if(($level = $this->getHolder()->getLevel()) instanceof Level) {
 				Server::broadcastPacket($level->getUsingChunk($this->getHolder()->getX() >> 4, $this->getHolder()->getZ() >> 4), $pk);
 			}
 		}

@@ -22,43 +22,41 @@
 namespace pocketmine\inventory;
 
 use pocketmine\item\Item;
-use pocketmine\Player;
+use pocketmine\utils\UUID;
 
-interface Transaction {
-
-	// Transaction type constants
-	const TYPE_NORMAL = 0;
-	const TYPE_DROP_ITEM = 1;
+interface CraftingRecipe extends Recipe {
 
 	/**
-	 * @return Inventory
+	 * @return UUID|null
 	 */
-	public function getInventory();
+	public function getId();
 
 	/**
-	 * @return int
+	 * @param UUID $id
 	 */
-	public function getSlot();
+	public function setId(UUID $id);
+
+	public function requiresCraftingTable() : bool;
 
 	/**
-	 * @return Item
+	 * @return Item[]
 	 */
-	public function getSourceItem();
+	public function getExtraResults() : array;
 
 	/**
-	 * @return Item
+	 * @return Item[]
 	 */
-	public function getTargetItem();
+	public function getAllResults() : array;
 
 	/**
-	 * @return float
-	 */
-	public function getCreationTime();
-
-	/**
-	 * @param Player $source
+	 * Returns whether the specified list of crafting grid inputs and outputs matches this recipe. Outputs DO NOT
+	 * include the primary result item.
+	 *
+	 * @param Item[][] $input 2D array of items taken from the crafting grid
+	 * @param Item[][] $output 2D array of items put back into the crafting grid (secondary results)
+	 *
 	 * @return bool
 	 */
-	public function execute(Player $source): bool;
+	public function matchItems(array $input, array $output) : bool;
 
 }

@@ -19,9 +19,10 @@
  *
 */
 
-namespace pocketmine\inventory;
+namespace pocketmine\inventory\transaction;
 
 use pocketmine\event\inventory\InventoryTransactionEvent;
+use pocketmine\inventory\Inventory;
 use pocketmine\Player;
 
 class SimpleTransactionQueue implements TransactionQueue {
@@ -124,7 +125,7 @@ class SimpleTransactionQueue implements TransactionQueue {
 			}
 
 			$this->transactionCount -= 1;
-			$transaction->setSuccess();
+			$transaction->setSuccessful();
 			$transaction->sendSlotUpdate($this->player);
 			unset($this->inventories[spl_object_hash($transaction)]);
 		}

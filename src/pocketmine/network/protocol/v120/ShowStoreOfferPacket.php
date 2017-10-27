@@ -47,7 +47,7 @@ class ShowStoreOfferPacket extends PEPacket {
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
 		$this->putString($this->productId);
-		$this->putByte($this->isShowToAll);
+		$this->putBool($this->isShowToAll);
 	}
 
 }
