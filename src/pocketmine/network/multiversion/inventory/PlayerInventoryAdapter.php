@@ -23,18 +23,19 @@ namespace pocketmine\network\multiversion\inventory;
 
 use pocketmine\event\inventory\CraftItemEvent;
 use pocketmine\event\inventory\InventoryCloseEvent;
-use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerInteractEvent;
+use pocketmine\inventory\action\EquipItemAction;
+use pocketmine\inventory\action\TransactionAction;
 use pocketmine\inventory\ContainerInventory;
 use pocketmine\inventory\FloatingInventory;
-use pocketmine\inventory\PlayerInventory;
+use pocketmine\inventory\Inventory;
 use pocketmine\inventory\Recipe;
 use pocketmine\inventory\ShapedRecipe;
 use pocketmine\inventory\ShapelessRecipe;
 use pocketmine\inventory\transaction\BaseTransaction;
-use pocketmine\inventory\transaction\SimpleTransactionGroup;
 use pocketmine\inventory\transaction\SimpleTransactionQueue;
 use pocketmine\inventory\transaction\type\DropItemTransaction;
+use pocketmine\inventory\transaction\type\EquipItemTransaction;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
@@ -93,37 +94,14 @@ class PlayerInventoryAdapter implements InventoryAdapter {
 	/**
 	 * Handle an incoming mob equipment update
 	 *
-	 * @param int $slot
+	 * @param int $hotbarSlot
 	 * @param Item $item
 	 * @param int $inventorySlot
 	 */
-	public function handleMobEquipment(int $slot, Item $item, int $inventorySlot) {
+	public function handleMobEquipment(int $hotbarSlot, Item $item, int $inventorySlot) {
 		$player = $this->getPlayer();
-		$inventory = $player->getInventory();
 
-		if($slot === 255) {
-			$slot = -1; // Cleared slot
-		} else {
-			if($slot < 9) {
-				$player->getServer()->getLogger()->debug($player->getName() . " tried to equip a slot that does not exist (index " . $slot . ")");
-				$inventory->sendContents($player);
-				return;
-			}
-
-			$slot -= 9; // Get real inventory slot
-
-			$handItem = $inventory->getItem($slot);
-
-			if(!$handItem->equals($item)) {
-				$player->getServer()->getLogger()->debug($player->getName() . " tried to equip " . $item . " but has " . $handItem . " in target slot");
-				$inventory->sendContents($player);
-				return;
-			}
-		}
-
-		$inventory->equipItem($slot);
-
-		$player->setUsingItem(false);
+		$this->getTransactionQueue()->addTransaction(new EquipItemTransaction($inv = $player->getInventory(), $inventorySlot - 9, $hotbarSlot, $player->getInventory()->getItem($inventorySlot - 9), $item));
 	}
 
 	//public function handleBlockPickRequest(BlockPickRequestPacket $packet) : bool {
@@ -471,15 +449,15 @@ class PlayerInventoryAdapter implements InventoryAdapter {
 	 *
 	 * @param int $windowId
 	 * @param Item[] $items
-	 * @param Item[] $hotbarItems
+	 * @param int[] $hotbarMap
 	 */
-	public function sendInventoryContents(int $windowId, array $items, array $hotbarItems = []) {
+	public function sendInventoryContents(int $windowId, array $items, array $hotbarMap = []) {
 		$player = $this->getPlayer();
 
 		$pk = new ContainerSetContentPacket();
 		$pk->windowid = $windowId;
 		$pk->slots = $items;
-		$pk->hotbar = $hotbarItems;
+		$pk->hotbar = $hotbarMap;
 		$pk->eid = $player->getId();
 
 		$this->getPlayer()->dataPacket($pk);

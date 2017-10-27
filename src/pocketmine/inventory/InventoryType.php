@@ -66,7 +66,7 @@ class InventoryType{
 		static::$default = [
 			static::CHEST => new InventoryType(27, "Chest", WindowTypes::CONTAINER),
 			static::DOUBLE_CHEST => new InventoryType(27 + 27, "Double Chest", WindowTypes::CONTAINER),
-			static::PLAYER => new InventoryType(36 + 4, "Player", WindowTypes::INVENTORY), // 36 CONTAINER, 4 ARMOUR
+			static::PLAYER => new InventoryType(36 + 4 + 1, "Player", WindowTypes::INVENTORY), // 36 CONTAINER, 4 ARMOUR, 1 OFFHAND
 			static::CRAFTING => new InventoryType(5, "Crafting", WindowTypes::INVENTORY), // yes, the use of INVENTORY is intended! 4 CRAFTING slots, 1 RESULT
 			static::WORKBENCH => new InventoryType(10, "Crafting", WindowTypes::WORKBENCH), // 9 CRAFTING slots, 1 RESULT
 			static::FURNACE => new InventoryType(3, "Furnace", WindowTypes::FURNACE), // 2 INPUT, 1 OUTPUT

@@ -33,8 +33,8 @@ class MobEquipmentPacket extends PEPacket {
 
 	public $eid;
 	public $item;
-	public $slot;
-	public $selectedSlot;
+	public $inventorySlot;
+	public $hotbarSlot;
 	public $windowId = 0;
 
 	const WINDOW_ID_PLAYER_OFFHAND = 0x77;
@@ -43,8 +43,8 @@ class MobEquipmentPacket extends PEPacket {
 		$this->getHeader($playerProtocol);
 		$this->eid = $this->getVarInt();
 		$this->item = $this->getSlot($playerProtocol);
-		$this->slot = $this->getByte();
-		$this->selectedSlot = $this->getByte();
+		$this->inventorySlot = $this->getByte();
+		$this->hotbarSlot = $this->getByte();
 		$this->windowId = $this->getByte();
 	}
 
@@ -52,8 +52,8 @@ class MobEquipmentPacket extends PEPacket {
 		$this->reset($playerProtocol);
 		$this->putVarInt($this->eid);
 		$this->putSlot($this->item, $playerProtocol);
-		$this->putByte($this->slot);
-		$this->putByte($this->selectedSlot);
+		$this->putByte($this->inventorySlot);
+		$this->putByte($this->hotbarSlot);
 		$this->putByte($this->windowId);
 	}
 

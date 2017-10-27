@@ -131,15 +131,16 @@ class BaseTransaction implements Transaction {
 
 	/**
 	 * Returns the change in inventory resulting from this transaction
+	 *
 	 * @return array ("in" => items added to the inventory, "out" => items removed from the inventory)
-	 * ]
+	 *
 	 */
 	public function getChange() {
 		$sourceItem = $this->getInventory()->getItem($this->slot);
 
-		if($sourceItem->equalsExact($this->targetItem)){
+		if($sourceItem->equalsExact($this->targetItem)) {
 			return null; // This should never happen, somehow a change happened where nothing changed
-		}elseif($sourceItem->equals($this->targetItem)){ // Same item, change of count
+		} elseif($sourceItem->equals($this->targetItem)) { // Same item, change of count
 			$item = clone $sourceItem;
 			$countDiff = $this->targetItem->getCount() - $sourceItem->getCount();
 			$item->setCount(abs($countDiff));
@@ -169,7 +170,7 @@ class BaseTransaction implements Transaction {
 			//Slot filled (item added)
 			return [
 				"in" => $this->getTargetItem(),
-					"out" => null,
+				"out" => null,
 			];
 		} else {
 			//Some other slot change - an item swap (tool damage changes will be ignored as they are processed server-side before any change is sent by the client
@@ -197,7 +198,7 @@ class BaseTransaction implements Transaction {
 					}
 					/* Verify that we have the required items */
 					if($change["out"] instanceof Item) {
-						if(!$this->getInventory()->slotContains($this->getSlot(), $change["out"])) {
+						if(!$this->getInventory()->contains($change["out"])) {
 							return false;
 						}
 					}

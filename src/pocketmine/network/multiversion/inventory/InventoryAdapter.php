@@ -40,11 +40,11 @@ interface InventoryAdapter {
 	/**
 	 * Handle an incoming mob equipment update
 	 *
-	 * @param int $slot
+	 * @param int $hotbarSlot
 	 * @param Item $item
 	 * @param int $inventorySlot
 	 */
-	public function handleMobEquipment(int $slot, Item $item, int $inventorySlot);
+	public function handleMobEquipment(int $hotbarSlot, Item $item, int $inventorySlot);
 
 	/**
 	 * Handle an incoming use item request

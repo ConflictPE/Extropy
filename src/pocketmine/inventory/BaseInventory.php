@@ -27,6 +27,7 @@ use pocketmine\event\inventory\InventoryOpenEvent;
 use pocketmine\inventory\transaction\Transaction;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
+use pocketmine\network\protocol\types\ContainerIds;
 use pocketmine\Player;
 use pocketmine\Server;
 
@@ -187,11 +188,11 @@ abstract class BaseInventory implements Inventory{
 		return false;
 	}
 
-	public function slotContains($slot, Item $item, $matchCount = false){
-		if($matchCount){
+	public function slotContains(int $slot, Item $item, bool $matchCount = false) : bool {
+		if($matchCount) {
+			return $this->getItem($slot)->equals($item);
+		} else {
 			return $this->getItem($slot)->equalsExact($item);
-		}else{
-			return $this->getItem($slot)->equalsExact($item) and $this->getItem($slot)->getCount() >= $item->getCount();
 		}
 	}
 
@@ -432,7 +433,7 @@ abstract class BaseInventory implements Inventory{
 		}
 
 		foreach($target as $player) {
-			if(($id = $player->getWindowId($this)) === -1 or $player->spawned !== true) {
+			if(($id = $player->getWindowId($this)) === ContainerIds::TYPE_NONE) {
 				$this->close($player);
 				continue;
 			}
@@ -453,7 +454,7 @@ abstract class BaseInventory implements Inventory{
 		/** @var Item $item */
 		$item = clone $this->getItem($index);
 		foreach($target as $player) {
-			if(($id = $player->getWindowId($this)) === -1) {
+			if(($id = $player->getWindowId($this)) === ContainerIds::TYPE_NONE) {
 				$this->close($player);
 				continue;
 			}

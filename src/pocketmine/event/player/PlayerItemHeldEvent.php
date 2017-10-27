@@ -28,17 +28,38 @@ use pocketmine\Player;
 class PlayerItemHeldEvent extends PlayerEvent implements Cancellable{
 	public static $handlerList = null;
 
+	/** @var Item */
 	private $item;
-	private $slot;
 
-	public function __construct(Player $player, Item $item, int $slot){
+	/** @var int */
+	private $hotbarSlot;
+
+	/** @var int */
+	private $inventorySlot;
+
+	public function __construct(Player $player, Item $item, int $inventorySlot, int $hotbarSlot){
 		$this->player = $player;
 		$this->item = $item;
-		$this->slot = (int) $slot;
+		$this->inventorySlot = $inventorySlot;
+		$this->hotbarSlot = $hotbarSlot;
 	}
 
-	public function getSlot(){
-		return $this->slot;
+	/**
+	 * Returns the hotbar slot the player is attempting to hold.
+	 *
+	 * @return int
+	 */
+	public function getSlot() : int{
+		return $this->hotbarSlot;
+	}
+
+	/**
+	 * Returns the index of the item the player is attempting to hold
+	 *
+	 * @return int
+	 */
+	public function getInventorySlot() : int {
+		return $this->inventorySlot;
 	}
 
 	public function getItem(){

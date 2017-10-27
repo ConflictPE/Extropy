@@ -1773,7 +1773,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					break;
 				}
 
-				$this->getInventoryAdapter()->handleMobEquipment($packet->slot, $packet->item, $packet->selectedSlot);
+				$this->getInventoryAdapter()->handleMobEquipment($packet->hotbarSlot, $packet->item, $packet->inventorySlot);
 				break;
 			case 'USE_ITEM_PACKET':
 				if($this->spawned == false or !$this->isAlive()) {
