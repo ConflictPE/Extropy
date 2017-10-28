@@ -31,16 +31,16 @@ class ContainerClosePacket extends PEPacket {
 	const NETWORK_ID = Info::CONTAINER_CLOSE_PACKET;
 	const PACKET_NAME = "CONTAINER_CLOSE_PACKET";
 
-	public $windowid;
+	public $windowId;
 
 	public function decode(int $playerProtocol) {
 		$this->getHeader($playerProtocol);
-		$this->windowid = $this->getByte();
+		$this->windowId = $this->getByte();
 	}
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putByte($this->windowid);
+		$this->putByte($this->windowId);
 	}
 
 }

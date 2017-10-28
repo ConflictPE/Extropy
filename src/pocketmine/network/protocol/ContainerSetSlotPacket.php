@@ -33,7 +33,7 @@ class ContainerSetSlotPacket extends PEPacket {
 	const NETWORK_ID = Info::CONTAINER_SET_SLOT_PACKET;
 	const PACKET_NAME = "CONTAINER_SET_SLOT_PACKET";
 
-	public $windowid;
+	public $windowId;
 	public $slot;
 	public $hotbarSlot = 0;
 
@@ -45,7 +45,7 @@ class ContainerSetSlotPacket extends PEPacket {
 
 	public function decode(int $playerProtocol) {
 		$this->getHeader($playerProtocol);
-		$this->windowid = $this->getByte();
+		$this->windowId = $this->getByte();
 		$this->slot = $this->getSignedVarInt();
 		$this->hotbarSlot = $this->getSignedVarInt();
 		$this->item = $this->getSlot($playerProtocol);
@@ -56,7 +56,7 @@ class ContainerSetSlotPacket extends PEPacket {
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putByte($this->windowid);
+		$this->putByte($this->windowId);
 		$this->putSignedVarInt($this->slot);
 		$this->putSignedVarInt($this->hotbarSlot);
 		$this->putSlot($this->item, $playerProtocol);

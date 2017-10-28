@@ -25,6 +25,7 @@ use pocketmine\inventory\ContainerInventory;
 use pocketmine\inventory\Recipe;
 use pocketmine\item\Item;
 use pocketmine\math\Vector3;
+use pocketmine\network\protocol\types\NetworkInventoryAction;
 
 interface InventoryAdapter {
 
@@ -36,6 +37,11 @@ interface InventoryAdapter {
 	 * @return mixed
 	 */
 	public function doTick(int $currentTick);
+
+	/**
+	 * Add the default windows for the player
+	 */
+	public function addDefaultWindows();
 
 	/**
 	 * Handle an incoming mob equipment update
@@ -89,6 +95,16 @@ interface InventoryAdapter {
 	 * @param Item[] $output
 	 */
 	public function handleCraftingEvent(Recipe $recipe, array $input, array $output);
+
+	/**
+	 * Handle an incoming inventory action
+	 *
+	 * @param NetworkInventoryAction[] $actions
+	 * @param bool $isCraftingPart
+	 * @param int $type
+	 * @param \stdClass $data
+	 */
+	public function handleInventoryTransaction(array $actions, bool $isCraftingPart, int $type, \stdClass $data);
 
 	/**
 	 * Send a packet to open a container inventory

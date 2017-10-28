@@ -27,6 +27,7 @@ namespace pocketmine\network\protocol\v120;
 
 
 use pocketmine\inventory\InventoryType;
+use pocketmine\item\Item;
 use pocketmine\network\protocol\Info120;
 use pocketmine\network\protocol\PEPacket;
 
@@ -35,20 +36,28 @@ class InventoryContentPacket extends PEPacket {
 	const NETWORK_ID = Info120::INVENTORY_CONTENT_PACKET;
 	const PACKET_NAME = "INVENTORY_CONTENT_PACKET";
 
-	public $inventoryId = InventoryType::PLAYER;
+	/** @var int */
+	public $windowId;
+
+	/** @var Item[] */
 	public $items = [];
 
 	public function decode(int $playerProtocol) {
-
+		$this->getHeader();
+		$this->windowId = $this->getVarInt();
+		$count = $this->getVarInt();
+		for($i = 0; $i < $count; ++$i){
+			$this->items[] = $this->getSlot($playerProtocol);
+		}
 	}
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putVarInt($this->inventoryId);
-		$itemsNum = count($this->items);
-		$this->putVarInt($itemsNum);
-		for($i = 0; $i < $itemsNum; $i++) {
-			$this->putSlot($this->items[$i], $playerProtocol);
+
+		$this->putVarInt($this->windowId);
+		$this->putVarInt(count($this->items));
+		foreach($this->items as $item) {
+			$this->putSlot($item, $playerProtocol);
 		}
 	}
 

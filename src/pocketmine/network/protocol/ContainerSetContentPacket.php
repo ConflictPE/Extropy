@@ -33,7 +33,7 @@ class ContainerSetContentPacket extends PEPacket {
 	const NETWORK_ID = Info::CONTAINER_SET_CONTENT_PACKET;
 	const PACKET_NAME = "CONTAINER_SET_CONTENT_PACKET";
 
-	public $windowid;
+	public $windowId;
 	public $eid = 0;
 	public $slots = [];
 	public $hotbar = [];
@@ -46,7 +46,7 @@ class ContainerSetContentPacket extends PEPacket {
 
 	public function decode(int $playerProtocol) {
 		$this->getHeader($playerProtocol);
-		$this->windowid = $this->getVarInt();
+		$this->windowId = $this->getVarInt();
 
 		$count = $this->getVarInt();
 		for($s = 0; $s < $count and !$this->feof(); ++$s) {
@@ -61,7 +61,7 @@ class ContainerSetContentPacket extends PEPacket {
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putByte($this->windowid);
+		$this->putByte($this->windowId);
 
 		if($playerProtocol >= Info::PROTOCOL_110) {
 			$this->putVarInt($this->eid);
@@ -71,7 +71,7 @@ class ContainerSetContentPacket extends PEPacket {
 		foreach($this->slots as $slot) {
 			$this->putSlot($slot, $playerProtocol);
 		}
-		if($this->windowid === ContainerIds::TYPE_INVENTORY and count($this->hotbar) > 0) {
+		if($this->windowId === ContainerIds::TYPE_INVENTORY and count($this->hotbar) > 0) {
 			$this->putVarInt(count($this->hotbar));
 			foreach($this->hotbar as $slot) {
 				$this->putSignedVarInt($slot);

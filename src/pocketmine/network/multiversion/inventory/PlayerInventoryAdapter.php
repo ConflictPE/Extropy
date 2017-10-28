@@ -24,8 +24,6 @@ namespace pocketmine\network\multiversion\inventory;
 use pocketmine\event\inventory\CraftItemEvent;
 use pocketmine\event\inventory\InventoryCloseEvent;
 use pocketmine\event\player\PlayerInteractEvent;
-use pocketmine\inventory\action\EquipItemAction;
-use pocketmine\inventory\action\TransactionAction;
 use pocketmine\inventory\ContainerInventory;
 use pocketmine\inventory\FloatingInventory;
 use pocketmine\inventory\Inventory;
@@ -63,9 +61,11 @@ class PlayerInventoryAdapter implements InventoryAdapter {
 
 	public function __construct(Player $player) {
 		$this->player = $player;
+	}
 
+	public function addDefaultWindows() {
 		// Virtual inventory for desktop GUI crafting and anti-cheat transaction processing
-		$this->floatingInventory = new FloatingInventory($player);
+		$this->floatingInventory = new FloatingInventory($this->player);
 	}
 
 	public function getPlayer() : Player {
@@ -226,9 +226,9 @@ class PlayerInventoryAdapter implements InventoryAdapter {
 
 		$player->craftingType = 0;
 
-		if($player->getCurrentWindowId() === $windowId) {
-			$player->getServer()->getPluginManager()->callEvent(new InventoryCloseEvent($window = $player->getCurrentWindow(), $player));
-			$player->removeWindow($window);
+		if(($inv = $player->getWindow($windowId)) instanceof Inventory) {
+			$player->getServer()->getPluginManager()->callEvent(new InventoryCloseEvent($inv, $player));
+			$player->removeWindow($inv);
 		}
 
 		/**
@@ -279,13 +279,13 @@ class PlayerInventoryAdapter implements InventoryAdapter {
 				$inventory->setHotbarSlotIndex($hotbarSlot, $slot - 9);
 				return;
 			default:
-				if($player->getCurrentWindowId() !== $windowId) {
+				if(!($inv = $player->getWindow($windowId)) instanceof Inventory) {
 					$player->getServer()->getLogger()->debug($player->getName() . " tried to set slot " . $slot . " on unknown window to " . $item . "");
 					return; // unknown windowID and/or not matching any open windows
 				}
 
 				$player->craftingType = 0;
-				$transaction = new BaseTransaction($inv = $player->getCurrentWindow(), $slot, $inv->getItem($slot), $item);
+				$transaction = new BaseTransaction($inv, $slot, $inv->getItem($slot), $item);
 				break;
 		}
 
@@ -418,6 +418,10 @@ class PlayerInventoryAdapter implements InventoryAdapter {
 		}
 	}
 
+	public function handleInventoryTransaction(array $actions, bool $isCraftingPart, int $type, \stdClass $data) {
+		// only for 1.2+
+	}
+
 	/**
 	 * Send a packet to open a container inventory
 	 *
@@ -427,7 +431,7 @@ class PlayerInventoryAdapter implements InventoryAdapter {
 		$player = $this->getPlayer();
 
 		$pk = new ContainerOpenPacket();
-		$pk->windowid = $player->getWindowId($inventory);
+		$pk->windowId = $player->getWindowId($inventory);
 		$pk->type = $inventory->getType()->getNetworkType();
 		$pk->slots = $inventory->getSize();
 		$pk->entityId = $player->getId();
@@ -455,7 +459,7 @@ class PlayerInventoryAdapter implements InventoryAdapter {
 		$player = $this->getPlayer();
 
 		$pk = new ContainerSetContentPacket();
-		$pk->windowid = $windowId;
+		$pk->windowId = $windowId;
 		$pk->slots = $items;
 		$pk->hotbar = $hotbarMap;
 		$pk->eid = $player->getId();
@@ -472,7 +476,7 @@ class PlayerInventoryAdapter implements InventoryAdapter {
 	 */
 	public function sendInventorySlot(int $windowId, Item $item, int $slot) {
 		$pk = new ContainerSetSlotPacket();
-		$pk->windowid = $windowId;
+		$pk->windowId = $windowId;
 		$pk->item = $item;
 		$pk->slot = $slot;
 
@@ -488,7 +492,7 @@ class PlayerInventoryAdapter implements InventoryAdapter {
 		$player = $this->getPlayer();
 
 		$pk = new ContainerClosePacket();
-		$pk->windowid = $player->getWindowId($inventory);
+		$pk->windowId = $player->getWindowId($inventory);
 
 		$player->dataPacket($pk);
 	}

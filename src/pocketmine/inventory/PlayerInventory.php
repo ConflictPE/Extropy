@@ -74,7 +74,7 @@ class PlayerInventory extends BaseInventory {
 	 *
 	 * @return bool    If the equipment change was successful, false if not.
 	 */
-	public function equipItem(int $hotbarSlot, int $inventorySlot) : bool {
+	public function oldEquipItem(int $hotbarSlot, int $inventorySlot) : bool {
 		if($inventorySlot === null) {
 			$inventorySlot = $this->getHotbarSlotIndex($hotbarSlot);
 		}
@@ -98,6 +98,32 @@ class PlayerInventory extends BaseInventory {
 		}
 
 		$this->setHotbarSlotIndex($hotbarSlot, $inventorySlot);
+		$this->setHeldItemIndex($hotbarSlot, false);
+
+		return true;
+	}
+
+	/**
+	 * Called when a client equips a hotbar slot. This method should not be used by plugins.
+	 * This method will call PlayerItemHeldEvent.
+	 *
+	 * @param int $hotbarSlot Number of the hotbar slot to equip.
+	 *
+	 * @return bool if the equipment change was successful, false if not.
+	 */
+	public function equipItem(int $hotbarSlot) : bool {
+		if(!$this->isHotbarSlot($hotbarSlot)){
+			$this->sendContents($this->getHolder());
+			return false;
+		}
+
+		$this->getHolder()->getLevel()->getServer()->getPluginManager()->callEvent($ev = new PlayerItemHeldEvent($this->getHolder(), $this->getItem($hotbarSlot), $hotbarSlot, $this->getHotbarSlotIndex($hotbarSlot)));
+
+		if($ev->isCancelled()){
+			$this->sendHeldItem($this->getHolder());
+			return false;
+		}
+
 		$this->setHeldItemIndex($hotbarSlot, false);
 
 		return true;

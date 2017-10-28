@@ -31,20 +31,20 @@ class ContainerSetDataPacket extends PEPacket {
 	const NETWORK_ID = Info::CONTAINER_SET_DATA_PACKET;
 	const PACKET_NAME = "CONTAINER_SET_DATA_PACKET";
 
-	public $windowid;
+	public $windowId;
 	public $property;
 	public $value;
 
 	public function decode(int $playerProtocol) {
 		$this->getHeader($playerProtocol);
-		$this->windowid = $this->getByte();
+		$this->windowId = $this->getByte();
 		$this->property = $this->getSignedVarInt();
 		$this->value = $this->getSignedVarInt();
 	}
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putByte($this->windowid);
+		$this->putByte($this->windowId);
 		$this->putSignedVarInt($this->property);
 		$this->putSignedVarInt($this->value);
 	}

@@ -66,7 +66,7 @@ class EquipItemTransaction extends BaseTransaction {
 			return false;
 		}
 
-		$this->getInventory()->equipItem($this->getHotbarSlot(), $this->getSlot());
+		$this->getInventory()->oldEquipItem($this->getHotbarSlot(), $this->getSlot());
 
 		$source->setUsingItem(false);
 

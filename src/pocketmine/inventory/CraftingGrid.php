@@ -19,19 +19,30 @@
  *
 */
 
-namespace pocketmine\network\protocol\types;
+namespace pocketmine\inventory;
 
-interface ContainerIds {
+use pocketmine\Player;
 
-	const TYPE_NONE = -1;
-	const TYPE_INVENTORY = 0;
-	const TYPE_FIRST = 1;
-	const TYPE_LAST = 100;
-	const TYPE_OFFHAND = 119;
-	const TYPE_ARMOR = 120;
-	const TYPE_CREATIVE = 121;
-	const TYPE_HOTBAR = 122;
-	const TYPE_FIXED_INVENTORY = 123;
-	const TYPE_CURSOR = 124;
+class CraftingGrid extends BaseInventory {
+
+	public function __construct(Player $holder) {
+		parent::__construct($holder, InventoryType::get(InventoryType::CRAFTING));
+	}
+
+	public function getDefaultSize() : int {
+		return 4;
+	}
+
+	public function setSize(int $size) {
+		throw new \BadMethodCallException("Cannot change the size of a crafting grid");
+	}
+
+	public function sendSlot(int $index, $target) {
+		// we can't send a slot of a client-sided inventory window
+	}
+
+	public function sendContents($target) {
+		// no way to do this
+	}
 
 }

@@ -41,6 +41,8 @@ class InventoryType{
 	const ENCHANT_TABLE = 9;
 	const ENDER_CHEST = 10;
 
+	const PLAYER_CURSOR = 250;
+
 	const PLAYER_FLOATING = 254;
 
 	private static $default = [];
@@ -75,7 +77,9 @@ class InventoryType{
 			static::ANVIL => new InventoryType(3, "Anvil", WindowTypes::ANVIL), // 2 INPUT, 1 OUTPUT
 			static::ENDER_CHEST => new InventoryType(27, "Ender Chest",  WindowTypes::CONTAINER),
 
-			static::PLAYER_FLOATING => new InventoryType(36, "Floating", null), //Mirror all slots of main inventory (needed for large item pickups)
+			static::PLAYER_CURSOR => new InventoryType(1, "Cursor", WindowTypes::INVENTORY), // 1 SLOT
+
+			static::PLAYER_FLOATING => new InventoryType(36, "Floating", null), // Mirror all slots of main inventory (needed for large item pickups)
 		];
 	}
 

@@ -21,21 +21,26 @@
 namespace pocketmine\network\multiversion\inventory;
 
 use pocketmine\event\inventory\InventoryCloseEvent;
-use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerInteractEvent;
+use pocketmine\inventory\BigCraftingGrid;
 use pocketmine\inventory\ContainerInventory;
-use pocketmine\inventory\PlayerInventory;
-use pocketmine\inventory\transaction\BaseTransaction;
-use pocketmine\inventory\transaction\SimpleTransactionGroup;
+use pocketmine\inventory\CraftingGrid;
+use pocketmine\inventory\Inventory;
+use pocketmine\inventory\PlayerCursorInventory;
+use pocketmine\inventory\Recipe;
+use pocketmine\inventory\transaction\CraftingTransaction;
+use pocketmine\inventory\transaction\InventoryTransaction;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
 use pocketmine\network\protocol\ContainerClosePacket;
 use pocketmine\network\protocol\ContainerOpenPacket;
-use pocketmine\network\protocol\ContainerSetContentPacket;
-use pocketmine\network\protocol\ContainerSetSlotPacket;
 use pocketmine\network\protocol\types\ContainerIds;
+use pocketmine\network\protocol\types\NetworkInventoryAction;
 use pocketmine\network\protocol\UpdateBlockPacket;
+use pocketmine\network\protocol\v120\InventoryContentPacket;
+use pocketmine\network\protocol\v120\InventorySlotPacket;
+use pocketmine\network\protocol\v120\InventoryTransactionPacket;
 use pocketmine\Player;
 
 /**
@@ -46,15 +51,65 @@ class PlayerInventoryAdapter120 implements InventoryAdapter {
 	/** @var Player */
 	private $player;
 
-	/** @var SimpleTransactionGroup */
-	protected $currentTransaction = null;
+	/** @var PlayerCursorInventory */
+	protected $cursorInventory;
+
+	/** @var CraftingGrid */
+	protected $craftingGrid = null;
+
+	/** @var CraftingTransaction|null */
+	protected $craftingTransaction = null;
 
 	public function __construct(Player $player) {
 		$this->player = $player;
 	}
 
+	public function addDefaultWindows() {
+		$player = $this->getPlayer();
+
+		$this->cursorInventory = new PlayerCursorInventory($player);
+		$player->addWindow($this->cursorInventory, ContainerIds::TYPE_CURSOR, true);
+
+		$this->craftingGrid = new CraftingGrid($player);
+	}
+
 	public function getPlayer() : Player {
 		return $this->player;
+	}
+
+	public function getCursorInventory() : PlayerCursorInventory {
+		return $this->cursorInventory;
+	}
+
+	public function getCraftingGrid() : CraftingGrid {
+		return $this->craftingGrid;
+	}
+
+	/**
+	 * @param CraftingGrid $grid
+	 */
+	public function setCraftingGrid(CraftingGrid $grid) {
+		$this->craftingGrid = $grid;
+	}
+
+	public function resetCraftingGridType() {
+		$player = $this->getPlayer();
+		$inventory = $player->getInventory();
+
+		$contents = $this->craftingGrid->getContents();
+		if(count($contents) > 0){
+			$drops = $inventory->addItem(...$contents);
+			foreach($drops as $drop){
+				$player->dropItem($drop);
+			}
+
+			$this->craftingGrid->clearAll();
+		}
+
+		if($this->craftingGrid instanceof BigCraftingGrid){
+			$this->craftingGrid = new CraftingGrid($player);
+			$player->craftingType = 0;
+		}
 	}
 
 	public function doTick(int $currentTick) {
@@ -72,24 +127,14 @@ class PlayerInventoryAdapter120 implements InventoryAdapter {
 		$player = $this->getPlayer();
 		$inventory = $player->getInventory();
 
-		if($slot === 255) {
-			$slot = -1; // Cleared slot
-		} else {
-			if($slot < 9) {
-				$player->getServer()->getLogger()->debug($player->getName() . " tried to equip a slot that does not exist (index " . $slot . ")");
-				$inventory->sendContents($player);
-				return;
-			}
+		$inventorySlot -= 9; // get the real inventory slot
 
-			$slot -= 9; // Get real inventory slot
+		$handItem = $inventory->getItem($inventorySlot);
 
-			$handItem = $inventory->getItem($slot);
-
-			if(!$handItem->equals($item)) {
-				$player->getServer()->getLogger()->debug($player->getName() . " tried to equip " . $item . " but has " . $handItem . " in target slot");
-				$inventory->sendContents($player);
-				return;
-			}
+		if(!$handItem->equals($item)){
+			$player->getServer()->getLogger()->debug("Tried to equip " . $item . " but have " . $handItem . " in target slot");
+			$inventory->sendContents($player);
+			return;
 		}
 
 		$inventory->equipItem($slot);
@@ -197,24 +242,7 @@ class PlayerInventoryAdapter120 implements InventoryAdapter {
 	 * @param Item $item
 	 */
 	public function handleDropItem(Item $item) {
-		$player = $this->getPlayer();
-		$inventory = $player->getInventory();
-
-		if($inventory->contains($item)) {
-			$player->getServer()->getPluginManager()->callEvent($ev = new PlayerDropItemEvent($player, $item));
-			if($ev->isCancelled()) {
-				$inventory->sendContents($player);
-				return;
-			}
-
-			$inventory->remove($item);
-
-			$motion = $player->getDirectionVector()->multiply(0.4);
-			$player->getLevel()->dropItem($player->asVector3()->add(0, 1.3, 0), $item, $motion, 40);
-			$player->setUsingItem(false);
-		} else {
-			$inventory->sendContents($player);
-		}
+		// item drops are handled via transactions
 	}
 
 	/**
@@ -225,81 +253,137 @@ class PlayerInventoryAdapter120 implements InventoryAdapter {
 	public function handleContainerClose(int $windowId) {
 		$player = $this->getPlayer();
 
-		$player->craftingType = 0;
-		$this->currentTransaction = null;
+		$this->resetCraftingGridType();
 
-		if($player->getCurrentWindowId() === $windowId) {
-			$player->getServer()->getPluginManager()->callEvent(new InventoryCloseEvent($window = $player->getCurrentWindow(), $player));
-			$player->removeWindow($window);
+		if(($inv = $player->getWindow($windowId)) instanceof Inventory) {
+			$player->getServer()->getPluginManager()->callEvent(new InventoryCloseEvent($inv, $player));
+			$player->removeWindow($inv);
 		}
 	}
 
-	/**
-	 * Handle an incoming container set slot request
-	 *
-	 * @param int $slot
-	 * @param int $windowId
-	 * @param Item $item
-	 * @param int $hotbarSlot
-	 */
 	public function handleContainerSetSlot(int $slot, int $windowId, Item $item, int $hotbarSlot) {
+		// slot setting is handled by transactions
+	}
+
+	public function handleCraftingEvent(Recipe $recipe, array $input, array $output) {
+		// crafting is handled by transactions
+	}
+
+	/**
+	 * Handle an incoming inventory action
+	 *
+	 * @param NetworkInventoryAction[] $actions
+	 * @param bool $isCraftingPart
+	 * @param int $type
+	 * @param \stdClass $data
+	 */
+	public function handleInventoryTransaction(array $actions, bool $isCraftingPart, int $type, \stdClass $data) {
 		$player = $this->getPlayer();
 		$inventory = $player->getInventory();
 
-		if($slot < 0) {
+		if($player->isSpectator()) {
+			$player->sendAllInventories();
 			return;
 		}
 
-		switch($windowId) {
-			case ContainerIds::TYPE_INVENTORY: // Normal inventory change
-				if($slot >= $inventory->getSize()) {
-					return;
-				}
+		$invActions = [];
+		foreach($actions as $networkInventoryAction) {
+			$action = $networkInventoryAction->createInventoryAction($player);
 
-				$transaction = new BaseTransaction($inventory, $slot, $inventory->getItem($slot), $item);
-				break;
-			case ContainerIds::TYPE_ARMOR: // Armour change
-				if($slot >= 4) {
-					return;
-				}
-
-				$transaction = new BaseTransaction($inventory, $slot + $inventory->getSize(), $inventory->getArmorItem($slot), $item);
-				break;
-
-			case ContainerIds::TYPE_HOTBAR: // Hotbar link update
-				// hotbarSlot 0-8, slot 9-44
-				$inventory->setHotbarSlotIndex($hotbarSlot, $slot - 9);
+			if($action === null) {
+				$player->getServer()->getLogger()->debug("Unmatched inventory action from " . $player->getName() . ": " . json_encode($networkInventoryAction));
+				$player->sendAllInventories();
 				return;
-			default:
-				if($player->getCurrentWindowId() !== $windowId) {
-					$player->getServer()->getLogger()->debug($player->getName() . " tried to set slot " . $slot . " on unknown window to " . $item . "");
-					return; // unknown windowID and/or not matching any open windows
-				}
+			}
 
-				$player->craftingType = 0;
-				$transaction = new BaseTransaction($inv = $player->getCurrentWindow(), $slot, $inv->getItem($slot), $item);
-				break;
+			$invActions[] = $action;
 		}
 
-		if($this->currentTransaction === null or $this->currentTransaction->getCreationTime() < (microtime(true) - 8)) {
-			if($this->currentTransaction !== null) {
-				foreach($this->currentTransaction->getInventories() as $inventory) {
-					if($inventory instanceof PlayerInventory) {
-						$inventory->sendArmorContents($player);
-					}
-
-					$inventory->sendContents($player);
+		if($isCraftingPart) {
+			if($this->craftingTransaction === null) {
+				$this->craftingTransaction = new CraftingTransaction($player, $invActions);
+			} else {
+				foreach($invActions as $action) {
+					$this->craftingTransaction->addAction($action);
 				}
 			}
-			$this->currentTransaction = new SimpleTransactionGroup($player);
+
+			if($this->craftingTransaction->getPrimaryOutput() !== null) {
+				// we get the actions for this in several packets, so we can't execute it until we get the result
+
+				$this->craftingTransaction->execute();
+				$this->craftingTransaction = null;
+			}
+
+			return;
+		} elseif($this->craftingTransaction !== null) {
+			$player->getServer()->getLogger()->debug("Got unexpected normal inventory action with incomplete crafting transaction from " . $player->getName() . ", refusing to execute crafting");
+			$this->craftingTransaction = null;
 		}
 
-		$this->currentTransaction->addTransaction($transaction);
+		switch($type) {
+			case InventoryTransactionPacket::TYPE_NORMAL:
+				$transaction = new InventoryTransaction($player, $invActions);
 
-		if($this->currentTransaction->canExecute()) {
-			$this->currentTransaction->execute();
+				if(!$transaction->execute()) {
+					$player->getServer()->getLogger()->debug("Failed to execute inventory transaction from " . $player->getName() . " with actions: " . json_encode($invActions));
+				}
 
-			$this->currentTransaction = null;
+				return;
+			case InventoryTransactionPacket::TYPE_USE_ITEM:
+				$blockVector = new Vector3($data->x, $data->y, $data->z);
+				$face = $data->face;
+
+				switch($type = $data->actionType) {
+					case InventoryTransactionPacket::USE_ITEM_ACTION_CLICK_BLOCK:
+						case InventoryTransactionPacket::USE_ITEM_ACTION_CLICK_AIR:
+						$this->handleUseItem($data->itemInHand, $data->hotbarSlot, $face, $blockVector, $player->getDirectionVector());
+						break;
+					case InventoryTransactionPacket::USE_ITEM_ACTION_BREAK_BLOCK:
+						$player->breakBlock($blockVector);
+						break;
+					default:
+						$player->getServer()->getLogger()->debug("Failed to execute use item transaction from " . $player->getName() . " with data: " . json_encode($data));
+						break;
+				}
+				return;
+			case InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY:
+				$target = $player->getLevel()->getEntity($data->entityRuntimeId);
+				if($target === null) {
+					return;
+				}
+
+				switch($type = $data->actionType) {
+					case InventoryTransactionPacket::USE_ITEM_ON_ENTITY_ACTION_INTERACT:
+						break; //TODO
+					case InventoryTransactionPacket::USE_ITEM_ON_ENTITY_ACTION_ATTACK:
+						$player->attackEntity($target);
+						break;
+					default:
+						$player->getServer()->getLogger()->debug("Failed to execute use item on entity transaction from " . $player->getName() . " with data: " . json_encode($data));
+						break;
+				}
+				return;
+				case InventoryTransactionPacket::TYPE_RELEASE_ITEM:
+					try {
+						switch($type = $data->actionType) {
+							case InventoryTransactionPacket::RELEASE_ITEM_ACTION_RELEASE:
+								$player->releaseUseItem();
+								break;
+							case InventoryTransactionPacket::RELEASE_ITEM_ACTION_CONSUME:
+								$player->eatFoodInHand();
+								break;
+							default:
+								$player->getServer()->getLogger()->debug("Failed to execute release item transaction from " . $player->getName() . " with data: " . json_encode($data));
+								break;
+						}
+					} finally {
+						$player->setUsingItem(false);
+					}
+					return;
+			default:
+				$inventory->sendContents($player);
+				break;
 		}
 	}
 
@@ -312,7 +396,7 @@ class PlayerInventoryAdapter120 implements InventoryAdapter {
 		$player = $this->getPlayer();
 
 		$pk = new ContainerOpenPacket();
-		$pk->windowid = $player->getWindowId($inventory);
+		$pk->windowId = $player->getWindowId($inventory);
 		$pk->type = $inventory->getType()->getNetworkType();
 		$pk->slots = $inventory->getSize();
 		$pk->entityId = $player->getId();
@@ -337,13 +421,9 @@ class PlayerInventoryAdapter120 implements InventoryAdapter {
 	 * @param Item[] $hotbarItems
 	 */
 	public function sendInventoryContents(int $windowId, array $items, array $hotbarItems = []) {
-		$player = $this->getPlayer();
-
-		$pk = new ContainerSetContentPacket();
-		$pk->windowid = $windowId;
-		$pk->slots = $items;
-		$pk->hotbar = $hotbarItems;
-		$pk->eid = $player->getId();
+		$pk = new InventoryContentPacket();
+		$pk->items = $items;
+		$pk->windowId = $windowId;
 
 		$this->getPlayer()->dataPacket($pk);
 	}
@@ -356,10 +436,10 @@ class PlayerInventoryAdapter120 implements InventoryAdapter {
 	 * @param int $slot
 	 */
 	public function sendInventorySlot(int $windowId, Item $item, int $slot) {
-		$pk = new ContainerSetSlotPacket();
-		$pk->windowid = $windowId;
+		$pk = new InventorySlotPacket();
+		$pk->inventorySlot = $slot;
 		$pk->item = $item;
-		$pk->slot = $slot;
+		$pk->windowId = $windowId;
 
 		$this->getPlayer()->dataPacket($pk);
 	}
@@ -373,7 +453,7 @@ class PlayerInventoryAdapter120 implements InventoryAdapter {
 		$player = $this->getPlayer();
 
 		$pk = new ContainerClosePacket();
-		$pk->windowid = $player->getWindowId($inventory);
+		$pk->windowId = $player->getWindowId($inventory);
 
 		$player->dataPacket($pk);
 	}

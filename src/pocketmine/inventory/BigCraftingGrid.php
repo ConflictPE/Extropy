@@ -19,19 +19,12 @@
  *
 */
 
-namespace pocketmine\network\protocol\types;
+namespace pocketmine\inventory;
 
-interface ContainerIds {
+class BigCraftingGrid extends CraftingGrid {
 
-	const TYPE_NONE = -1;
-	const TYPE_INVENTORY = 0;
-	const TYPE_FIRST = 1;
-	const TYPE_LAST = 100;
-	const TYPE_OFFHAND = 119;
-	const TYPE_ARMOR = 120;
-	const TYPE_CREATIVE = 121;
-	const TYPE_HOTBAR = 122;
-	const TYPE_FIXED_INVENTORY = 123;
-	const TYPE_CURSOR = 124;
+	public function getDefaultSize() : int {
+		return 9;
+	}
 
 }

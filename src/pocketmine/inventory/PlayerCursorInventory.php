@@ -19,19 +19,37 @@
  *
 */
 
-namespace pocketmine\network\protocol\types;
+namespace pocketmine\inventory;
 
-interface ContainerIds {
+use pocketmine\Player;
 
-	const TYPE_NONE = -1;
-	const TYPE_INVENTORY = 0;
-	const TYPE_FIRST = 1;
-	const TYPE_LAST = 100;
-	const TYPE_OFFHAND = 119;
-	const TYPE_ARMOR = 120;
-	const TYPE_CREATIVE = 121;
-	const TYPE_HOTBAR = 122;
-	const TYPE_FIXED_INVENTORY = 123;
-	const TYPE_CURSOR = 124;
+class PlayerCursorInventory extends BaseInventory {
+
+	/** @var Player */
+	protected $holder;
+
+	public function __construct(Player $holder){
+		parent::__construct($holder, InventoryType::get(InventoryType::PLAYER_CURSOR));
+	}
+
+	public function getName() : string{
+		return "Cursor";
+	}
+
+	public function getDefaultSize() : int{
+		return 1;
+	}
+
+	public function setSize(int $size){
+		throw new \BadMethodCallException("Cursor can only carry one item at a time");
+	}
+
+	/**
+	 * This override is here for documentation and code completion purposes only.
+	 * @return Player
+	 */
+	public function getHolder(){
+		return $this->holder;
+	}
 
 }

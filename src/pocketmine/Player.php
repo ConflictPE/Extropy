@@ -36,7 +36,6 @@ use pocketmine\entity\Snowball;
 use pocketmine\event\block\SignChangeEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\inventory\CraftItemEvent;
 use pocketmine\event\inventory\InventoryPickupArrowEvent;
 use pocketmine\event\inventory\InventoryPickupItemEvent;
 use pocketmine\event\player\PlayerAnimationEvent;
@@ -67,8 +66,6 @@ use pocketmine\inventory\EnchantInventory;
 use pocketmine\inventory\Inventory;
 use pocketmine\inventory\InventoryHolder;
 use pocketmine\inventory\PlayerInventory;
-use pocketmine\inventory\ShapedRecipe;
-use pocketmine\inventory\ShapelessRecipe;
 use pocketmine\item\armor\Armor;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\food\Edible;
@@ -123,9 +120,9 @@ use pocketmine\network\protocol\StartGamePacket;
 use pocketmine\network\protocol\TakeItemEntityPacket;
 use pocketmine\network\protocol\TextPacket;
 use pocketmine\network\protocol\TransferPacket;
+use pocketmine\network\protocol\types\ContainerIds;
 use pocketmine\network\protocol\UpdateAttributesPacket;
 use pocketmine\network\protocol\UpdateBlockPacket;
-use pocketmine\network\protocol\v120\InventoryTransactionPacket;
 use pocketmine\network\protocol\v120\PlayerSkinPacket;
 use pocketmine\network\protocol\v120\Protocol120;
 use pocketmine\network\protocol\v120\ServerSettingsResponsetPacket;
@@ -183,6 +180,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	/**
 	 * Checks the length of a supplied skin bitmap and returns whether the length is valid.
+	 *
 	 * @param string $skin
 	 *
 	 * @return bool
@@ -203,10 +201,13 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	public $gamemode;
 	public $lastBreak;
 
-	/** @var Inventory */
-	protected $currentWindow = null;
-	protected $currentWindowId = -1;
-	const MIN_WINDOW_ID = 2;
+	protected $windowCnt = 2;
+	/** @var \SplObjectStorage<Inventory> */
+	protected $windows;
+	/** @var Inventory[] */
+	protected $windowIndex = [];
+	/** @var bool[] */
+	protected $permanentWindows = [];
 
 	protected $messageCounter = 2;
 
@@ -628,6 +629,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	 */
 	public function __construct(SourceInterface $interface, $clientID, $ip, $port){
 		$this->interface = $interface;
+		$this->windows = new \SplObjectStorage();
 		$this->perm = new PermissibleBase($this);
 		$this->namedtag = new Compound();
 		$this->server = Server::getInstance();
@@ -1965,7 +1967,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				return $this->inventoryAdapter->handleMobArmorEquipment($packet);
 			case 'INTERACT_PACKET':
 				if($packet->action === InteractPacket::ACTION_DAMAGE) {
-					$this->attackByTargetId($packet->target);
+					$target = $this->getLevel()->getEntity($packet->target);
+					if($target === null) {
+						return false;
+					}
+					$this->attackEntity($target);
 				} else {
 					$this->customInteract($packet);
 				}
@@ -2066,7 +2072,11 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				//Timings::$timerTextPacket->stopTiming();
 				break;
 			case 'CONTAINER_CLOSE_PACKET':
-				$this->inventoryAdapter->handleContainerClose($packet->windowid);
+				if($this->spawned === false or $packet->windowId === 0){
+					return true;
+				}
+
+				$this->inventoryAdapter->handleContainerClose($packet->windowId);
 				break;
 			case 'CRAFTING_EVENT_PACKET':
 				if($this->spawned === false or !$this->isAlive()) {
@@ -2085,7 +2095,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				break;
 
 			case 'CONTAINER_SET_SLOT_PACKET':
-				$this->getInventoryAdapter()->handleContainerSetSlot($packet->slot, $packet->windowid, $packet->item, $packet->hotbarSlot);
+				$this->getInventoryAdapter()->handleContainerSetSlot($packet->slot, $packet->windowId, $packet->item, $packet->hotbarSlot);
 				break;
 			case 'TILE_ENTITY_DATA_PACKET':
 				//Timings::$timerTileEntityPacket->startTiming();
@@ -2231,46 +2241,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				break;
 			/** @minProtocol 120 */
 			case 'INVENTORY_TRANSACTION_PACKET':
-				switch ($packet->transactionType) {
-					case InventoryTransactionPacket::TRANSACTION_TYPE_INVENTORY_MISMATCH:
-						break;
-					case InventoryTransactionPacket::TRANSACTION_TYPE_NORMAL:
-						//$this->normalTransactionLogic($packet);
-						break;
-					case InventoryTransactionPacket::TRANSACTION_TYPE_ITEM_USE_ON_ENTITY:
-						if($packet->actionType == InventoryTransactionPacket::ITEM_USE_ON_ENTITY_ACTION_ATTACK) {
-							$this->attackByTargetId($packet->entityId);
-						}
-						break;
-					case InventoryTransactionPacket::TRANSACTION_TYPE_ITEM_USE:
-						$blockVector = new Vector3($packet->position["x"], $packet->position["y"], $packet->position["z"]);
-						switch ($packet->actionType) {
-							case InventoryTransactionPacket::ITEM_USE_ACTION_PLACE:
-							case InventoryTransactionPacket::ITEM_USE_ACTION_USE:
-								$this->getInventoryAdapter()->handleUseItem($packet->item, $packet->slot, $packet->face, $blockVector, $this->getDirectionVector());
-								break;
-							case InventoryTransactionPacket::ITEM_USE_ACTION_DESTROY:
-								$this->breakBlock($blockVector);
-								break;
-							default:
-								error_log('Wrong actionType ' . $packet->actionType);
-								break;
-						}
-						break;
-					case InventoryTransactionPacket::TRANSACTION_TYPE_ITEM_RELEASE:
-						switch($packet->actionType) {
-							case InventoryTransactionPacket::ITEM_RELEASE_ACTION_RELEASE:
-								$this->releaseUseItem();
-								break;
-							case InventoryTransactionPacket::ITEM_RELEASE_ACTION_USE:
-								$this->eatFoodInHand();
-								break;
-						}
-						break;
-					default:
-						error_log('Wrong transactionType ' . $packet->transactionType);
-						break;
-				}
+				$this->inventoryAdapter->handleInventoryTransaction($packet->actions, $packet->isCraftingPart, $packet->transactionType, $packet->trData);
 				break;
 			/** @minProtocol 120 */
 			case 'COMMAND_REQUEST_PACKET':
@@ -2497,9 +2468,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			$this->hiddenPlayers = [];
 			$this->hiddenEntity = [];
 
-			if (!is_null($this->currentWindow)) {
-				$this->removeWindow($this->currentWindow);
-			}
+			$this->removeAllWindows(true);
+			$this->windows = null;
+			$this->windowIndex = [];
 
 			$this->interface->close($this, $reason);
 
@@ -2872,70 +2843,119 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		}
 	}
 
+	protected function addDefaultWindows() {
+		$this->addWindow($this->getInventory(), ContainerIds::TYPE_INVENTORY, true);
+
+		$this->inventoryAdapter->addDefaultWindows(); // let the inventory handler add the correct windows for the client
+	}
+
 	/**
-	 * Get a window by its ID
+	 * Returns the window ID which the inventory has for this player, or -1 if the window is not open to the player.
 	 *
-	 * @param int $id
+	 * @param Inventory $inventory
+	 *
+	 * @return int
+	 */
+	public function getWindowId(Inventory $inventory) : int {
+		if($this->windows->contains($inventory)) {
+			/** @var int $id */
+			$id = $this->windows[$inventory];
+			return $id;
+		}
+
+		return ContainerIds::TYPE_NONE;
+	}
+
+	/**
+	 * Returns the inventory window open to the player with the specified window ID, or null if no window is open with
+	 * that ID.
+	 *
+	 * @param int $windowId
 	 *
 	 * @return Inventory|null
 	 */
-	public function getWindowById(int $id) {
-		return $this->currentWindowId == $id ? $this->currentWindow : null;
+	public function getWindow(int $windowId) {
+		return $this->windowIndex[$windowId] ?? null;
 	}
 
 	/**
+	 * Opens an inventory window to the player. Returns the ID of the created window, or the existing window ID if the
+	 * player is already viewing the specified inventory.
+	 *
 	 * @param Inventory $inventory
+	 * @param int|null  $forceId Forces a special ID for the window
+	 * @param bool      $isPermanent Prevents the window being removed if true.
 	 *
 	 * @return int
 	 */
-	public function getWindowId(Inventory $inventory) {
-		if($inventory === $this->currentWindow) {
-			return $this->currentWindowId;
-		} elseif ($inventory === $this->inventory) {
-			return 0;
+	public function addWindow(Inventory $inventory, int $forceId = null, bool $isPermanent = false) : int {
+		if(($id = $this->getWindowId($inventory)) !== ContainerIds::TYPE_NONE) {
+			return $id;
 		}
-		return -1;
-	}
 
-	public function getCurrentWindowId() {
-		return $this->currentWindowId;
-	}
-
-	public function getCurrentWindow() {
-		return $this->currentWindow;
-	}
-
-	/**
-	 * Returns the current or created window id
-	 *
-	 * @param Inventory $inventory
-	 * @param int       $forceId
-	 *
-	 * @return int
-	 */
-	public function addWindow(Inventory $inventory, $forceId = null) {
-		if($this->currentWindow === $inventory) {
-			return $this->currentWindowId;
-		}
-		if($this->currentWindow instanceof Inventory) {
-			$this->server->getLogger()->debug($this->username . " tried to open a new inventory while previous inventory still open.");
-			$this->removeWindow($this->currentWindow);
-		}
-		$this->currentWindow = $inventory;
-		$this->currentWindowId = !is_null($forceId) ? $forceId : rand(self::MIN_WINDOW_ID, 98);
-		if (!$inventory->open($this)) {
-			$this->removeWindow($inventory);
-		}
-		return $this->currentWindowId;
-	}
-
-	public function removeWindow(Inventory $inventory) {
-		if ($this->currentWindow !== $inventory) {
-			$this->server->getLogger()->debug($this->username . " tried to close a closed inventory window.");
+		if($forceId === null) {
+			$this->windowCnt = $cnt = max(ContainerIds::TYPE_FIRST, ++$this->windowCnt % ContainerIds::TYPE_LAST);
 		} else {
-			$inventory->close($this);
-			$this->currentWindow = null;
-			$this->currentWindowId = -1;
+			$cnt = $forceId;
+		}
+		$this->windowIndex[$cnt] = $inventory;
+		$this->windows->attach($inventory, $cnt);
+		if($inventory->open($this)) {
+			if($isPermanent) {
+				$this->permanentWindows[$cnt] = true;
+			}
+			return $cnt;
+		} else {
+			$this->removeWindow($inventory);
+
+			return -1;
+		}
+	}
+
+	/**
+	 * Removes an inventory window from the player.
+	 *
+	 * @param Inventory $inventory
+	 * @param bool      $force Forces removal of permanent windows such as normal inventory, cursor
+	 *
+	 * @throws \BadMethodCallException if trying to remove a fixed inventory window without the `force` parameter as true
+	 */
+	public function removeWindow(Inventory $inventory, bool $force = false) {
+		if($this->windows->contains($inventory)) {
+			/** @var int $id */
+			$id = $this->windows[$inventory];
+			if(!$force and isset($this->permanentWindows[$id])) {
+				throw new \BadMethodCallException("Cannot remove fixed window $id (" . get_class($inventory) . ") from " . $this->getName());
+			}
+			$this->windows->detach($this->windowIndex[$id]);
+			unset($this->windowIndex[$id]);
+			unset($this->permanentWindows[$id]);
+		}
+
+		$inventory->close($this);
+	}
+
+	/**
+	 * Removes all inventory windows from the player. By default this WILL NOT remove permanent windows.
+	 *
+	 * @param bool $removePermanentWindows Whether to remove permanent windows.
+	 */
+	public function removeAllWindows(bool $removePermanentWindows = false) {
+		foreach($this->windowIndex as $id => $window) {
+			if(!$removePermanentWindows and isset($this->permanentWindows[$id])) {
+				continue;
+			}
+
+			$this->removeWindow($window, $removePermanentWindows);
+		}
+	}
+
+	public function sendAllInventories() {
+		foreach($this->windowIndex as $id => $inventory) {
+			$inventory->sendContents($this);
+			if($inventory instanceof PlayerInventory) {
+				$inventory->sendArmorContents($this);
+			}
 		}
 	}
 
@@ -2988,7 +3008,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->dataPacket($pk);
 
 		if($this->protocol >= ProtocolInfo::PROTOCOL_120) {
-			$this->inventoryAdapter = new PlayerInventoryAdapter120($this);
+			$this->inventoryAdapter = new PlayerInventoryAdapter120($this); // override default adapter
 		}
 	}
 
@@ -3400,14 +3420,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
  		parent::setOnFire($seconds, $damage);
  	}
 
-	public function attackByTargetId($targetId) {
-		if($this->spawned === false or $this->dead === true or $this->blocked) {
-			return;
-		}
-
-		$target = $this->level->getEntity($targetId);
-
-		if(!($target instanceof Entity) or $this->getGamemode() === Player::VIEW or $target->dead) {
+	public function attackEntity(Entity $target) {
+		if($this->spawned === false or $this->isSpectator() or !$this->isAlive()) {
 			return;
 		}
 
@@ -3486,13 +3500,18 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	protected function initHumanData(){
-		//No need to do anything here, this data will be set from the login.
+		$this->setNameTag($this->username);
+	}
+
+	protected function initEntity() {
+		parent::initEntity();
+		$this->addDefaultWindows();
 	}
 
 	/**
 	 * @param Vector3 $blockPosition
 	 */
-	private function breakBlock(Vector3 $blockPosition) {
+	public function breakBlock(Vector3 $blockPosition) {
 		if($this->spawned === false or !$this->isAlive()){
 			return;
 		}
@@ -3563,7 +3582,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->lastJumpTime = microtime(true);
  	}
 
-	 protected function releaseUseItem() {
+	public function releaseUseItem() {
 		if($this->isUsingItem()) {
 			$item = $this->inventory->getItemInHand();
 			if($item->onReleaseUsing($this)) {

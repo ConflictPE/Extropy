@@ -35,28 +35,27 @@ class InventorySlotPacket extends PEPacket {
 	const NETWORK_ID = Info120::INVENTORY_SLOT_PACKET;
 	const PACKET_NAME = "INVENTORY_SLOT_PACKET";
 
-	/** @var integer */
-	public $containerId;
+	/** @var int */
+	public $windowId;
 
-	/** @var integer */
-	public $slot;
+	/** @var int */
+	public $inventorySlot;
 
 	/** @var Item */
-	public $item = null;
+	public $item;
 
 	public function decode(int $playerProtocol) {
-
+		$this->windowId = $this->getVarInt();
+		$this->inventorySlot = $this->getVarInt();
+		$this->item = $this->getSlot($playerProtocol);
 	}
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putVarInt($this->containerId);
-		$this->putVarInt($this->slot);
-		if($this->item == null) {
-			$this->putSignedVarInt(0);
-		} else {
-			$this->putSlot($this->item, $playerProtocol);
-		}
+
+		$this->putVarInt($this->windowId);
+		$this->putVarInt($this->inventorySlot);
+		$this->putSlot($this->item, $playerProtocol);
 	}
 
 }

@@ -32,7 +32,7 @@ class ContainerOpenPacket extends PEPacket {
 	const PACKET_NAME = "CONTAINER_OPEN_PACKET";
 
 	public $entityId;
-	public $windowid;
+	public $windowId;
 	public $type;
 	public $slots;
 	public $x;
@@ -45,7 +45,7 @@ class ContainerOpenPacket extends PEPacket {
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putByte($this->windowid);
+		$this->putByte($this->windowId);
 		$this->putByte($this->type);
 		if($playerProtocol < Info::PROTOCOL_110) {
 			$this->putSignedVarInt($this->slots);
