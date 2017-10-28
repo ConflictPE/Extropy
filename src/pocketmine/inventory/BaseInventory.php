@@ -446,7 +446,7 @@ abstract class BaseInventory implements Inventory{
 	 * @param int             $index
 	 * @param Player|Player[] $target
 	 */
-	public function sendSlot(int $index, $target){
+	public function sendSlot(int $index, $target) {
 		if($target instanceof Player) {
 			$target = [$target];
 		}

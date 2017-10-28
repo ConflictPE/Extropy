@@ -28,6 +28,7 @@ use pocketmine\inventory\transaction\action\DropItemAction;
 use pocketmine\inventory\transaction\action\InventoryAction;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\item\Item;
+use pocketmine\network\multiversion\inventory\PlayerInventoryAdapter120;
 use pocketmine\network\protocol\v120\InventoryTransactionPacket;
 use pocketmine\Player;
 
@@ -164,6 +165,8 @@ class NetworkInventoryAction {
 	 * @return InventoryAction|null
 	 */
 	public function createInventoryAction(Player $player) {
+		/** @var PlayerInventoryAdapter120 $adapter */
+		$adapter = $player->getInventoryAdapter();
 		switch($this->sourceType) {
 			case self::SOURCE_CONTAINER:
 				if($this->windowId === ContainerIds::TYPE_ARMOR) {
@@ -203,7 +206,7 @@ class NetworkInventoryAction {
 				switch($this->windowId) {
 					case self::SOURCE_TYPE_CRAFTING_ADD_INGREDIENT:
 					case self::SOURCE_TYPE_CRAFTING_REMOVE_INGREDIENT:
-						$window = $player->getCraftingGrid();
+						$window = $adapter->getCraftingGrid();
 						return new SlotChangeAction($window, $this->inventorySlot, $this->oldItem, $this->newItem);
 					case self::SOURCE_TYPE_CRAFTING_RESULT:
 						return new CraftingTakeResultAction($this->oldItem, $this->newItem);
@@ -211,14 +214,15 @@ class NetworkInventoryAction {
 						return new CraftingTransferMaterialAction($this->oldItem, $this->newItem, $this->inventorySlot);
 
 					case self::SOURCE_TYPE_CONTAINER_DROP_CONTENTS:
-						//TODO: this type applies to all fake windows, not just crafting
-						$window = $player->getCraftingGrid();
+						// TODO: this type applies to all fake windows, not just crafting
+						$window = $adapter->getCraftingGrid();
 
 						//DROP_CONTENTS doesn't bother telling us what slot the item is in, so we find it ourselves
-						$inventorySlot = $window->first($this->oldItem, true);
+						$inventorySlot = $window->first($this->oldItem);
 						if($inventorySlot === -1) {
 							return null;
 						}
+
 						return new SlotChangeAction($window, $inventorySlot, $this->oldItem, $this->newItem);
 				}
 

@@ -2323,7 +2323,7 @@ class Server{
 	private $craftList = [];
 
 	public function sendRecipeList(Player $p){
-		//$this->batchPackets([$p], [$this->craftingManager->getCraftingDataPacket($p->getPlayerProtocol())]);
+		$this->batchPackets([$p], [$this->craftingManager->getCraftingDataPacket($p->getPlayerProtocol())]);
 	}
 
 	public function addPlayer($identifier, Player $player){

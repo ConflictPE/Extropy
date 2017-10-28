@@ -26,6 +26,7 @@ use pocketmine\inventory\BigCraftingGrid;
 use pocketmine\inventory\CraftingRecipe;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
+use pocketmine\network\multiversion\inventory\PlayerInventoryAdapter120;
 use pocketmine\network\protocol\ContainerClosePacket;
 use pocketmine\network\protocol\types\ContainerIds;
 use pocketmine\Player;
@@ -51,14 +52,16 @@ class CraftingTransaction extends InventoryTransaction {
 	/** @var CraftingRecipe|null */
 	protected $recipe = null;
 
-	public function __construct(Player $source, $actions = []){
+	public function __construct(Player $source, $actions = []) {
+		/** @var PlayerInventoryAdapter120 $adapter */
+		$adapter = $source->getInventoryAdapter();
+		$this->gridSize = ($adapter->getCraftingGrid() instanceof BigCraftingGrid) ? 3 : 2;
+
 		$air = ItemFactory::get(Item::AIR, 0, 0);
 		$this->inputs = array_fill(0, $this->gridSize, array_fill(0, $this->gridSize, $air));
 		$this->secondaryOutputs = array_fill(0, $this->gridSize, array_fill(0, $this->gridSize, $air));
 
 		parent::__construct($source, $actions);
-
-		$this->gridSize = ($this->getInventoryAdapter()->getCraftingGrid() instanceof BigCraftingGrid) ? 3 : 2;
 	}
 
 	public function setInput(int $index, Item $item) {
@@ -67,8 +70,8 @@ class CraftingTransaction extends InventoryTransaction {
 
 		if($this->inputs[$y][$x]->isNull()) {
 			$this->inputs[$y][$x] = clone $item;
-		} else {
-			throw new \RuntimeException("Input $index has already been set");
+		} elseif(!$this->inputs[$y][$x]->equals($item)) {
+			throw new \RuntimeException("Input $index has already been set and does not match the current item (expected " . $this->inputs[$y][$x] . ", got " . $item . ")");
 		}
 	}
 
@@ -82,8 +85,8 @@ class CraftingTransaction extends InventoryTransaction {
 
 		if($this->secondaryOutputs[$y][$x]->isNull()) {
 			$this->secondaryOutputs[$y][$x] = clone $item;
-		} else {
-			throw new \RuntimeException("Output $index has already been set");
+		} elseif(!$this->secondaryOutputs[$y][$x]->equals($item)) {
+			throw new \RuntimeException("Output $index has already been set and does not match the current item (expected " . $this->secondaryOutputs[$y][$x] . ", got " . $item . ")");
 		}
 	}
 
@@ -97,8 +100,8 @@ class CraftingTransaction extends InventoryTransaction {
 	public function setPrimaryOutput(Item $item) {
 		if($this->primaryOutput === null) {
 			$this->primaryOutput = clone $item;
-		} else {
-			throw new \RuntimeException("Primary result item has already been set");
+		} elseif(!$this->primaryOutput->equals($item)) {
+			throw new \RuntimeException("Primary result item has already been set and does not match the current item (expected " . $this->primaryOutput . ", got " . $item . ")");
 		}
 	}
 
@@ -144,9 +147,9 @@ class CraftingTransaction extends InventoryTransaction {
 	}
 
 	public function canExecute() : bool {
-		$inputs = $this->reindexInputs();
+		//$inputs = $this->reindexInputs();
 
-		$this->recipe = $this->source->getServer()->getCraftingManager()->matchRecipe($inputs, $this->primaryOutput, $this->secondaryOutputs);
+		$this->recipe = $this->source->getServer()->getCraftingManager()->findRecipe($this->primaryOutput);
 
 		return $this->recipe !== null and parent::canExecute();
 	}

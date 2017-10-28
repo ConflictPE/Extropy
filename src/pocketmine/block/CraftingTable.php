@@ -23,8 +23,10 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
+use pocketmine\inventory\BigCraftingGrid;
 use pocketmine\item\Item;
 use pocketmine\item\tool\Tool;
+use pocketmine\network\multiversion\inventory\PlayerInventoryAdapter120;
 use pocketmine\Player;
 
 class CraftingTable extends Solid {
@@ -49,6 +51,10 @@ class CraftingTable extends Solid {
 
 	public function onActivate(Item $item, Player $player = null) : bool {
 		if($player instanceof Player) {
+			/** @var $adapter PlayerInventoryAdapter120 */
+			if(($adapter = $player->getInventoryAdapter()) instanceof PlayerInventoryAdapter120) {
+				$adapter->setCraftingGrid(new BigCraftingGrid($player));
+			}
 			$player->craftingType = 1;
 		}
 		return true;

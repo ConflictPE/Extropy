@@ -21,6 +21,7 @@
 
 namespace pocketmine\inventory\transaction\action;
 
+use pocketmine\block\Block;
 use pocketmine\inventory\transaction\InventoryTransaction;
 use pocketmine\item\Item;
 use pocketmine\Player;
@@ -28,7 +29,7 @@ use pocketmine\Player;
 /**
  * Represents an action involving a change that applies in some way to an inventory or other item-source.
  */
-abstract class InventoryAction {
+abstract class InventoryAction implements \JsonSerializable {
 
 	/** @var float */
 	private $creationTime;
@@ -121,4 +122,34 @@ abstract class InventoryAction {
 	 */
 	abstract public function onExecuteFail(Player $source) ;
 
+	/**
+	 * Cast the action to a json-able array
+	 *
+	 * @return array
+	 */
+	public function jsonSerialize() : array {
+		$data = [];
+		$reflection = new \ReflectionObject($this);
+
+		foreach($reflection->getProperties() as $property) {
+			$property->setAccessible(true);
+			$value = $property->getValue($this);
+
+			if(is_string($value) or is_int($value)) {
+				$data[$property->getName()] = $value;
+			} elseif(is_array($value)) {
+				$data[$property->getName()] = json_encode($value);
+			} elseif($value instanceof Block or $value instanceof Item) {
+				$data[$property->getName()] = (string) $value;
+			} elseif(is_object($value)) {
+				$data[$property->getName()] = (new \ReflectionObject($value))->getShortName();
+			} else {
+				$data[$property->getName()] = (string) $value;
+			}
+
+			$property->setAccessible(false);
+		}
+
+		return $data;
+	}
 }

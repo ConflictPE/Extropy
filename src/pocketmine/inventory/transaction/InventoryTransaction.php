@@ -184,7 +184,7 @@ class InventoryTransaction {
 		}
 
 		foreach($slotChanges as $hash => $list) {
-			if(count($list) === 1){ //No need to compact slot changes if there is only one on this slot
+			if(count($list) === 1){ // No need to compact slot changes if there is only one on this slot
 				unset($slotChanges[$hash]);
 				continue;
 			}
@@ -245,7 +245,9 @@ class InventoryTransaction {
 
 		$haveItems = [];
 		$needItems = [];
-		return $this->matchItems($needItems, $haveItems) and count($this->actions) > 0 and count($haveItems) === 0 and count($needItems) === 0;
+		$value = $this->matchItems($needItems, $haveItems) and count($this->actions) > 0 and count($haveItems) === 0 and count($needItems) === 0;
+		var_dump($value);
+		return $value;
 	}
 
 	protected function sendInventories() {
@@ -258,8 +260,9 @@ class InventoryTransaction {
 	}
 
 	protected function callExecuteEvent() : bool{
-		Server::getInstance()->getPluginManager()->callEvent($ev = new InventoryTransactionEvent($this));
-		return !$ev->isCancelled();
+		//Server::getInstance()->getPluginManager()->callEvent($ev = new InventoryTransactionEvent($this));
+		//return !$ev->isCancelled();
+		return true; // TODO: fix
 	}
 
 	/**
@@ -267,10 +270,11 @@ class InventoryTransaction {
 	 * @return bool
 	 */
 	public function execute() : bool {
-		if($this->hasExecuted() or !$this->canExecute()) {
-			$this->sendInventories();
-			return false;
-		}
+		$this->canExecute();
+		//if($this->hasExecuted() or !$this->canExecute()) {
+		//	$this->sendInventories();
+		//	return false;
+		//}
 
 		if(!$this->callExecuteEvent()) {
 			$this->sendInventories();

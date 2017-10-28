@@ -893,8 +893,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->sendSettings();
 		$this->sendPotionEffects($this);
 		$this->sendData($this);
-		$this->inventory->sendContents($this);
-		$this->inventory->sendArmorContents($this);
+
+		$this->addDefaultWindows();
 
 		$this->server->updatePlayerListData($this->getUniqueId(), $this->getId(), $this->getName(), $this->skinName, $this->skin, $this->skinGeometryName, $this->skinGeometryData, $this->capeData, $this->getXUID(), [$this]);
 
@@ -2317,21 +2317,20 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	/**
+	 * Drops the specified item in front of the player.
+	 *
 	 * @param Item $item
 	 *
-	 * Drops the specified item in front of the player.
+	 * @return bool
 	 */
-	public function dropItem(Item $item) {
+	public function dropItem(Item $item) : bool {
 		if($this->spawned === false or !$this->isAlive()) {
-			return;
-		}
-
-		if($this->isSpectator()) {
-			return;
+			return false;
 		}
 
 		if($item->isNull()){
-			return;
+			$this->server->getLogger()->debug($this->getName() . " attempted to drop a null item (" . $item . ")");
+			return true;
 		}
 
 		$ev = new PlayerDropItemEvent($this, $item);
@@ -2341,7 +2340,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$this->inventoryAdapter->getFloatingInventory()->removeItem($item);
 				$this->getInventory()->addItem($item);
 			}
-			return;
+			return false;
 		}
 
 		$motion = $this->getDirectionVector()->multiply(0.4);
@@ -2349,6 +2348,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->level->dropItem($this->add(0, 1.3, 0), $item, $motion, 40);
 
 		$this->setUsingItem(false);
+
+		return true;
 	}
 
 	/**
@@ -3505,7 +3506,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	protected function initEntity() {
 		parent::initEntity();
-		$this->addDefaultWindows();
 	}
 
 	/**

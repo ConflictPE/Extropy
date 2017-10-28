@@ -70,11 +70,8 @@ class CraftingDataPacket extends PEPacket {
 			$stream->putSlot($item, $playerProtocol);
 		}
 
-		$results = $recipe->getAllResults();
-		$stream->putVarInt(count($results));
-		foreach($results as $item) {
-			$stream->putSlot($item, $playerProtocol);
-		}
+		$stream->putVarInt(1);
+		$stream->putSlot($recipe->getResult(), $playerProtocol);
 
 		$stream->putUUID($recipe->getId());
 
@@ -91,11 +88,8 @@ class CraftingDataPacket extends PEPacket {
 			}
 		}
 
-		$results = $recipe->getAllResults();
-		$stream->putVarInt(count($results));
-		foreach($results as $item) {
-			$stream->putSlot($item, $playerProtocol);
-		}
+		$stream->putVarInt(1);
+		$stream->putSlot($recipe->getResult(), $playerProtocol);
 
 		$stream->putUUID($recipe->getId());
 
