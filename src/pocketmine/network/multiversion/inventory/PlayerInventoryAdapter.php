@@ -24,6 +24,8 @@ namespace pocketmine\network\multiversion\inventory;
 use pocketmine\event\inventory\CraftItemEvent;
 use pocketmine\event\inventory\InventoryCloseEvent;
 use pocketmine\event\player\PlayerInteractEvent;
+use pocketmine\inventory\BigShapedRecipe;
+use pocketmine\inventory\BigShapelessRecipe;
 use pocketmine\inventory\ContainerInventory;
 use pocketmine\inventory\FloatingInventory;
 use pocketmine\inventory\Inventory;
@@ -302,118 +304,175 @@ class PlayerInventoryAdapter implements InventoryAdapter {
 	public function handleCraftingEvent(Recipe $recipe, array $input, array $output) {
 		$player = $this->getPlayer();
 		$inventory = $player->getInventory();
-		$canCraft = true;
 
-		if($recipe instanceof ShapedRecipe) {
-			for($x = 0; $x < 3 and $canCraft; ++$x) {
-				for($y = 0; $y < 3; ++$y) {
-					/** @var Item $item */
-					$item = $input[$y * 3 + $x];
-					$ingredient = $recipe->getIngredient($x, $y);
-					if($item->getCount() > 0) {
-						if($ingredient === null or !$ingredient->equals($item, !$ingredient->hasAnyDamageValue(), $ingredient->hasCompoundTag())) {
+		if(($recipe instanceof BigShapelessRecipe or $recipe instanceof BigShapedRecipe) and $player->craftingType === 0) {
+			$player->getServer()->getLogger()->debug("Received big crafting recipe from " . $player->getName() . " with no crafting table open");
+			$inventory->sendContents($player);
+			return;
+		} elseif($recipe === null) {
+			$player->getServer()->getLogger()->debug("Null (unknown) crafting recipe received from " . $player->getName() . " for " . $output[0]);
+			$inventory->sendContents($player);
+			return;
+		}
+
+		$canCraft = true;
+		if(count($input) === 0) {
+			/* If the packet "input" field is empty this needs to be handled differently.
+			 * "input" is used to tell the server what items to remove from the client's inventory
+			 * Because crafting takes the materials in the crafting grid, nothing needs to be taken from the inventory
+			 * Instead, we take the materials from the crafting inventory
+			 * To know what materials we need to take, we have to guess the crafting recipe used based on the
+			 * output item and the materials stored in the crafting items
+			 * The reason we have to guess is because Win10 sometimes sends a different recipe UUID
+			 * say, if you put the wood for a door in the right hand side of the crafting grid instead of the left
+			 * it will send the recipe UUID for a wooden pressure plate. Unknown currently whether this is a client
+			 * bug or if there is something wrong with the way the server handles recipes.
+			 */
+			if(!$output[0]->equals($recipe->getResult())) {
+				$player->getServer()->getLogger()->debug("Mismatched desktop recipe received from player ".$player->getName().", expected ".$recipe->getResult().", got ".$packet->output[0]);
+			}
+
+			// Make a copy of the floating inventory that we can make changes to.
+			$floatingInventory = clone $this->floatingInventory;
+
+			$ingredients = $recipe->getIngredientList();
+
+			// Check we have all the necessary ingredients.
+			foreach($ingredients as $ingredient) {
+				if(!$floatingInventory->contains($ingredient)) {
+					// We don't have the ingredients
+					return;
+				}
+				// This will only be reached if we have the item to take away.
+				$floatingInventory->removeItem($ingredient);
+			}
+
+			$player->getServer()->getPluginManager()->callEvent($ev = new CraftItemEvent($input, $recipe, $player));
+
+			if($ev->isCancelled()) {
+				$inventory->sendContents($player);
+				return;
+			}
+
+			$floatingInventory->addItem(clone $recipe->getResult()); // Add the result to our version of the crafting inventory
+			$this->floatingInventory = $floatingInventory; // Set player crafting inv to the idea one created in this process
+		} else {
+			if($recipe instanceof ShapedRecipe) {
+				for($x = 0; $x < 3 and $canCraft; ++$x) {
+					for($y = 0; $y < 3; ++$y) {
+						$item = $input[$y * 3 + $x];
+						$ingredient = $recipe->getIngredient($x, $y);
+						if($item->getCount() > 0 and $item->getId() > 0) {
+							if($ingredient == null) {
+								$canCraft = false;
+								break;
+							}
+							if($ingredient->getId() != 0 and !$ingredient->equals($item, !$ingredient->hasAnyDamageValue(), $ingredient->hasCompoundTag())) {
+								$canCraft = false;
+								break;
+							}
+
+						} elseif($ingredient !== null and $item->getId() !== 0) {
 							$canCraft = false;
 							break;
 						}
 					}
 				}
-			}
-		} elseif($recipe instanceof ShapelessRecipe) {
-			$needed = $recipe->getIngredientList();
+			} elseif($recipe instanceof ShapelessRecipe) {
+				$needed = $recipe->getIngredientList();
 
-			for($x = 0; $x < 3 and $canCraft; ++$x) {
-				for($y = 0; $y < 3; ++$y) {
-					/** @var Item $item */
-					$item = clone $input[$y * 3 + $x];
+				for($x = 0; $x < 3 and $canCraft; ++$x) {
+					for($y = 0; $y < 3; ++$y) {
+						$item = clone $input[$y * 3 + $x];
 
-					foreach($needed as $k => $n) {
-						if($n->equals($item, !$n->hasAnyDamageValue(), $n->hasCompoundTag())) {
-							$remove = min($n->getCount(), $item->getCount());
-							$n->setCount($n->getCount() - $remove);
-							$item->setCount($item->getCount() - $remove);
+						foreach($needed as $k => $n) {
+							if($n->equals($item, !$n->hasAnyDamageValue(), $n->hasCompoundTag())) {
+								$remove = min($n->getCount(), $item->getCount());
+								$n->setCount($n->getCount() - $remove);
+								$item->setCount($item->getCount() - $remove);
 
-							if($n->getCount() === 0) {
-								unset($needed[$k]);
+								if($n->getCount() === 0){
+									unset($needed[$k]);
+								}
 							}
 						}
-					}
 
-					if($item->getCount() > 0) {
-						$canCraft = false;
+						if($item->getCount() > 0) {
+							$canCraft = false;
+							break;
+						}
+					}
+				}
+				if(count($needed) > 0) {
+					$canCraft = false;
+				}
+			} else {
+				$canCraft = false;
+			}
+
+			/** @var Item[] $ingredients */
+			$ingredients = $input;
+			$result = $output[0];
+
+			if(!$canCraft or !$recipe->getResult()->equalsExact($result)) {
+				$player->getServer()->getLogger()->debug("Unmatched recipe " . $recipe->getId() . " from player " . $player->getName() . ": expected " . $recipe->getResult() . ", got " . $result . ", using: " . implode(", ", $ingredients));
+				$inventory->sendContents($player);
+				return;
+			}
+
+			$used = array_fill(0, $inventory->getSize(), 0);
+
+			foreach($ingredients as $ingredient) {
+				$slot = -1;
+				foreach($inventory->getContents() as $index => $item) {
+					if($ingredient->getId() !== 0 and $ingredient->equals($item, !$ingredient->hasAnyDamageValue(), $ingredient->hasCompoundTag()) and ($item->getCount() - $used[$index]) >= 1) {
+						$slot = $index;
+						$used[$index]++;
 						break;
 					}
 				}
-			}
 
-			if(count($needed) > 0) {
-				$canCraft = false;
-			}
-		} else {
-			$canCraft = false;
-		}
-
-		/** @var Item[] $ingredients */
-		$ingredients = $input;
-		$result = $output[0];
-
-		if(!$canCraft or !$recipe->getResult()->equals($result)) {
-			$player->getServer()->getLogger()->debug("Unmatched recipe " . $recipe->getId() . " from player " . $player->getName() . ": expected " . $recipe->getResult() . ", got " . $result . ", using: " . implode(", ", $ingredients));
-			$inventory->sendContents($player);
-			return;
-		}
-
-		$used = array_fill(0, $inventory->getSize(), 0);
-
-		foreach($ingredients as $ingredient) {
-			$slot = -1;
-			foreach($inventory->getContents() as $index => $item) {
-				if($ingredient->getId() !== 0 and $ingredient->equals($item, !$ingredient->hasAnyDamageValue(), $ingredient->hasCompoundTag()) and ($item->getCount() - $used[$index]) >= 1) {
-					$slot = $index;
-					$used[$index]++;
+				if($ingredient->getId() !== 0 and $slot === -1) {
+					$canCraft = false;
 					break;
 				}
 			}
 
-			if($ingredient->getId() !== 0 and $slot === -1) {
-				$canCraft = false;
-				break;
-			}
-		}
-
-		if(!$canCraft) {
-			$player->getServer()->getLogger()->debug("Unmatched recipe " . $recipe->getId() . " from player " . $player->getName() . ": client does not have enough items, using: " . implode(", ", $ingredients));
-			$inventory->sendContents($player);
-			return;
-		}
-
-		$player->getServer()->getPluginManager()->callEvent($ev = new CraftItemEvent($ingredients, $recipe, $player));
-
-		if($ev->isCancelled()) {
-			$inventory->sendContents($player);
-			return;
-		}
-
-		foreach($used as $slot => $count) {
-			if($count === 0) {
-				continue;
+			if(!$canCraft) {
+				$player->getServer()->getLogger()->debug("Unmatched recipe " . $recipe->getId() . " from player " . $player->getName() . ": client does not have enough items, using: " . implode(", ", $ingredients));
+				$inventory->sendContents($player);
+				return;
 			}
 
-			$item = $inventory->getItem($slot);
+			$player->getServer()->getPluginManager()->callEvent($ev = new CraftItemEvent($input, $recipe, $player));
 
-			if($item->getCount() > $count) {
-				$newItem = clone $item;
-				$newItem->setCount($item->getCount() - $count);
-			} else {
-				$newItem = ItemFactory::get(Item::AIR, 0, 0);
+			if($ev->isCancelled()){
+				$inventory->sendContents($player);
+				return;
 			}
 
-			$inventory->setItem($slot, $newItem);
-		}
+			foreach($used as $slot => $count) {
+				if($count === 0) {
+					continue;
+				}
 
-		$extraItem = $inventory->addItem($recipe->getResult());
-		if(count($extraItem) > 0) {
-			foreach($extraItem as $item) {
-				$player->getLevel()->dropItem($player, $item);
+				$item = $inventory->getItem($slot);
+
+				if($item->getCount() > $count) {
+					$newItem = clone $item;
+					$newItem->setCount($item->getCount() - $count);
+				} else {
+					$newItem = Item::get(Item::AIR, 0, 0);
+				}
+
+				$inventory->setItem($slot, $newItem);
+			}
+
+			$extraItem = $inventory->addItem($recipe->getResult());
+			if(count($extraItem) > 0 and !$player->isCreative()) { // Could not add all the items to our inventory (not enough space)
+				foreach($extraItem as $item){
+					$player->dropItem($item);
+				}
 			}
 		}
 	}

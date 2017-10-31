@@ -161,13 +161,16 @@ class CraftingManager {
 	 * Find a recipe using the result item
 	 *
 	 * @param Item $result
+	 * @param Item[] $ingredients
 	 *
-	 * @return null|Recipe
+	 * @return null|CraftingRecipe
 	 */
-	public function findRecipe(Item $result) {
+	public function findRecipe(Item $result, array $ingredients = null) {
 		if(isset($this->recipeLookup[$hash = $result->getId() . ":" . $result->getDamage()])) {
 			foreach($this->recipeLookup[$hash] as $recipe) {
-				return $recipe;
+				if($recipe instanceof CraftingRecipe) {
+					return $recipe;
+				}
 			}
 		}
 

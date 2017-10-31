@@ -151,6 +151,23 @@ class ShapedRecipe implements CraftingRecipe {
 	}
 
 	/**
+ 	 * @return Item[]
+ 	 */
+ 	public function getIngredientList() : array {
+ 		$ingredients = [];
+ 		for ($x = 0; $x < 3; ++$x){
+ 			for ($y = 0; $y < 3; ++$y){
+ 				if (!empty($this->ingredients[$x][$y])){
+ 					if ($this->ingredients[$x][$y]->getId() !== Item::AIR){
+ 						$ingredients[] = clone $this->ingredients[$x][$y];
+ 					}
+ 				}
+ 			}
+ 		}
+ 		return $ingredients;
+ 	}
+
+	/**
 	 * @param int $x
 	 * @param int $y
 	 *

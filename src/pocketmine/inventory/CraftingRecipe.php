@@ -36,4 +36,9 @@ interface CraftingRecipe extends Recipe {
 	 */
 	public function setId(UUID $id);
 
+	/**
+	 * @return Item[]
+	 */
+	public function getIngredientList() : array;
+
 }

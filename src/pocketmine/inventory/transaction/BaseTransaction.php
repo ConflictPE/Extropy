@@ -196,24 +196,42 @@ class BaseTransaction implements Transaction {
 					if($change === null) { // No changes to make, ignore this transaction
 						return true;
 					}
-					/* Verify that we have the required items */
+
+					// Verify that we have the required items
 					if($change["out"] instanceof Item) {
-						if(!$this->getInventory()->contains($change["out"])) {
+						if($this->getInventory()->contains($change["out"])) { // inv --> floating
+							if($change["in"] instanceof Item) {
+								if(!$adapter->getFloatingInventory()->contains($change["in"])) {
+									return false;
+								}
+
+								/* All checks passed, make changes to floating inventory
+								 * This will not be reached unless all requirements are met */
+								if($change["out"] instanceof Item) {
+									$adapter->getFloatingInventory()->addItem($change["out"]);
+								}
+								if($change["in"] instanceof Item) {
+									$adapter->getFloatingInventory()->removeItem($change["in"]);
+								}
+							}
+						} elseif($adapter->getFloatingInventory()->contains($change["out"])) { // floating --> inv
+							if($change["in"] instanceof Item) {
+								if(!$this->getInventory()->contains($change["in"])) {
+									return false;
+								}
+
+								/* All checks passed, make changes to floating inventory
+								 * This will not be reached unless all requirements are met */
+								if($change["out"] instanceof Item) {
+									$this->getInventory()->addItem($change["out"]);
+								}
+								if($change["in"] instanceof Item) {
+									$this->getInventory()->removeItem($change["in"]);
+								}
+							}
+						} else {
 							return false;
 						}
-					}
-					if($change["in"] instanceof Item) {
-						if(!$adapter->getFloatingInventory()->contains($change["in"])) {
-							return false;
-						}
-					}
-					/* All checks passed, make changes to floating inventory
-					 * This will not be reached unless all requirements are met */
-					if($change["out"] instanceof Item) {
-						$adapter->getFloatingInventory()->addItem($change["out"]);
-					}
-					if($change["in"] instanceof Item) {
-						$adapter->getFloatingInventory()->removeItem($change["in"]);
 					}
 				}
 				$this->getInventory()->setItem($this->getSlot(), $this->getTargetItem(), false);
