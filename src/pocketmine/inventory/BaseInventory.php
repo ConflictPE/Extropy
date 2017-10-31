@@ -72,7 +72,7 @@ abstract class BaseInventory implements Inventory{
 
 		$this->type = $type;
 		if($overrideSize !== null) {
-			$this->size = (int) $overrideSize;
+			$this->size = $overrideSize;
 		 }else {
 			$this->size = $this->type->getDefaultSize();
 		}
@@ -148,7 +148,7 @@ abstract class BaseInventory implements Inventory{
 	public function setItem(int $index, Item $item, bool $send = true) : bool {
 		$item = clone $item;
 
-		if($index < 0 or $index >= $this->size) {
+		if($index < 0 or $index >= $this->getSize()) {
 			return false;
 		} elseif($item->isNull()) {
 			$item = ItemFactory::get(Item::AIR, 0, 0);

@@ -26,8 +26,6 @@ namespace pocketmine\network\protocol\v120;
 #include <rules/DataPacket.h>
 
 
-use pocketmine\inventory\transactions\SimpleTransactionData;
-use pocketmine\network\protocol\ContainerSetContentPacket;
 use pocketmine\network\protocol\Info120;
 use pocketmine\network\protocol\PEPacket;
 use pocketmine\network\protocol\types\NetworkInventoryAction;

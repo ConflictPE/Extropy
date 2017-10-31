@@ -246,7 +246,6 @@ class InventoryTransaction {
 		$haveItems = [];
 		$needItems = [];
 		$value = $this->matchItems($needItems, $haveItems) and count($this->actions) > 0 and count($haveItems) === 0 and count($needItems) === 0;
-		var_dump($value);
 		return $value;
 	}
 
@@ -259,7 +258,7 @@ class InventoryTransaction {
 		}
 	}
 
-	protected function callExecuteEvent() : bool{
+	protected function callExecuteEvent() : bool {
 		//Server::getInstance()->getPluginManager()->callEvent($ev = new InventoryTransactionEvent($this));
 		//return !$ev->isCancelled();
 		return true; // TODO: fix
@@ -267,14 +266,15 @@ class InventoryTransaction {
 
 	/**
 	 * Executes the group of actions, returning whether the transaction executed successfully or not.
+	 *
 	 * @return bool
 	 */
 	public function execute() : bool {
 		$this->canExecute();
-		//if($this->hasExecuted() or !$this->canExecute()) {
-		//	$this->sendInventories();
-		//	return false;
-		//}
+		if($this->hasExecuted() or !$this->canExecute()) {
+			$this->sendInventories();
+			return false;
+		}
 
 		if(!$this->callExecuteEvent()) {
 			$this->sendInventories();

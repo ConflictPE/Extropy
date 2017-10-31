@@ -291,14 +291,14 @@ class PlayerInventory extends BaseInventory {
 		$level = $this->getHolder()->getLevel();
 		if(!is_array($target)) {
 			$target->dataPacket($pk);
+			if($target === $this->getHolder()) {
+				$this->sendSlot($this->getHeldItemIndex(), $target);
+			}
 		} else {
-			foreach($target as $player) {
-				if($level->mayAddPlayerHandItem($this->getHolder(), $player)) {
-					$player->dataPacket($pk);
-					if($player === $this->getHolder()) {
-						$this->sendSlot($this->getHeldItemSlot(), $player);
-					}
-				}
+			$level->broadcastPacket($target, $pk);
+
+			if(in_array($this->getHolder(), $target, true)) {
+				$this->sendSlot($this->getHeldItemSlot(), $this->getHolder());
 			}
 		}
 	}
@@ -574,7 +574,7 @@ class PlayerInventory extends BaseInventory {
 		$slots120 = $slots; // 1.2 players don't need the hack below
 
 		//Because PE is stupid and shows 9 less slots than you send it, give it 9 dummy slots so it shows all the REAL slots.
-		for($i = $this->getSize(); $i < $this->getSize() +  $this->getHotbarSize(); ++$i) {
+		for($i = $this->getSize(); $i < $this->getSize() + $this->getHotbarSize(); ++$i) {
 			$slots[$i] = clone $this->air;
 		}
 

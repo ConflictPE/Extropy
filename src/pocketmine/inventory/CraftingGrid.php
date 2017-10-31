@@ -26,7 +26,7 @@ use pocketmine\Player;
 class CraftingGrid extends BaseInventory {
 
 	public function __construct(Player $holder) {
-		parent::__construct($holder, InventoryType::get(InventoryType::CRAFTING));
+		parent::__construct($holder, InventoryType::get(InventoryType::CRAFTING), [], $this->getDefaultSize());
 	}
 
 	public function getDefaultSize() : int {

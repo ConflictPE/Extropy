@@ -327,9 +327,20 @@ class PlayerInventoryAdapter120 implements InventoryAdapter {
 				$transaction = new InventoryTransaction($player, $invActions);
 
 				if(!$transaction->execute()) {
-					$player->getServer()->getLogger()->debug("Failed to execute inventory transaction from " . $player->getName() . " with actions: " . json_encode($invActions));
+					$player->getServer()->getLogger()->debug("Failed to execute inventory transaction from " . $player->getName() . " with actions: " /*. json_encode($invActions)*/);
+					/** @var InventoryAction $ac */
+					foreach($invActions as $ac) {
+						echo (new \ReflectionObject($ac))->getShortName() . ": " . json_encode($ac) . PHP_EOL;
+					}
+					$player->sendAllInventories();
 				}
 
+				return;
+			case InventoryTransactionPacket::TYPE_MISMATCH:
+				if(count($invActions) > 0) {
+					$player->getServer()->getLogger()->debug("Expected 0 actions for mismatch, got " . count($invActions) . ", " . json_encode($invActions));
+				}
+				$player->sendAllInventories();
 				return;
 			case InventoryTransactionPacket::TYPE_USE_ITEM:
 				$blockVector = new Vector3($data->x, $data->y, $data->z);
