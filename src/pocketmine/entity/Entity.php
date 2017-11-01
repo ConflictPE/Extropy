@@ -1083,13 +1083,13 @@ abstract class Entity extends Location implements Metadatable{
 		return $hasUpdate;
 	}
 
-	protected function updateMovement(){
+	protected function updateMovement() {
 		$diffPosition = ($this->x - $this->lastX) ** 2 + ($this->y - $this->lastY) ** 2 + ($this->z - $this->lastZ) ** 2;
 		$diffRotation = ($this->yaw - $this->lastYaw) ** 2 + ($this->pitch - $this->lastPitch) ** 2;
 
 		$diffMotion = ($this->motionX - $this->lastMotionX) ** 2 + ($this->motionY - $this->lastMotionY) ** 2 + ($this->motionZ - $this->lastMotionZ) ** 2;
 
-		if($diffPosition > 0.04 or $diffRotation > 2.25 and ($diffMotion > 0.0001 and $this->getMotion()->lengthSquared() <= 0.00001)){ //0.2 ** 2, 1.5 ** 2
+		if($diffPosition > 0.0001 or $diffRotation > 1.0) {
 			$this->lastX = $this->x;
 			$this->lastY = $this->y;
 			$this->lastZ = $this->z;
@@ -1100,7 +1100,7 @@ abstract class Entity extends Location implements Metadatable{
 			$this->level->addEntityMovement($this->getViewers(), $this->id, $this->x, $this->y + $this->getEyeHeight(), $this->z, $this->yaw, $this->pitch, $this->yaw, ($this instanceof Player));
 		}
 
-		if($diffMotion > 0.0025 or ($diffMotion > 0.0001 and $this->getMotion()->lengthSquared() <= 0.0001)){ //0.05 ** 2
+		if($diffMotion > 0.0025 or ($diffMotion > 0.0001 and $this->getMotion()->lengthSquared() <= 0.0001)){ // 0.05 ** 2
 			$this->lastMotionX = $this->motionX;
 			$this->lastMotionY = $this->motionY;
 			$this->lastMotionZ = $this->motionZ;
@@ -1130,20 +1130,22 @@ abstract class Entity extends Location implements Metadatable{
 			return false;
 		}
 
-		$tickDiff = max(1, $currentTick - $this->lastUpdate);
+		$tickDiff = $currentTick - $this->lastUpdate;
+		if($tickDiff <= 0) {
+			if(!$this->justCreated) {
+				$this->server->getLogger()->debug("Expected tick difference of at least 1, got $tickDiff for " . get_class($this));
+			}
+
+			return true;
+		}
+
 		$this->lastUpdate = $currentTick;
-
-		//$this->timings->startTiming();
-
-		$hasUpdate = $this->entityBaseTick($tickDiff);
 
 		$this->updateMovement();
 
-		//$this->timings->stopTiming();
+		$hasUpdate = $this->entityBaseTick($tickDiff);
 
-		//if($this->isStatic())
 		return $hasUpdate;
-		//return !($this instanceof Player);
 	}
 
 	public final function scheduleUpdate(){
