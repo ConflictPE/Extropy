@@ -329,7 +329,7 @@ class PlayerInventoryAdapter implements InventoryAdapter {
 			 * bug or if there is something wrong with the way the server handles recipes.
 			 */
 			if(!$output[0]->equals($recipe->getResult())) {
-				$player->getServer()->getLogger()->debug("Mismatched desktop recipe received from player ".$player->getName().", expected ".$recipe->getResult().", got ".$packet->output[0]);
+				$player->getServer()->getLogger()->debug("Mismatched desktop recipe received from player " . $player->getName() . ", expected " . $recipe->getResult() . ", got ". $output[0]);
 			}
 
 			// Make a copy of the floating inventory that we can make changes to.
