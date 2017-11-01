@@ -900,7 +900,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 		$this->server->getPluginManager()->callEvent($ev = new PlayerRespawnEvent($this, $this->level->getSafeSpawn($this)));
 
-		$this->teleport($ev->getRespawnPosition());
+		$this->teleport($ev->getRespawnPosition()->add(0, 0.5, 0));
 
 		$this->noDamageTicks = 60;
 
@@ -1866,7 +1866,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 						$this->server->getPluginManager()->callEvent($ev = new PlayerRespawnEvent($this, $this->getSpawn()));
 
-						$this->teleport($ev->getRespawnPosition()->add(0.5, 0, 0.5));
+						$this->teleport($ev->getRespawnPosition()->add(0.5, 0.5, 0.5));
 
 						$this->setSprinting(false, true);
 						$this->setSneaking(false);
