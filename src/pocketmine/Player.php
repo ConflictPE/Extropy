@@ -682,7 +682,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			}
 			$pk = new AvailableCommandsPacket();
 			$pk->commands = json_encode(self::$defaultCommandData = $data);
-			$pk->encode($this->getPlayerProtocol());
+			$pk->encode($protocol);
 			$pk->isEncoded = true;
 
 			self::$defaultCommandPacket[$protocol] = $pk;
