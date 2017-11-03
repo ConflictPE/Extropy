@@ -190,7 +190,7 @@ class BaseTransaction implements Transaction {
 	public function execute(Player $source): bool {
 		$adapter = $source->getInventoryAdapter();
 		if($adapter instanceof PlayerInventoryAdapter) {
-			if($this->getInventory()->processSlotChange($this)) { //This means that the transaction should be handled the normal way
+			if($this->getInventory()->processSlotChange($source, $this->slot)) { // This means that the transaction should be handled the normal way
 				if(!$source->isCreative()) {
 					$change = $this->getChange();
 					if($change === null) { // No changes to make, ignore this transaction

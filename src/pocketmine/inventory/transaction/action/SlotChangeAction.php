@@ -21,6 +21,7 @@
 
 namespace pocketmine\inventory\transaction\action;
 
+use pocketmine\inventory\BaseInventory;
 use pocketmine\inventory\Inventory;
 use pocketmine\inventory\transaction\InventoryTransaction;
 use pocketmine\item\Item;
@@ -31,7 +32,7 @@ use pocketmine\Player;
  */
 class SlotChangeAction extends InventoryAction {
 
-	/** @var Inventory */
+	/** @var Inventory|BaseInventory */
 	protected $inventory;
 
 	/** @var int */
@@ -117,6 +118,17 @@ class SlotChangeAction extends InventoryAction {
 	 */
 	public function onExecuteFail(Player $source) {
 		$this->inventory->sendSlot($this->inventorySlot, $source);
+	}
+
+	/**
+	 * If the transaction should be handled the normal way
+	 *
+	 * @param Player $source
+	 *
+	 * @return bool
+	 */
+	public function onPreExecute(Player $source) : bool {
+		return $this->inventory->processSlotChange($source, $this->inventorySlot);
 	}
 
 }
