@@ -192,6 +192,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	/** @var array */
 	private static $defaultCommandData = null;
 
+	/** @var string */
+	private static $defaultCommandPacket;
+
 	/** @var SourceInterface */
 	protected $interface;
 
@@ -363,6 +366,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	/** @var InventoryAdapter */
 	private $inventoryAdapter;
+
+	/** @var array */
+	public $commandData = [];
 
 	public function getLeaveMessage(){
 		return "";
@@ -660,7 +666,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	public function sendCommandData() {
-		if(self::$defaultCommandData === null) {
+		if(!isset(self::$defaultCommandPacket[$protocol = $this->getPlayerProtocol()]) or self::$defaultCommandData === null) {
 			$data = [];
 			$default = Command::generateDefaultData();
 			foreach($this->server->getCommandMap()->getCommands() as $command) {
@@ -669,16 +675,16 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$version["description"] = $command->getDescription();
 				$data[strtolower($command->getLabel())]["versions"][] = $version;
 			}
-			self::$defaultCommandData = $data = json_encode($data);
-		} else {
-			$data = self::$defaultCommandData;
-		}
-		if($data !== "") {
-			//TODO: structure checking
 			$pk = new AvailableCommandsPacket();
-			$pk->commands = $data;
-			$this->dataPacket($pk);
+			$pk->commands = json_encode(self::$defaultCommandData = $data);
+			$pk->encode($this->getPlayerProtocol());
+			$pk->isEncoded = true;
+
+			self::$defaultCommandPacket[$protocol] = $pk;
 		}
+
+		$this->dataPacket(self::$defaultCommandPacket[$protocol]);
+		$this->commandData = self::$defaultCommandData;
 	}
 
 	public function getViewDistance() : int {
@@ -2156,10 +2162,29 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				break;
 			case 'COMMAND_STEP_PACKET':
 				$name = $packet->name;
+				if(!isset($this->commandData[$name])) {
+					foreach($this->commandData as $n => $d) { // loop over all commands to find an alias that matches the given command name
+						if(isset($d["versions"][0]["aliases"]) and in_array($name, $d["versions"][0]["aliases"])) {
+							$name = $n;
+							break;
+						}
+					}
+				}
+				if(!isset($this->commandData[$name])) {
+					$this->sendMessage("Unknown command!");
+					return false;
+				}
 				$params = json_decode($packet->outputFormat, true);
 				$command = "/" . $name;
-				if(is_array($params)) {
-					foreach($params as $param => $data) {
+				$data = $this->commandData[$name];
+				$expected = $data["versions"][0]["overloads"][$packet->overload]["input"]["parameters"];
+				foreach($expected as $expectedArgument) {
+					if((!isset($params[$expectedArgument["name"]]) and (isset($expectedArgument["name"]["optional"])) and $expectedArgument["name"]["optional"] !== true)) {
+						$this->sendMessage("Incorrect arguments given for {$name} command!");
+						return false;
+					}
+					if(isset($params[$expectedArgument["name"]])) {
+						$data = $params[$expectedArgument["name"]];
 						if(is_array($data)) { // Target argument type
 							if(isset($data["selector"])) {
 								$selector = $data["selector"];
@@ -2220,7 +2245,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$ev = new PlayerCommandPreprocessEvent($this, $command);
 				$this->getServer()->getPluginManager()->callEvent($ev);
 				if($ev->isCancelled()) {
-					return;
+					return false;
 				}
 				$this->getServer()->dispatchCommand($this, substr($ev->getMessage(), 1));
 				break;
