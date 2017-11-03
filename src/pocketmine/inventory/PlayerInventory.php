@@ -28,16 +28,12 @@ use pocketmine\event\player\PlayerItemHeldEvent;
 use function pocketmine\getTrace;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
-use pocketmine\nbt\tag\Compound;
-use pocketmine\network\protocol\ContainerSetContentPacket;
-use pocketmine\network\protocol\ContainerSetSlotPacket;
 use pocketmine\network\protocol\Info;
 use pocketmine\network\protocol\MobArmorEquipmentPacket;
 use pocketmine\network\protocol\MobEquipmentPacket;
 use pocketmine\network\protocol\types\ContainerIds;
 use pocketmine\Player;
 use pocketmine\Server;
-use pocketmine\utils\Utils;
 
 class PlayerInventory extends BaseInventory {
 
@@ -587,10 +583,9 @@ class PlayerInventory extends BaseInventory {
 						$index = $this->getHotbarSlotIndex($i);
 						$hotbarMap[] = $index <= -1 ? -1 : $index + $size;
 					}
-
-					$player->getInventoryAdapter()->sendInventoryContents(ContainerIds::TYPE_INVENTORY, $slots, $hotbarMap);
-					continue;
 				}
+
+				$player->getInventoryAdapter()->sendInventoryContents(ContainerIds::TYPE_INVENTORY, $slots);
 			} else {
 
 				if(($id = $player->getWindowId($this)) === ContainerIds::TYPE_NONE) {

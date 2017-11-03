@@ -695,6 +695,14 @@ class Item implements ItemIds, \JsonSerializable {
 	}
 
 	/**
+	 * Returns the time in ticks which the item will fuel a furnace for.
+	 * @return int
+	 */
+	public function getFuelTime() : int {
+		return 0;
+	}
+
+	/**
 	 * Returns how many points of damage this item will deal to an entity when used as a weapon.
 	 * @return int
 	 */

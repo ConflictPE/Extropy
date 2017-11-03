@@ -31,17 +31,26 @@ class SetTitlePacket extends PEPacket {
 	const NETWORK_ID = Info105::SET_TITLE_PACKET;
 	const PACKET_NAME = "SET_TITLE_PACKET";
 
-	const TITLE_TYPE_CLEAR = 0;
-	const TITLE_TYPE_RESET = 1;
-	const TITLE_TYPE_TITLE = 2;
-	const TITLE_TYPE_SUBTITLE = 3;
-	const TITLE_TYPE_ACTION_BAR = 4;
-	const TITLE_TYPE_TIMES = 5;
+	const TYPE_CLEAR_TITLE = 0;
+	const TYPE_RESET_TITLE = 1;
+	const TYPE_SET_TITLE = 2;
+	const TYPE_SET_SUBTITLE = 3;
+	const TYPE_SET_ACTIONBAR_MESSAGE = 4;
+	const TYPE_SET_ANIMATION_TIMES = 5;
 
+	/** @var int */
 	public $type;
+
+	/** @var string */
 	public $text = "";
+
+	/** @var int */
 	public $fadeInTime = 0;
+
+	/** @var int */
 	public $stayTime = 0;
+
+	/** @var int */
 	public $fadeOutTime = 0;
 
 	public function decode(int $playerProtocol) {

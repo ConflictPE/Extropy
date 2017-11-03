@@ -906,6 +906,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->sendData($this);
 
 		$this->addDefaultWindows();
+		$this->sendAllInventories();
 
 		$this->server->updatePlayerListData($this->getUniqueId(), $this->getId(), $this->getName(), $this->skinName, $this->skin, $this->skinGeometryName, $this->skinGeometryData, $this->capeData, $this->getXUID(), [$this]);
 
@@ -3370,37 +3371,88 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		return $this->xuid;
 	}
 
-	public function setTitle($text, $subtext = '', $time = 36000) {
-		if ($this->protocol >= Info::PROTOCOL_105) {
-			$pk = new SetTitlePacket();
-			$pk->type = SetTitlePacket::TITLE_TYPE_TIMES;
-			$pk->text = "";
-			$pk->fadeInTime = 5;
-			$pk->fadeOutTime = 5;
-			$pk->stayTime = 20 * $time;
-			$this->dataPacket($pk);
+	/**
+	 * Adds a title text to the user's screen, with an optional subtitle.
+	 *
+	 * @param string $title
+	 * @param string $subtitle
+	 * @param int    $fadeIn Duration in ticks for fade-in. If -1 is given, client-sided defaults will be used.
+	 * @param int    $stay Duration in ticks to stay on screen for
+	 * @param int    $fadeOut Duration in ticks for fade-out.
+	 */
+	public function addTitle(string $title, string $subtitle = "", int $fadeIn = -1, int $stay = -1, int $fadeOut = -1) {
+		$this->setTitleDuration($fadeIn, $stay, $fadeOut);
+		if($subtitle !== ""){
+			$this->addSubTitle($subtitle);
+		}
+		$this->sendTitleText($title, SetTitlePacket::TYPE_SET_TITLE);
+	}
 
-			if (!empty($subtext)) {
-				$pk = new SetTitlePacket();
-				$pk->type = SetTitlePacket::TITLE_TYPE_SUBTITLE;
-				$pk->text = $subtext;
-				$this->dataPacket($pk);
-			}
+	/**
+	 * Sets the subtitle message, without sending a title.
+	 *
+	 * @param string $subtitle
+	 */
+	public function addSubTitle(string $subtitle) {
+		$this->sendTitleText($subtitle, SetTitlePacket::TYPE_SET_SUBTITLE);
+	}
 
+	/**
+	 * Adds small text to the user's screen.
+	 *
+	 * @param string $message
+	 */
+	public function addActionBarMessage(string $message) {
+		$this->sendTitleText($message, SetTitlePacket::TYPE_SET_ACTIONBAR_MESSAGE);
+	}
+
+	/**
+	 * Removes the title from the client's screen.
+	 */
+	public function removeTitles() {
+		$pk = new SetTitlePacket();
+		$pk->type = SetTitlePacket::TYPE_CLEAR_TITLE;
+		$this->dataPacket($pk);
+	}
+
+	/**
+	 * Resets the title duration settings.
+	 */
+	public function resetTitles() {
+		$pk = new SetTitlePacket();
+		$pk->type = SetTitlePacket::TYPE_RESET_TITLE;
+		$this->dataPacket($pk);
+	}
+
+	/**
+	 * Sets the title duration.
+	 *
+	 * @param int $fadeIn Title fade-in time in ticks.
+	 * @param int $stay Title stay time in ticks.
+	 * @param int $fadeOut Title fade-out time in ticks.
+	 */
+	public function setTitleDuration(int $fadeIn, int $stay, int $fadeOut) {
+		if($fadeIn >= 0 and $stay >= 0 and $fadeOut >= 0) {
 			$pk = new SetTitlePacket();
-			$pk->type = SetTitlePacket::TITLE_TYPE_TITLE;
-			$pk->text = $text;
+			$pk->type = SetTitlePacket::TYPE_SET_ANIMATION_TIMES;
+			$pk->fadeInTime = $fadeIn;
+			$pk->stayTime = $stay;
+			$pk->fadeOutTime = $fadeOut;
 			$this->dataPacket($pk);
 		}
 	}
 
-	public function clearTitle() {
-		if ($this->protocol >= Info::PROTOCOL_105) {
-			$pk = new SetTitlePacket();
-			$pk->type = SetTitlePacket::TITLE_TYPE_CLEAR;
-			$pk->text = "";
-			$this->dataPacket($pk);
-		}
+	/**
+	 * Internal function used for sending titles.
+	 *
+	 * @param string $title
+	 * @param int $type
+	 */
+	protected function sendTitleText(string $title, int $type){
+		$pk = new SetTitlePacket();
+		$pk->type = $type;
+		$pk->text = $title;
+		$this->dataPacket($pk);
 	}
 
 	public function sendNoteSound(int $noteId, $queue = false) {

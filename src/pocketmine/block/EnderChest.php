@@ -1,0 +1,127 @@
+<?php
+
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
+
+namespace pocketmine\block;
+
+use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
+use pocketmine\item\tool\pickaxe\Pickaxe;
+use pocketmine\item\tool\Tool;
+use pocketmine\math\Vector3;
+use pocketmine\nbt\tag\Compound;
+use pocketmine\nbt\tag\Enum;
+use pocketmine\nbt\tag\IntTag;
+use pocketmine\nbt\tag\StringTag;
+use pocketmine\Player;
+use pocketmine\tile\EnderChest as TileEnderChest;
+use pocketmine\tile\Tile;
+
+class EnderChest extends Chest {
+
+	protected $id = self::ENDER_CHEST;
+
+	public function getHardness() : float {
+		return 22.5;
+	}
+
+	public function getBlastResistance() : float {
+		return 3000;
+	}
+
+	public function getLightLevel() : int {
+		return 7;
+	}
+
+	public function getName() : string {
+		return "Ender Chest";
+	}
+
+	public function getToolType() : int {
+		return Tool::TYPE_PICKAXE;
+	}
+
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $facePos, Player $player = null) : bool {
+		$faces = [
+			0 => 4,
+			1 => 2,
+			2 => 5,
+			3 => 3
+		];
+
+		$this->meta = $faces[$player instanceof Player ? $player->getDirection() : 0];
+
+		$this->getLevel()->setBlock($blockReplace, $this, true, true);
+
+		$nbt = new Compound("", [
+			new Enum("Items", []),
+			new StringTag("id", Tile::ENDER_CHEST),
+			new IntTag("x", $this->x),
+			new IntTag("y", $this->y),
+			new IntTag("z", $this->z),
+		]);
+		Tile::createTile(Tile::ENDER_CHEST, $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4), $nbt);
+
+		return true;
+	}
+
+	public function onBreak(Item $item, Player $player = null) : bool {
+		return Block::onBreak($item, $player);
+	}
+
+	public function onActivate(Item $item, Player $player = null) : bool {
+		if($player instanceof Player) {
+			$t = $this->getLevel()->getTile($this);
+			$enderChest = null;
+			if(!($t instanceof TileEnderChest)) {
+				Tile::createTile(Tile::ENDER_CHEST, $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4), new Compound("", [
+					new Enum("Items", []),
+					new StringTag("id", Tile::ENDER_CHEST),
+					new IntTag("x", $this->x),
+					new IntTag("y", $this->y),
+					new IntTag("z", $this->z),
+				]));
+			}
+
+			if(!$this->getSide(Vector3::SIDE_UP)->isTransparent()) {
+				return true;
+			}
+
+			$player->getEnderChestInventory()->openAt($this);
+		}
+
+		return true;
+	}
+
+	public function getDrops(Item $item) : array {
+		if($item instanceof Pickaxe) {
+			return [ItemFactory::get(Item::OBSIDIAN, 0, 8)];
+		}
+
+		return [];
+	}
+
+	public function getFuelTime() : int {
+		return 0;
+	}
+
+}
