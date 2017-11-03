@@ -1974,7 +1974,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				//Timings::$timerRemoveBlockPacket->stopTiming();
 				break;
 			case 'MOB_ARMOR_EQUIPMENT_PACKET':
-				return $this->inventoryAdapter->handleMobArmorEquipment($packet);
+				break;
 			case 'INTERACT_PACKET':
 				if($packet->action === InteractPacket::ACTION_DAMAGE) {
 					$target = $this->getLevel()->getEntity($packet->target);

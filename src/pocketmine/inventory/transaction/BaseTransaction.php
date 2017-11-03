@@ -235,6 +235,8 @@ class BaseTransaction implements Transaction {
 					}
 				}
 				$this->getInventory()->setItem($this->getSlot(), $this->getTargetItem(), false);
+			} else {
+				$this->getInventory()->sendContents($source);
 			}
 		}
 
