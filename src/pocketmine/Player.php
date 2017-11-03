@@ -146,6 +146,7 @@ use pocketmine\utils\TextFormat;
  */
 class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
+	/** Device operating systems */
 	const OS_ANDROID = 1;
 	const OS_IOS = 2;
 	const OS_OSX = 3;
@@ -315,9 +316,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	private $inventoryType = self::INVENTORY_CLASSIC;
 	private $languageCode = false;
 
-	/** @IMPORTANT don't change the scope */
-	private $deviceType = self::OS_DEDICATED;
-
 	/** @var MessageQueue */
 	private $messageQueue = null;
 
@@ -369,6 +367,9 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	/** @var array */
 	public $commandData = [];
+
+	/** @var int */
+	private $deviceOs = -1;
 
 	public function getLeaveMessage(){
 		return "";
@@ -454,6 +455,10 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	public function setAllowInstaBreak(bool $value = false){
 		$this->allowInstaBreak = $value;
+	}
+
+	public function getDeviceOs() : int {
+		return $this->deviceOs;
 	}
 
 	/**
@@ -1728,14 +1733,13 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$this->clientSecret = $packet->clientSecret;
 				$this->protocol = $packet->protocol1;
 				$this->setSkin($packet->skin, $packet->skinName, $packet->skinGeometryName, $packet->skinGeometryData, $packet->capeData);
-				if($packet->osType > 0) {
-					$this->deviceType = $packet->osType;
-				}
+
 				if($packet->inventoryType >= 0) {
 					$this->inventoryType = $packet->inventoryType;
 				}
 				$this->xuid = $packet->xuid;
 				$this->languageCode = $packet->languageCode;
+				$this->deviceOs = $packet->osType;
 
 				$this->serverAddress = $packet->serverAddress;
 				$this->clientVersion = $packet->clientVersion;
@@ -3336,10 +3340,6 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		return $this->protocol;
 	}
 
-	public function getDeviceOS() {
-		return $this->deviceType;
-	}
-
 	public function getInventoryType() {
 		return $this->inventoryType;
 	}
@@ -3798,7 +3798,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$this->subClientId = $packet->targetSubClientID;
 
 		// some statistics information
-		$this->deviceType = $parent->getDeviceOS();
+		$this->deviceOs = $parent->getDeviceOS();
 		$this->inventoryType = $parent->getInventoryType();
 		$this->languageCode = $parent->languageCode;
 		$this->serverAddress = $parent->serverAddress;
