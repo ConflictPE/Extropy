@@ -174,7 +174,7 @@ class PlayerInventoryAdapter120 implements InventoryAdapter {
 				if(!$player->canInteract($blockPosition->add(0.5, 0.5, 0.5), 13) or $player->isSpectator()) {
 
 				} elseif($player->isCreative()) {
-					if($player->getLevel()->useItemOn($blockPosition, $item, $face, $clickPosition, $this, true) === true){
+					if($player->getLevel()->useItemOn($blockPosition, $item, $face, $clickPosition, $player, true) === true){
 						return;
 					}
 				} elseif(!$handItem->equals($item)) {

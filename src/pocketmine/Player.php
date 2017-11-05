@@ -2176,16 +2176,20 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					}
 				}
 				if(!isset($this->commandData[$name])) {
-					$this->sendMessage("Unknown command!");
+					$this->sendMessage(TextFormat::GOLD . "Unknown command!");
 					return false;
 				}
 				$params = json_decode($packet->outputFormat, true);
 				$command = "/" . $name;
 				$data = $this->commandData[$name];
+				if(!isset($data["versions"][0]["overloads"][$packet->overload])) {
+					$this->sendMessage(TextFormat::GOLD . "Unknown command!");
+					return false;
+				}
 				$expected = $data["versions"][0]["overloads"][$packet->overload]["input"]["parameters"];
 				foreach($expected as $expectedArgument) {
 					if((!isset($params[$expectedArgument["name"]]) and (isset($expectedArgument["name"]["optional"])) and $expectedArgument["name"]["optional"] !== true)) {
-						$this->sendMessage("Incorrect arguments given for {$name} command!");
+						$this->sendMessage(TextFormat::GOLD . "Incorrect arguments given for {$name} command!");
 						return false;
 					}
 					if(isset($params[$expectedArgument["name"]])) {
