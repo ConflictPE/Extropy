@@ -327,11 +327,12 @@ class PlayerInventoryAdapter120 implements InventoryAdapter {
 				$transaction = new InventoryTransaction($player, $invActions);
 
 				if(!$transaction->execute()) {
-					$player->getServer()->getLogger()->debug("Failed to execute inventory transaction from " . $player->getName() . " with actions: " /*. json_encode($invActions)*/);
+					$text = "Failed to execute inventory transaction from " . $player->getName() . " with actions: ";
 					/** @var InventoryAction $ac */
 					foreach($invActions as $ac) {
-						echo (new \ReflectionObject($ac))->getShortName() . ": " . json_encode($ac) . PHP_EOL;
+						$text .= (new \ReflectionObject($ac))->getShortName() . ": " . json_encode($ac) . PHP_EOL;
 					}
+					$player->getServer()->getLogger()->debug($text);
 					$player->sendAllInventories();
 				}
 
