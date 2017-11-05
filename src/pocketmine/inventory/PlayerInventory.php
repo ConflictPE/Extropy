@@ -70,14 +70,9 @@ class PlayerInventory extends BaseInventory {
 	 *
 	 * @return bool    If the equipment change was successful, false if not.
 	 */
-	public function oldEquipItem(int $hotbarSlot, int $inventorySlot) : bool {
+	public function oldEquipItem(int $hotbarSlot, int $inventorySlot = null) : bool {
 		if($inventorySlot === null) {
 			$inventorySlot = $this->getHotbarSlotIndex($hotbarSlot);
-		}
-
-		if($hotbarSlot < 0 or $hotbarSlot >= $this->getHotbarSize() or $inventorySlot < -1 or $inventorySlot >= $this->getSize()) {
-			$this->sendContents($this->getHolder());
-			return false;
 		}
 
 		if($inventorySlot === -1) {
@@ -585,7 +580,7 @@ class PlayerInventory extends BaseInventory {
 					}
 				}
 
-				$player->getInventoryAdapter()->sendInventoryContents(ContainerIds::TYPE_INVENTORY, $slots);
+				$player->getInventoryAdapter()->sendInventoryContents(ContainerIds::TYPE_INVENTORY, $slots, $hotbarMap);
 			} else {
 
 				if(($id = $player->getWindowId($this)) === ContainerIds::TYPE_NONE) {

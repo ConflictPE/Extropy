@@ -102,6 +102,12 @@ class PlayerInventoryAdapter implements InventoryAdapter {
 	 */
 	public function handleMobEquipment(int $hotbarSlot, Item $item, int $inventorySlot) {
 		$player = $this->getPlayer();
+		$inventory = $player->getInventory();
+
+		if($hotbarSlot < 0 or $hotbarSlot >= $inventory->getHotbarSize() or $inventorySlot < -1 or $inventorySlot >= $inventory->getSize()) {
+			$inventory->sendContents($player);
+			return;
+		}
 
 		$this->getTransactionQueue()->addTransaction(new EquipItemTransaction($inv = $player->getInventory(), $inventorySlot - 9, $hotbarSlot, $player->getInventory()->getItem($inventorySlot - 9), $item));
 	}
