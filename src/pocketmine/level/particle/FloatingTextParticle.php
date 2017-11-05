@@ -82,13 +82,10 @@ class FloatingTextParticle extends Particle{
 			$pk->x = $this->x;
 			$pk->y = $this->y + 0.15;
 			$pk->z = $this->z;
-			$pk->speedX = 0;
-			$pk->speedY = 0;
-			$pk->speedZ = 0;
 			$pk->yaw = 0;
 			$pk->pitch = 0;
 			$pk->metadata = [
-				Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, [Entity::DATA_FLAG_CAN_SHOW_NAMETAG, Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG]],
+				Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, [Entity::DATA_FLAG_CAN_SHOW_NAMETAG => true, Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG => true, Entity::DATA_FLAG_IMMOBILE => true]],
 				Entity::DATA_NAMETAG => [Entity::DATA_TYPE_STRING, $this->title . ($this->text !== "" ? "\n" . $this->text : "")],
 				Entity::DATA_LEAD_HOLDER_EID => [Entity::DATA_TYPE_LONG, -1],
 				Entity::DATA_SCALE => [Entity::DATA_TYPE_FLOAT, 0.01],
