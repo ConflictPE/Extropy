@@ -78,6 +78,7 @@ use pocketmine\network\protocol\SetEntityLinkPacket;
 use pocketmine\network\protocol\SetEntityMotionPacket;
 use pocketmine\network\protocol\SetSpawnPositionPacket;
 use pocketmine\network\protocol\SetTimePacket;
+use pocketmine\network\protocol\SetTitlePacket;
 use pocketmine\network\protocol\StartGamePacket;
 use pocketmine\network\protocol\TakeItemEntityPacket;
 use pocketmine\network\protocol\TextPacket;
@@ -482,7 +483,7 @@ class Network {
 		$this->registerPacket105(ProtocolInfo105::RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket::class);
 		$this->registerPacket105(ProtocolInfo105::RESOURCE_PACKS_CLIENT_RESPONSE_PACKET, ResourcePackClientResponsePacket::class);
 		$this->registerPacket105(ProtocolInfo105::BOSS_EVENT_PACKET, BossEventPacket::class);
-
+		$this->registerPacket105(ProtocolInfo105::SET_TITLE_PACKET, SetTitlePacket::class);
 	}
 
 
@@ -543,6 +544,7 @@ class Network {
 		$this->registerPacket110(ProtocolInfo110::RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket::class);
 		$this->registerPacket110(ProtocolInfo110::RESOURCE_PACKS_CLIENT_RESPONSE_PACKET, ResourcePackClientResponsePacket::class);
 		$this->registerPacket110(ProtocolInfo110::BOSS_EVENT_PACKET, BossEventPacket::class);
+		$this->registerPacket110(ProtocolInfo110::SET_TITLE_PACKET, SetTitlePacket::class);
 	}
 
 	private function registerPackets120() {
@@ -606,6 +608,7 @@ class Network {
 		$this->registerPacket120(ProtocolInfo120::SERVER_SETTINGS_REQUEST_PACKET, ServerSettingsRequestPacket::class);
 		$this->registerPacket120(ProtocolInfo120::PURCHASE_RECEIPT_PACKET, PurchaseReceiptPacket::class);
 		$this->registerPacket120(ProtocolInfo120::SUB_CLIENT_LOGIN_PACKET, SubClientLoginPacket::class);
+		$this->registerPacket120(ProtocolInfo120::SET_TITLE_PACKET, SetTitlePacket::class);
 	}
 
 }
