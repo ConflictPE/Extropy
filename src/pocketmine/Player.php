@@ -3191,6 +3191,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$pk->z = (int) $spawnPosition->z;
 		$this->dataPacket($pk);
 
+		$this->setCanClimb(true);
+
 		$this->sendCommandData();
 
 		$pk = new SetDifficultyPacket();

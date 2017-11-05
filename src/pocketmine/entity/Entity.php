@@ -518,7 +518,7 @@ abstract class Entity extends Location implements Metadatable{
 	 * @return bool
 	 */
 	public function canClimb() : bool{
-		return $this->getDataFlag(self::DATA_FLAGS, self::DATA_FLAG_CAN_CLIMB);
+		return $this->getGenericFlag(self::DATA_FLAG_CAN_CLIMB);
 	}
 
 	/**
@@ -526,7 +526,7 @@ abstract class Entity extends Location implements Metadatable{
 	 * @param bool $value
 	 */
 	public function setCanClimb(bool $value){
-		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_CAN_CLIMB, $value);
+		$this->setGenericFlag(self::DATA_FLAG_CAN_CLIMB, $value);
 	}
 
 	/**
