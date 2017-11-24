@@ -927,6 +927,45 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		}
 
 		$this->server->getPluginManager()->callEvent($ev = new PlayerJoinEvent($this, ""));
+
+		if($this->getHealth() <= 0) {
+			$this->craftingType = self::CRAFTING_DEFAULT;
+
+			$this->server->getPluginManager()->callEvent($ev = new PlayerRespawnEvent($this, $this->getSpawn()));
+
+			$this->teleport($ev->getRespawnPosition()->add(0.5, 0.5, 0.5));
+
+			$this->setSprinting(false, true);
+			$this->setSneaking(false);
+
+			$this->extinguish();
+			$this->setAirTick(400);
+			$this->deadTicks = 0;
+			$this->dead = false;
+			$this->noDamageTicks = 60;
+
+			$this->removeAllEffects();
+
+			$this->setHealth($this->getMaxHealth());
+			$this->setFood(self::MAX_FOOD);
+
+			$this->setSaturation(self::MAX_SATURATION);
+			$this->setExhaustion(self::MIN_EXHAUSTION);
+			$this->foodTickTimer = 0;
+			$this->lastSentVitals = 10;
+
+			$this->sendSettings();
+			$this->inventory->sendContents($this);
+			$this->inventory->sendArmorContents($this);
+
+			$this->blocked = false;
+
+			$this->scheduleUpdate();
+
+			$this->server->getPluginManager()->callEvent(new PlayerRespawnAfterEvent($this));
+
+			// $this->setMayMove(false);
+		}
 	}
 
 	protected function orderChunks() {
