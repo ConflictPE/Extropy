@@ -132,7 +132,7 @@ abstract class AsyncTask extends Collectable{
 	 */
 	public function getFromThreadStore($identifier){
 		global $store;
-		return $this->isFinished() ? null : $store[$identifier];
+		return ($this->isGarbage() or !isset($store[$identifier])) ? null : $store[$identifier];
 	}
 
 	/**
@@ -190,7 +190,7 @@ abstract class AsyncTask extends Collectable{
 
 	public function saveToThreadStore($identifier, $value){
 		global $store;
-		if(!$this->isFinished()){
+		if(!$this->isGarbage()){
 			$store[$identifier] = $value;
 		}
 	}

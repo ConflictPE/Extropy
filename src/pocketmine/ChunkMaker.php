@@ -7,7 +7,7 @@ use pocketmine\network\protocol\FullChunkDataPacket;
 use pocketmine\network\protocol\Info;
 use pocketmine\utils\Binary;
 
-class ChunkMaker extends Worker {
+class ChunkMaker extends Thread {
 
 
 	protected $classLoader;
@@ -188,8 +188,9 @@ class ChunkMaker extends Worker {
 		$this->externalQueue[] = serialize($result);
 	}
 
-	public function shutdown(){
+	public function join(){
 		$this->shutdown = true;
+		parent::join();
 	}
 
 	public function errorHandler($errno, $errstr, $errfile, $errline, $context, $trace = null){

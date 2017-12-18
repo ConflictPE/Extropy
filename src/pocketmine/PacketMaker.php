@@ -9,7 +9,7 @@ use pocketmine\network\protocol\MovePlayerPacket;
 use pocketmine\network\protocol\SetEntityMotionPacket;
 use pocketmine\utils\Binary;
 
-class PacketMaker extends Worker {
+class PacketMaker extends Thread {
 
 
 	protected $classLoader;
@@ -164,8 +164,9 @@ class PacketMaker extends Worker {
 		return serialize($data);
 	}
 
-	public function shutdown(){
+	public function join() {
 		$this->shutdown = true;
+		parent::join();
 	}
 
 
