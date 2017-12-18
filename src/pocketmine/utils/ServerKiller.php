@@ -31,7 +31,7 @@ class ServerKiller extends Thread {
 		$this->time = $time;
 	}
 
-	public function start(int $options = PTHREADS_INHERIT_NONE) {
+	public function start(?int $options = PTHREADS_INHERIT_NONE) {
 		parent::start($options);
 	}
 
