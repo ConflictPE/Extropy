@@ -68,6 +68,10 @@ class CraftingTransaction extends InventoryTransaction {
 		$y = (int) ($index / $this->gridSize);
 		$x = $index % $this->gridSize;
 
+		if(!isset($this->inputs[$y][$x])) {
+			return;
+		}
+
 		if($this->inputs[$y][$x]->isNull()) {
 			$this->inputs[$y][$x] = clone $item;
 		} elseif(!$this->inputs[$y][$x]->equals($item)) {
