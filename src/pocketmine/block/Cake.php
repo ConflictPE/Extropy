@@ -96,7 +96,7 @@ class Cake extends Transparent {
 		//		return true;
 		//	}
 		//}
-		//return false;
+		return false;
 	}
 
 	public function getFoodRestore() : int {
