@@ -925,31 +925,45 @@ class Level implements ChunkManager, Metadatable{
 
 	/**
 	 * @param AxisAlignedBB $bb
+	 * @param bool          $targetFirst
 	 *
 	 * @return Block[]
 	 */
-	public function getCollisionBlocks(AxisAlignedBB $bb) {
-		$minX = Math::floorFloat($bb->minX);
-		$minY = Math::floorFloat($bb->minY);
-		$minZ = Math::floorFloat($bb->minZ);
-		$maxX = Math::floorFloat($bb->maxX + 1);
-		$maxY = Math::floorFloat($bb->maxY + 1);
-		$maxZ = Math::floorFloat($bb->maxZ + 1);
+	public function getCollisionBlocks(AxisAlignedBB $bb, bool $targetFirst = false) : array {
+		$bbPlusOne = $bb->grow(1, 1, 1);
+		$minX = Math::floorFloat($bbPlusOne->minX);
+		$minY = Math::floorFloat($bbPlusOne->minY);
+		$minZ = Math::floorFloat($bbPlusOne->minZ);
+		$maxX = Math::ceilFloat($bbPlusOne->maxX);
+		$maxY = Math::ceilFloat($bbPlusOne->maxY);
+		$maxZ = Math::ceilFloat($bbPlusOne->maxZ);
 
 		$collides = [];
 
-		$v = $this->temporalVector;
-
-		for($v->z = $minZ; $v->z < $maxZ; ++$v->z) {
-			for($v->x = $minX; $v->x < $maxX; ++$v->x) {
-				for($v->y = $minY - 1; $v->y < $maxY; ++$v->y) {
-					$block = $this->getBlock($v);
-					if($block->getId() !== 0 and $block->collidesWithBB($bb)) {
-						$collides[] = $block;
+		if($targetFirst) {
+			for($z = $minZ; $z <= $maxZ; ++$z) {
+				for($x = $minX; $x <= $maxX; ++$x) {
+					for($y = $minY; $y <= $maxY; ++$y) {
+						$block = $this->getBlockAt($x, $y, $z);
+						if($block->getId() !== 0 and $block->collidesWithBB($bb)){
+							return [$block];
+						}
+					}
+				}
+			}
+		} else {
+			for($z = $minZ; $z <= $maxZ; ++$z) {
+				for($x = $minX; $x <= $maxX; ++$x) {
+					for($y = $minY; $y <= $maxY; ++$y) {
+						$block = $this->getBlockAt($x, $y, $z);
+						if($block->getId() !== 0 and $block->collidesWithBB($bb)) {
+							$collides[] = $block;
+						}
 					}
 				}
 			}
 		}
+
 
 		return $collides;
 	}
@@ -1103,31 +1117,77 @@ class Level implements ChunkManager, Metadatable{
 		return $this->getChunk($x >> 4, $z >> 4, false)->getFullBlock($x & 0x0f, $y & $this->getYMask(), $z & 0x0f);
 	}
 
+	public function isInWorld(float $x, float $y, float $z) : bool {
+		return (
+			$x <= INT32_MAX and $x >= INT32_MIN and
+			$y < $this->maxY and $y >= 0 and
+			$z <= INT32_MAX and $z >= INT32_MIN
+		);
+	}
+
 	/**
-	 * Gets the Block object on the Vector3 location
+	 * Gets the Block object at the Vector3 location. This method wraps around {@link getBlockAt}, converting the
+	 * vector components to integers.
+	 *
+	 * Note: If you're using this for performance-sensitive code, and you're guaranteed to be supplying ints in the
+	 * specified vector, consider using {@link getBlockAt} instead for better performance.
 	 *
 	 * @param Vector3 $pos
-	 * @param boolean $cached
+	 * @param bool    $cached Whether to use the block cache for getting the block (faster, but may be inaccurate)
+	 * @param bool    $addToCache Whether to cache the block object created by this method call.
 	 *
 	 * @return Block
 	 */
-	public function getBlock(Vector3 $pos, $cached = true){
-		$index = self::blockHash($pos->x, $pos->y, $pos->z);
-		if($cached === true and isset($this->blockCache[$index])){
-			return $this->blockCache[$index];
-		}elseif($pos->y >= 0 and $pos->y < $this->getMaxY() and isset($this->chunks[$chunkIndex = self::chunkHash ($pos->x >> 4, $pos->z >> 4)])){
-			$fullState = $this->chunks[$chunkIndex]->getFullBlock($pos->x & 0x0f, $pos->y & $this->getYMask(), $pos->z & 0x0f);
-		}else{
-			$fullState = 0;
+	public function getBlock(Vector3 $pos, bool $cached = true, bool $addToCache = true) : Block {
+		return $this->getBlockAt((int) floor($pos->x), (int) floor($pos->y), (int) floor($pos->z), $cached, $addToCache);
+	}
+
+	/**
+	 * Gets the Block object at the specified coordinates.
+	 *
+	 * Note for plugin developers: If you are using this method a lot (thousands of times for many positions for
+	 * example), you may want to set addToCache to false to avoid using excessive amounts of memory.
+	 *
+	 * @param int  $x
+	 * @param int  $y
+	 * @param int  $z
+	 * @param bool $cached Whether to use the block cache for getting the block (faster, but may be inaccurate)
+	 * @param bool $addToCache Whether to cache the block object created by this method call.
+	 *
+	 * @return Block
+	 */
+	public function getBlockAt(int $x, int $y, int $z, bool $cached = true, bool $addToCache = true) : Block {
+		$fullState = 0;
+		$blockHash = null;
+		$chunkHash = Level::chunkHash($x >> 4, $z >> 4);
+
+		if($this->isInWorld($x, $y, $z)) {
+			$blockHash = Level::blockHash($x, $y, $z);
+
+			if($cached and isset($this->blockCache[$chunkHash][$blockHash])) {
+				return $this->blockCache[$chunkHash][$blockHash];
+			}
+
+			$chunk = $this->chunks[$chunkHash] ?? null;
+			if($chunk !== null) {
+				$fullState = $chunk->getFullBlock($x & 0x0f, $y, $z & 0x0f);
+			} else {
+				$addToCache = false;
+			}
 		}
 
 		$block = clone $this->blockStates[$fullState & 0xfff];
-		$block->x = $pos->x;
-		$block->y = $pos->y;
-		$block->z = $pos->z;
+
+		$block->x = $x;
+		$block->y = $y;
+		$block->z = $z;
 		$block->level = $this;
 
-		return $this->blockCache[$index] = $block;
+		if($addToCache and $blockHash !== null) {
+			$this->blockCache[$chunkHash][$blockHash] = $block;
+		}
+
+		return $block;
 	}
 
 	public function updateAllLight(Vector3 $pos){

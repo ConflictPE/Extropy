@@ -1634,6 +1634,8 @@ abstract class Entity extends Location implements Metadatable{
 				$notInAir = $this->onGround || $this->isCollideWithWater();
 				$this->updateFallState($dy, $notInAir);
 
+				$this->checkGroundState($movX, $movY, $movZ, $dx, $dy, $dz);
+
 				if($movX != $dx){
 					$this->motionX = 0;
 				}
@@ -1655,7 +1657,12 @@ abstract class Entity extends Location implements Metadatable{
 		}
 	}
 
-
+	protected function checkGroundState(float $movX, float $movY, float $movZ, float $dx, float $dy, float $dz) {
+		$this->isCollidedVertically = $movY != $dy;
+		$this->isCollidedHorizontally = ($movX != $dx or $movZ != $dz);
+		$this->isCollided = ($this->isCollidedHorizontally or $this->isCollidedVertically);
+		$this->onGround = ($movY != $dy and $movY < 0);
+	}
 
 	public function setPositionAndRotation(Vector3 $pos, $yaw, $pitch){
 		if($this->setPosition($pos) === true){

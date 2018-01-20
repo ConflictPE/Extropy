@@ -1406,20 +1406,15 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 	}
 
-	protected function checkGroundState($movX, $movY, $movZ, $dx, $dy, $dz){
-		/*
-		if(!$this->onGround or $movY != 0){
+	protected function checkGroundState(float $movX, float $movY, float $movZ, float $dx, float $dy, float $dz){
+		if(!$this->onGround or $movY != 0) {
 			$bb = clone $this->boundingBox;
-			$bb->maxY = $bb->minY + 0.5;
-			$bb->minY -= 1;
-			if(count($this->level->getCollisionBlocks($bb, true)) > 0){
-				$this->onGround = true;
-			}else{
-				$this->onGround = false;
-			}
+			$bb->minY = $this->y - 0.2;
+			$bb->maxY = $this->y + 0.2;
+
+			$this->onGround = count($this->level->getCollisionBlocks($bb, true)) > 0;
 		}
 		$this->isCollided = $this->onGround;
-		*/
 	}
 
 	protected function checkBlockCollision(){
