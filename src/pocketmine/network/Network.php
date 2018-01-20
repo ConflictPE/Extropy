@@ -483,7 +483,7 @@ class Network {
 		$this->registerPacket105(ProtocolInfo105::RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket::class);
 		$this->registerPacket105(ProtocolInfo105::RESOURCE_PACKS_CLIENT_RESPONSE_PACKET, ResourcePackClientResponsePacket::class);
 		$this->registerPacket105(ProtocolInfo105::BOSS_EVENT_PACKET, BossEventPacket::class);
-		$this->registerPacket105(ProtocolInfo105::SET_TITLE_PACKET, SetTitlePacket::class);
+		//$this->registerPacket105(ProtocolInfo105::SET_TITLE_PACKET, SetTitlePacket::class);
 	}
 
 
