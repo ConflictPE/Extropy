@@ -95,6 +95,9 @@ class StartGamePacket extends PEPacket {
 			$this->putBool(false); // has trust players enabled
 			$this->putSignedVarInt(1); // permission level
 			$this->putSignedVarInt(4); // game publish setting
+			if($playerProtocol >= Info::PROTOCOL_201) {
+				$this->putLInt(4); // server chunk tick radius
+			}
 			$this->putString('3138ee93-4a4a-479b-8dca-65ca5399e075'); // level id (random UUID)
 			$this->putString(''); // level name
 			$this->putString(''); // template pack id

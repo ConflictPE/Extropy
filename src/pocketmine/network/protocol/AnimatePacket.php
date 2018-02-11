@@ -45,7 +45,11 @@ class AnimatePacket extends PEPacket {
 
 	public function decode(int $playerProtocol) {
 		$this->getHeader($playerProtocol);
-		$this->action = $this->getVarInt();
+		if($playerProtocol >= Info::PROTOCOL_120) {
+			$this->action = $this->getSignedVarInt();
+		} else {
+			$this->action = $this->getVarInt();
+		}
 		$this->eid = $this->getEntityRuntimeId();
 		if($this->action === self::ACTION_ROW_LEFT or $this->action === self::ACTION_ROW_LEFT) {
 			$this->float = $this->getLFloat();
@@ -54,7 +58,11 @@ class AnimatePacket extends PEPacket {
 
 	public function encode(int $playerProtocol) {
 		$this->reset($playerProtocol);
-		$this->putVarInt($this->action);
+		if($playerProtocol >= Info::PROTOCOL_120) {
+			$this->putSignedVarInt($this->action);
+		} else {
+			$this->putVarInt($this->action);
+		}
 		$this->putVarInt($this->eid);
 		if($this->action === self::ACTION_ROW_LEFT or $this->action === self::ACTION_ROW_LEFT) {
 			$this->putLFloat($this->float);

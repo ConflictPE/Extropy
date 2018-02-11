@@ -323,6 +323,7 @@ class Network {
 		/** @var DataPacket $class */
 		switch ($playerProtocol) {
 			case Info::PROTOCOL_120:
+			case Info::PROTOCOL_201:
 				$class = $this->packetPool120[$id];
 				break;
 			case Info::PROTOCOL_110:
