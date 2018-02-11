@@ -79,7 +79,7 @@ namespace pocketmine {
 	use pocketmine\wizard\Installer;
 	const VERSION = '1.6.0-hybrid';
 	const CODENAME = "刀 (Katana)";
-	const MINECRAFT_VERSION = "v1.1.0 - v1.2.7";
+	const MINECRAFT_VERSION = "v1.1.0 - v1.2.10";
 	const MINECRAFT_VERSION_NETWORK = "1.2";
 
 	/*
