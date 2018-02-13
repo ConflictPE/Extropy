@@ -3550,26 +3550,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 
 		$baseDamage = $heldItem->getAttackPoints();
 
-		if($target instanceof Player) {
-			if(($target->getGamemode() & 0x01) > 0) {
-				return;
-			}
-
-			$points = 0;
-			$toughness = 0;
-			foreach($target->getInventory()->getArmorContents() as $armorItem){
-				if($armorItem instanceof Armor) {
-					$points += $armorItem->getDefensePoints();
-					$toughness += $armorItem->getToughnessPoints();
-				}
-			}
-
-			$armorReduction = -($baseDamage - ($baseDamage * (1 - min(20, max($points / 5, $points - $baseDamage /(2 + $toughness / 4))) / 25)));
-		}
-
 		$ev = new EntityDamageByEntityEvent($this, $target, EntityDamageEvent::CAUSE_ENTITY_ATTACK, [
-			EntityDamageEvent::MODIFIER_BASE => $baseDamage,
-			EntityDamageEvent::MODIFIER_ARMOR => ($armorReduction ?? 0)
+			EntityDamageEvent::MODIFIER_BASE => $baseDamage
 		]);
 		$target->attack($ev->getFinalDamage(), $ev);
 

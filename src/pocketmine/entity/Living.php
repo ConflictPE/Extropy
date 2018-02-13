@@ -27,6 +27,7 @@ use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDeathEvent;
 use pocketmine\event\entity\EntityRegainHealthEvent;
+use pocketmine\item\armor\Armor;
 use pocketmine\item\Item as ItemItem;
 use pocketmine\math\Math;
 use pocketmine\math\Vector3;
@@ -104,6 +105,19 @@ abstract class Living extends Entity implements Damageable{
 		if($this->hasEffect(Effect::DAMAGE_RESISTANCE)){
 			$source->setDamage(-($source->getFinalDamage() * 0.20 * ($this->getEffect(Effect::DAMAGE_RESISTANCE)->getAmplifier() + 1)), EntityDamageEvent::MODIFIER_RESISTANCE);
 		}
+
+		if($this instanceof Player) {
+			$points = 0;
+			foreach($this->getInventory()->getArmorContents() as $armorItem){
+				if($armorItem instanceof Armor) {
+					$points += $armorItem->getDefensePoints();
+				}
+			}
+
+			$armorReduction = -$source->getFinalDamage() * $points * 0.004;
+		}
+
+		$source->setDamage($armorReduction ?? 0, EntityDamageEvent::MODIFIER_ARMOR);
 
 		parent::attack($damage, $source);
 
