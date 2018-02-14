@@ -89,6 +89,7 @@ use pocketmine\network\SourceInterface;
 use pocketmine\network\upnp\UPnP;
 use pocketmine\permission\BanList;
 use pocketmine\permission\DefaultPermissions;
+use pocketmine\plugin\FolderPluginLoader;
 use pocketmine\plugin\PharPluginLoader;
 use pocketmine\plugin\Plugin;
 use pocketmine\plugin\PluginLoadOrder;
@@ -1649,6 +1650,9 @@ class Server{
 //		$this->pluginManager->setUseTimings($this->getProperty("settings.enable-profiling", false));
 		$this->pluginManager->setUseTimings(true);
 		$this->pluginManager->registerInterface(PharPluginLoader::class);
+		if($this->getAdvancedProperty("folder-plugin-loader", false)) {
+			$this->pluginManager->registerInterface(FolderPluginLoader::class);
+		}
 
 		\set_exception_handler([$this, "exceptionHandler"]);
 		register_shutdown_function([$this, "crashDump"]);

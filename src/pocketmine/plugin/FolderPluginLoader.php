@@ -24,13 +24,9 @@ namespace pocketmine\plugin;
 use pocketmine\event\plugin\PluginDisableEvent;
 use pocketmine\event\plugin\PluginEnableEvent;
 use pocketmine\Server;
-use pocketmine\utils\PluginException;
 use pocketmine\utils\TextFormat;
 
-/**
- * Handles different types of plugins
- */
-class PharPluginLoader implements PluginLoader{
+class FolderPluginLoader implements PluginLoader {
 
 	/** @var Server */
 	private $server;
@@ -38,7 +34,7 @@ class PharPluginLoader implements PluginLoader{
 	/**
 	 * @param Server $server
 	 */
-	public function __construct(Server $server){
+	public function __construct(Server $server) {
 		$this->server = $server;
 	}
 
@@ -47,33 +43,32 @@ class PharPluginLoader implements PluginLoader{
 	 *
 	 * @param string $file
 	 *
-	 * @return Plugin
-	 *
-	 * @throws \Exception
+	 * @return Plugin|null
 	 */
 	public function loadPlugin($file){
-		if(($description = $this->getPluginDescription($file)) instanceof PluginDescription) {
-			$this->server->getLogger()->info(TextFormat::GRAY . "Loading phar plugin " . $description->getFullName());
-			$dataFolder = dirname($file) . DIRECTORY_SEPARATOR . $description->getName();
-			if(file_exists($dataFolder) and !is_dir($dataFolder)) {
-				$this->server->getLogger()->warning("Projected dataFolder '" . $dataFolder . "' for source plugin " . $description->getName() . " exists and is not a directory");
+		if(is_dir($file) and file_exists($file . "/plugin.yml") and file_exists($file . "/src/")) {
+			if(($description = $this->getPluginDescription($file)) instanceof PluginDescription) {
+				$this->server->getLogger()->info(TextFormat::LIGHT_PURPLE . "Loading source plugin " . $description->getFullName());
+				$dataFolder = dirname($file) . DIRECTORY_SEPARATOR . $description->getName();
+				if(file_exists($dataFolder) and !is_dir($dataFolder)) {
+					$this->server->getLogger()->warning("Projected dataFolder '" . $dataFolder . "' for source plugin " . $description->getName() . " exists and is not a directory");
 
-				return null;
-			}
+					return null;
+				}
 
-			$file = "phar://$file";
-			$className = $description->getMain();
-			$this->server->getLoader()->addPath("$file/src");
+				$className = $description->getMain();
+				$this->server->getLoader()->addPath($file . "/src");
 
-			if(class_exists($className, true)) {
-				$plugin = new $className();
-				$this->initPlugin($plugin, $description, $dataFolder, $file);
+				if(class_exists($className, true)) {
+					$plugin = new $className();
+					$this->initPlugin($plugin, $description, $dataFolder, $file);
 
-				return $plugin;
-			} else {
-				$this->server->getLogger()->warning("Couldn't load phar plugin " . $description->getName() . ": main class not found");
+					return $plugin;
+				} else {
+					$this->server->getLogger()->warning("Couldn't load source plugin " . $description->getName() . ": main class not found");
 
-				return null;
+					return null;
+				}
 			}
 		}
 
@@ -85,14 +80,13 @@ class PharPluginLoader implements PluginLoader{
 	 *
 	 * @param string $file
 	 *
-	 * @return PluginDescription
+	 * @return null|PluginDescription
 	 */
 	public function getPluginDescription($file) {
-		$phar = new \Phar($file);
-		if(isset($phar["plugin.yml"])) {
-			$pluginYml = $phar["plugin.yml"];
-			if($pluginYml instanceof \PharFileInfo){
-				return new PluginDescription($pluginYml->getContent());
+		if(is_dir($file) and file_exists($file . "/plugin.yml")) {
+			$yaml = @file_get_contents($file . "/plugin.yml");
+			if($yaml != "") {
+				return new PluginDescription($yaml);
 			}
 		}
 
@@ -105,7 +99,7 @@ class PharPluginLoader implements PluginLoader{
 	 * @return string
 	 */
 	public function getPluginFilters() : string {
-		return "/\\.phar$/i";
+		return "/[^\\.]/";
 	}
 
 	/**
@@ -114,7 +108,7 @@ class PharPluginLoader implements PluginLoader{
 	 * @param string            $dataFolder
 	 * @param string            $file
 	 */
-	private function initPlugin(PluginBase $plugin, PluginDescription $description, $dataFolder, $file){
+	private function initPlugin(PluginBase $plugin, PluginDescription $description, $dataFolder, $file) {
 		$plugin->init($this, $this->server, $description, $dataFolder, $file);
 		$plugin->onLoad();
 	}
@@ -123,7 +117,7 @@ class PharPluginLoader implements PluginLoader{
 	 * @param Plugin $plugin
 	 */
 	public function enablePlugin(Plugin $plugin) {
-		if($plugin instanceof PluginBase and !$plugin->isEnabled()){
+		if($plugin instanceof PluginBase and !$plugin->isEnabled()) {
 			$this->server->getLogger()->info("Enabling " . $plugin->getDescription()->getFullName());
 
 			$plugin->setEnabled(true);
@@ -135,8 +129,8 @@ class PharPluginLoader implements PluginLoader{
 	/**
 	 * @param Plugin $plugin
 	 */
-	public function disablePlugin(Plugin $plugin){
-		if($plugin instanceof PluginBase and $plugin->isEnabled()){
+	public function disablePlugin(Plugin $plugin) {
+		if($plugin instanceof PluginBase and $plugin->isEnabled()) {
 			$this->server->getLogger()->info("Disabling " . $plugin->getDescription()->getFullName());
 
 			$this->server->getPluginManager()->callEvent(new PluginDisableEvent($plugin));

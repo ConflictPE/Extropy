@@ -8,6 +8,9 @@ plugins:
  #BigBrother: "https://github.com/shoghicp/BigBrother/releases/download/v1.3.0-beta/BigBrother_v1.3.0-beta.phar"
  #SimpleAuth: "/full/path/to/file/SimpleAuth.phar"
 
+#Load source plugins automatically?
+folder-plugin-loader: false
+
 messages:
  #Message shown when a player uses a not registered or non-existent command
  unknown-command: 'Unknown command. Type "/help" for help.'
